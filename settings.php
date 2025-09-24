@@ -23,20 +23,65 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_ai\admin\admin_settingspage_provider;
+
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage(
+    $settings = new admin_settingspage_provider(
         'aiprovider_datacurso',
-        get_string('pluginname', 'aiprovider_datacurso')
+        new lang_string('pluginname', 'aiprovider_datacurso'),
+        'moodle/site:config',
+        true
     );
 
-    // Campo para API Key.
+    // Encabezado Configuración general.
+    $settings->add(new admin_setting_heading(
+        'aiprovider_datacurso/general',
+        new lang_string('settings', 'core'),
+        ''
+    ));
+
+    // License key.
     $settings->add(new admin_setting_configtext(
-        'aiprovider_datacurso/apikey',
-        get_string('apikey', 'aiprovider_datacurso'),
-        get_string('apikey_desc', 'aiprovider_datacurso'),
+        'aiprovider_datacurso/licensekey',
+        new lang_string('licensekey', 'aiprovider_datacurso'),
+        new lang_string('licensekey_desc', 'aiprovider_datacurso'),
         '',
-        PARAM_ALPHANUMEXT
+        PARAM_TEXT
+    ));
+
+    // API base URL.
+    $settings->add(new admin_setting_configtext(
+        'aiprovider_datacurso/apiurl',
+        new lang_string('apiurl', 'aiprovider_datacurso'),
+        new lang_string('apiurl_desc', 'aiprovider_datacurso'),
+        '',
+        PARAM_URL
+    ));
+
+    // Token threshold notification.
+    $settings->add(new admin_setting_configtext(
+        'aiprovider_datacurso/tokenthreshold',
+        new lang_string('tokenthreshold', 'aiprovider_datacurso'),
+        new lang_string('tokenthreshold_desc', 'aiprovider_datacurso'),
+        50,
+        PARAM_INT
+    ));
+
+    // Enlaces adicionales.
+    $settings->add(new admin_setting_heading(
+        'aiprovider_datacurso/links',
+        null,
+        html_writer::tag('div',
+            html_writer::link(
+                new moodle_url('/ai/provider/datacurso/consumption.php'),
+                get_string('link_consumptionhistory', 'aiprovider_datacurso')
+            ) . '<br>' .
+            html_writer::link(
+                new moodle_url('/ai/provider/datacurso/report.php'),
+                get_string('link_generalreport', 'aiprovider_datacurso')
+            )
+        )
     ));
 }

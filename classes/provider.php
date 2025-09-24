@@ -16,44 +16,74 @@
 
 namespace aiprovider_datacurso;
 
+use core_ai\aiactions;
+
 /**
- * Main class for the Datacurso Provider AI provider
+ * Class provider for DataCurso.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025 Industria Elearning <info@industriaelearning.com>
+ * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider extends \core_ai\provider {
 
     /**
-     * Get the actions that this provider supports.
+     * Constructor.
+     */
+    public function __construct() {
+        // Aquí podrías cargar configuraciones en el futuro (por ahora vacío).
+    }
+
+    /**
+     * Get the list of actions that this provider supports.
      *
-     * Returns an array of action class names.
-     *
-     * @return array An array of action class names.
+     * @return array
      */
     public function get_action_list(): array {
         return [
             \core_ai\aiactions\generate_text::class,
+            \core_ai\aiactions\generate_image::class,
+            \core_ai\aiactions\summarise_text::class,
         ];
     }
 
     /**
-     * Check this provider has the minimal configuration to work.
+     * Check if the provider is configured.
      *
-     * @return bool Return true if configured.
+     * @return bool
      */
     public function is_provider_configured(): bool {
+        // Como no tienes settings aún, lo marcamos siempre como true.
         return true;
     }
 
     /**
-     * Is request allowed
+     * Check if a request is allowed.
      *
-     * @param \core_ai\aiactions\base $action
+     * @param aiactions\base $action
      * @return array|bool
      */
-    public function is_request_allowed(\core_ai\aiactions\base $action): array|bool {
+    public function is_request_allowed(aiactions\base $action): array|bool {
+        // Sin restricciones por ahora.
         return true;
+    }
+
+    /**
+     * Get any action settings for this provider.
+     *
+     * @param string $action The action class name.
+     * @param \admin_root $ADMIN The admin root object.
+     * @param string $section The section name.
+     * @param bool $hassiteconfig Whether the current user has moodle/site:config capability.
+     * @return array
+     */
+    public function get_action_settings(
+        string $action,
+        \admin_root $ADMIN,
+        string $section,
+        bool $hassiteconfig
+    ): array {
+        // No añadimos settings todavía.
+        return [];
     }
 }

@@ -1,0 +1,85 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template aiprovider_datacurso/report
+
+    TODO describe template report
+
+    Example context (json):
+    {
+    }
+}}
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3>{{#str}}link_report_statistic, aiprovider_datacurso{{/str}}</h3>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="report-summary-cards mb-4">
+        <div class="row">
+            <div class="col-md-6 col-12 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">{{#str}}tokens_available, aiprovider_datacurso{{/str}}</h4>
+                        <p class="card-text display-4 text-primary font-weight-bold">{{tokens_saldo.0.saldo_actual}}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-12 mb-3">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h4 class="card-title">{{#str}}total_consumed, aiprovider_datacurso{{/str}}</h4>
+                        <p class="card-text display-4 text-success font-weight-bold">{{total_consumed}}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="report-charts">
+        <div class="row">
+            <div class="col-lg-6 col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">{{#str}}chart_tokens_by_day, aiprovider_datacurso{{/str}}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="position: relative; height: 400px;">
+                            <canvas id="chart-tokens-by-day"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title mb-0">{{#str}}chart_actions, aiprovider_datacurso{{/str}}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="position: relative; height: 400px;">
+                            <canvas id="chart-actions"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
