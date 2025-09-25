@@ -62,7 +62,7 @@ $string['link_listplugings'] = 'Lista de plugins Datacurso';
 $string['tokens_available'] = 'Tokens disponibles';
 $string['total_consumed'] = 'Total consumido';
 $string['chart_tokens_by_day'] = 'Consumo de tokens por día';
-$string['chart_actions'] = 'Distribución de tokens por acciones';
+$string['chart_actions'] = 'Distribución de tokens por servicio';
 
 $string['workplace'] = '¿Es Moodle Workplace?';
 $string['workplace_desc'] = 'Define si se debe enviar el header X-Workplace con valor true (Workplace) o false (Moodle estándar).';

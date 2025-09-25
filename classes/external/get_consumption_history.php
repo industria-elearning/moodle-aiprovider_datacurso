@@ -78,6 +78,7 @@ class get_consumption_history extends external_api {
                     'id_usuario'      => new external_value(PARAM_INT, 'ID del usuario'),
                     'id_key'          => new external_value(PARAM_INT, 'ID de la licencia usada'),
                     'accion'          => new external_value(PARAM_TEXT, 'Acción realizada'),
+                    'servicio'          => new external_value(PARAM_TEXT, 'Servicio utilizado'),
                     'cantidad_tokens' => new external_value(PARAM_INT, 'Cantidad de tokens consumidos'),
                     'saldo_restante'  => new external_value(PARAM_INT, 'Saldo restante después del consumo'),
                     'fecha'           => new external_value(PARAM_RAW, 'Fecha del consumo en formato ISO 8601'),

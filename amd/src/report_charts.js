@@ -14,10 +14,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe module report
+ * Report charts module.
  *
  * @module     aiprovider_datacurso/report_charts
- * @copyright  2025 Industria Elearning <info@industriaelearning.com>
+ * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -28,7 +28,6 @@ import Chart from 'core/chartjs';
 import {get_string as getString} from 'core/str';
 
 export const init = () => {
-    console.log("📊 Report init");
 
     const tokensAvailable = document.getElementById('tokens-available');
     const tokensConsumed = document.getElementById('tokens-consumed');
@@ -82,7 +81,7 @@ export const init = () => {
         });
     };
 
-    // 🔹 Charts con filtros
+    // 🔹 Inicializar filtros y gráficos
     const initCharts = (data) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
@@ -94,24 +93,22 @@ export const init = () => {
             filterPie.innerHTML += `<option value="${s}">${s}</option>`;
         });
 
-        // Inicial render
-        renderCharts(data);
+        // Render inicial
+        renderBarChart(data);
+        renderPieChart(data);
 
-        // Listeners
-        filterBar.addEventListener('change', () => renderCharts(data));
-        filterPie.addEventListener('change', () => renderCharts(data));
+        // Listeners → cada gráfico escucha SOLO su filtro
+        filterBar.addEventListener('change', () => renderBarChart(data));
+        filterPie.addEventListener('change', () => renderPieChart(data));
     };
 
-    const renderCharts = (data) => {
-        const filterBar = document.getElementById('filter-service-bar').value;
-        const filterPie = document.getElementById('filter-service-pie').value;
+    // 🔹 Gráfico de barras (solo depende de filter-service-bar)
+    const renderBarChart = (data) => {
+        const filterValue = document.getElementById('filter-service-bar').value;
 
         let filteredData = data;
-        if (filterBar !== 'ALL' || filterPie !== 'ALL') {
-            filteredData = data.filter(c =>
-                (filterBar === 'ALL' || c.servicio === filterBar) &&
-                (filterPie === 'ALL' || c.servicio === filterPie)
-            );
+        if (filterValue !== 'ALL') {
+            filteredData = data.filter(c => c.servicio === filterValue);
         }
 
         // Agrupar por mes
@@ -121,13 +118,6 @@ export const init = () => {
             byMonth[month] = (byMonth[month] || 0) + c.cantidad_tokens;
         });
 
-        // Agrupar por acción
-        const byAction = {};
-        filteredData.forEach(c => {
-            byAction[c.accion] = (byAction[c.accion] || 0) + c.cantidad_tokens;
-        });
-
-        // Chart bar
         const ctx1 = document.getElementById('chart-tokens-by-month');
         if (chartBar) chartBar.destroy();
         chartBar = new Chart(ctx1, {
@@ -141,8 +131,23 @@ export const init = () => {
                 }]
             }
         });
+    };
 
-        // Chart pie
+    // 🔹 Gráfico de pie (solo depende de filter-service-pie)
+    const renderPieChart = (data) => {
+        const filterValue = document.getElementById('filter-service-pie').value;
+
+        let filteredData = data;
+        if (filterValue !== 'ALL') {
+            filteredData = data.filter(c => c.servicio === filterValue);
+        }
+
+        // Agrupar por acción
+        const byAction = {};
+        filteredData.forEach(c => {
+            byAction[c.accion] = (byAction[c.accion] || 0) + c.cantidad_tokens;
+        });
+
         const ctx2 = document.getElementById('chart-actions');
         if (chartPie) chartPie.destroy();
         chartPie = new Chart(ctx2, {
