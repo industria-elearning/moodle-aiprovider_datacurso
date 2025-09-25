@@ -38,7 +38,7 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <h4 class="card-title">{{#str}}tokens_available, aiprovider_datacurso{{/str}}</h4>
-                        <p class="card-text display-4 text-primary font-weight-bold">{{tokens_saldo.0.saldo_actual}}</p>
+                        <p id="tokens-available" class="card-text display-4 text-primary font-weight-bold">--</p>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
                 <div class="card h-100">
                     <div class="card-body text-center">
                         <h4 class="card-title">{{#str}}total_consumed, aiprovider_datacurso{{/str}}</h4>
-                        <p class="card-text display-4 text-success font-weight-bold">{{total_consumed}}</p>
+                        <p id="tokens-consumed" class="card-text display-4 text-success font-weight-bold">--</p>
                     </div>
                 </div>
             </div>
@@ -58,28 +58,54 @@
         <div class="row">
             <div class="col-lg-6 col-12 mb-4">
                 <div class="card">
-                    <div class="card-header">
-                        <h4 class="card-title mb-0">{{#str}}chart_tokens_by_day, aiprovider_datacurso{{/str}}</h4>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h4 class="card-title mb-0">{{#str}}chart_tokens_by_month, aiprovider_datacurso{{/str}}</h4>
+                        <select id="filter-service-bar" class="form-control form-control-sm w-auto">
+                            <option value="ALL">Todos</option>
+                        </select>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container" style="position: relative; height: 400px;">
-                            <canvas id="chart-tokens-by-day"></canvas>
+                        <div class="chart-container" style="height: 400px;">
+                            <canvas id="chart-tokens-by-month"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6 col-12 mb-4">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h4 class="card-title mb-0">{{#str}}chart_actions, aiprovider_datacurso{{/str}}</h4>
+                        <select id="filter-service-pie" class="form-control form-control-sm w-auto">
+                            <option value="ALL">Todos</option>
+                        </select>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container" style="position: relative; height: 400px;">
+                        <div class="chart-container" style="height: 400px;">
                             <canvas id="chart-actions"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="mt-4">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>ID Consumo</th>
+                    <th>Usuario</th>
+                    <th>Acción</th>
+                    <th>Servicio</th>
+                    <th>Tokens</th>
+                    <th>Saldo</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody id="consumption-table-body">
+                <tr><td colspan="7" class="text-center">--</td></tr>
+            </tbody>
+        </table>
     </div>
 </div>

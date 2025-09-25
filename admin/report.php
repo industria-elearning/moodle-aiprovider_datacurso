@@ -14,14 +14,27 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace aiprovider_datacurso;
-
 /**
- * Class get_tokens_saldo
+ * TODO describe file report
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning <info@industriaelearning.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class get_tokens_saldo {
-}
+
+require('../../../../config.php');
+
+require_login();
+
+$url = new moodle_url('/ai/provider/datacurso/admin/report.php', []);
+$PAGE->set_url($url);
+$PAGE->set_context(context_system::instance());
+$PAGE->set_heading($SITE->fullname);
+$PAGE->set_title(get_string('link_report_statistic', 'aiprovider_datacurso'));
+
+
+// Render.
+echo $OUTPUT->header();
+echo $OUTPUT->render_from_template('aiprovider_datacurso/report', []); 
+$PAGE->requires->js_call_amd('aiprovider_datacurso/report_charts', 'init');
+echo $OUTPUT->footer();

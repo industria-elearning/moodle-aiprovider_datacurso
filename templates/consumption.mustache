@@ -36,21 +36,9 @@
             <th>{{#str}}date, core{{/str}}</th>
         </tr>
     </thead>
-    <tbody>
-        {{#consumos}}
+    <tbody id="consumption-table-body">
         <tr>
-            <td>{{id_consumo}}</td>
-            <td>{{id_usuario}}</td>
-            <td>{{accion}}</td>
-            <td>{{cantidad_tokens}}</td>
-            <td>{{saldo_restante}}</td>
-            <td>{{fecha}}</td>
+            <td colspan="6">{{#str}}loading, core{{/str}}</td>
         </tr>
-        {{/consumos}}
-        {{^consumos}}
-        <tr>
-            <td colspan="6">{{#str}}nodata, aiprovider_datacurso{{/str}}</td>
-        </tr>
-        {{/consumos}}
     </tbody>
 </table>

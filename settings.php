@@ -75,12 +75,16 @@ if ($hassiteconfig) {
         null,
         html_writer::tag('div',
             html_writer::link(
-                new moodle_url('/ai/provider/datacurso/consumption.php'),
+                new moodle_url('/ai/provider/datacurso/admin/consumption.php'),
                 get_string('link_consumptionhistory', 'aiprovider_datacurso')
             ) . '<br>' .
             html_writer::link(
-                new moodle_url('/ai/provider/datacurso/report.php'),
+                new moodle_url('/ai/provider/datacurso/admin/report.php'),
                 get_string('link_generalreport', 'aiprovider_datacurso')
+            ) . '<br>' .
+            html_writer::link(
+                new moodle_url('/ai/provider/datacurso/admin/report.php'),
+                get_string('link_listplugings', 'aiprovider_datacurso')
             )
         )
     ));

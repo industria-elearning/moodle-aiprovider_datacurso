@@ -46,6 +46,7 @@ $string['licensekey_desc'] = 'Introduce la clave de licencia proporcionada (ejem
 $string['tokenthreshold'] = 'Umbral de tokens';
 $string['tokenthreshold_desc'] = 'Número de tokens a partir del cual se mostrará una notificación para conseguir más.';
 
+
 $string['link_consumptionhistory'] = 'Historial de consumo de tokens';
 $string['link_generalreport'] = 'Reporte general';
 
@@ -57,7 +58,12 @@ $string['remainingtokens'] = 'Saldo restante';
 $string['nodata'] = 'No se encontró alguna información';
 
 $string['link_report_statistic'] = 'Reporte general';
+$string['link_listplugings'] = 'Lista de plugins Datacurso';
 $string['tokens_available'] = 'Tokens disponibles';
 $string['total_consumed'] = 'Total consumido';
 $string['chart_tokens_by_day'] = 'Consumo de tokens por día';
 $string['chart_actions'] = 'Distribución de tokens por acciones';
+
+$string['workplace'] = '¿Es Moodle Workplace?';
+$string['workplace_desc'] = 'Define si se debe enviar el header X-Workplace con valor true (Workplace) o false (Moodle estándar).';
+$string['chart_tokens_by_month'] = 'Cantidad de tokens consumidos por mes';
