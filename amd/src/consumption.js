@@ -23,47 +23,125 @@
 
 
 /* eslint-disable */
-
 import Ajax from 'core/ajax';
 import { get_string as getString } from 'core/str';
 
 export const init = () => {
     console.log("history consume")
     const tableBody = document.getElementById('consumption-table-body');
+    const filterService = document.getElementById('filter-service');
+    const filterAction = document.getElementById('filter-action');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
 
+    let allConsumos = [];
+    let filteredConsumos = [];
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
+    // Renderiza las filas en la tabla
+    const renderTable = () => {
+        tableBody.innerHTML = '';
+        if (filteredConsumos.length === 0) {
+            getString('nodata', 'aiprovider_datacurso').then(nodata => {
+                tableBody.innerHTML = `<tr><td colspan="7">${nodata}</td></tr>`;
+            });
+            pageInfo.textContent = '';
+            prevPageBtn.disabled = true;
+            nextPageBtn.disabled = true;
+            return;
+        }
+
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageItems = filteredConsumos.slice(start, end);
+
+        pageItems.forEach(item => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${item.id_consumo}</td>
+                <td>${item.id_usuario}</td>
+                <td>${item.accion}</td>
+                <td>${item.servicio}</td>
+                <td>${item.cantidad_tokens}</td>
+                <td>${item.saldo_restante}</td>
+                <td>${item.fecha}</td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // Info de paginación
+        const totalPages = Math.ceil(filteredConsumos.length / rowsPerPage);
+        pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
+        prevPageBtn.disabled = currentPage === 1;
+        nextPageBtn.disabled = currentPage === totalPages;
+    };
+
+    // Aplica filtros
+    const applyFilters = () => {
+        const serviceValue = filterService.value;
+        const actionValue = filterAction.value;
+
+        filteredConsumos = allConsumos.filter(item => {
+            const serviceMatch = serviceValue === 'all' || item.servicio === serviceValue;
+            const actionMatch = actionValue === 'all' || item.accion === actionValue;
+            return serviceMatch && actionMatch;
+        });
+
+        currentPage = 1;
+        renderTable();
+    };
+
+    // Llamada AJAX
     Ajax.call([{
         methodname: 'aiprovider_datacurso_get_consumption_history',
         args: {}
     }])[0].then(async (response) => {
-        tableBody.innerHTML = '';
+        allConsumos = response?.consumos || [];
 
-        console.log("respuesta", response)
-        // Validamos la estructura
-        const consumos = response?.consumos || [];
+        // Poblar selects dinámicamente
+        const uniqueServices = [...new Set(allConsumos.map(c => c.servicio))];
+        const uniqueActions = [...new Set(allConsumos.map(c => c.accion))];
 
-        console.log("consumo", consumos)
-
-        if (consumos.length === 0) {
-            const nodata = await getString('nodata', 'aiprovider_datacurso');
-            tableBody.innerHTML = `<tr><td colspan="6">${nodata}</td></tr>`;
-            return;
-        }
-
-        consumos.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-            <td>${item.id_consumo}</td>
-            <td>${item.id_usuario}</td>
-            <td>${item.accion}</td>
-            <td>${item.cantidad_tokens}</td>
-            <td>${item.saldo_restante}</td>
-            <td>${item.fecha}</td>
-        `;
-            tableBody.appendChild(row);
+        uniqueServices.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s;
+            opt.textContent = s;
+            filterService.appendChild(opt);
         });
+
+        uniqueActions.forEach(a => {
+            const opt = document.createElement('option');
+            opt.value = a;
+            opt.textContent = a;
+            filterAction.appendChild(opt);
+        });
+
+        // Listeners filtros
+        filterService.addEventListener('change', applyFilters);
+        filterAction.addEventListener('change', applyFilters);
+
+        // Listeners paginación
+        prevPageBtn.addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+        nextPageBtn.addEventListener('click', () => {
+            const totalPages = Math.ceil(filteredConsumos.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+
+        // Render inicial
+        filteredConsumos = allConsumos;
+        renderTable();
     }).catch(async (error) => {
         const nodata = await getString('nodata', 'aiprovider_datacurso');
-        tableBody.innerHTML = `<tr><td colspan="6">${nodata}</td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7">${nodata}</td></tr>`;
     });
-
 };

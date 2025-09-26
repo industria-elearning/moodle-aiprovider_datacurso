@@ -83,7 +83,7 @@ if ($hassiteconfig) {
                 get_string('link_generalreport', 'aiprovider_datacurso')
             ) . '<br>' .
             html_writer::link(
-                new moodle_url('/ai/provider/datacurso/admin/report.php'),
+                new moodle_url('/ai/provider/datacurso/admin/plugins_list.php'),
                 get_string('link_listplugings', 'aiprovider_datacurso')
             )
         )

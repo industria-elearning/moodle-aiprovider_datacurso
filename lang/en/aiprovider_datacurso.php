@@ -56,6 +56,7 @@ $string['action'] = 'Acción';
 $string['tokensused'] = 'Tokens usados';
 $string['remainingtokens'] = 'Saldo restante';
 $string['nodata'] = 'No se encontró alguna información';
+$string['service'] = 'Servicio';
 
 $string['link_report_statistic'] = 'Reporte general';
 $string['link_listplugings'] = 'Lista de plugins Datacurso';

@@ -29,7 +29,6 @@ require_login();
 $url = new moodle_url('/ai/provider/datacurso/admin/report.php', []);
 $PAGE->set_url($url);
 $PAGE->set_context(context_system::instance());
-$PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('link_report_statistic', 'aiprovider_datacurso'));
 
 

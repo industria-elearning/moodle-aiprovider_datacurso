@@ -42,11 +42,16 @@ class datacurso_api {
      * @throws moodle_exception
      */
     public function __construct() {
+        global $DB;
+
         $this->baseurl    = rtrim(get_config('aiprovider_datacurso', 'apiurl'), '/');
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
-        // Detecta automáticamente si es Moodle Workplace.
-        $this->workplace = defined('MOODLE_WORKPLACE') && MOODLE_WORKPLACE;
+        // Detecta automáticamente si es Moodle Workplace validando tool_wp en config_plugins.
+        $this->workplace = $DB->record_exists('config_plugins', [
+            'plugin' => 'tool_wp',
+            'name'   => 'version'
+        ]);
 
         if (empty($this->baseurl) || empty($this->licensekey)) {
             throw new moodle_exception('API baseurl or licensekey not configured');
@@ -62,10 +67,8 @@ class datacurso_api {
      */
     private function build_url(string $endpoint, array $params = []): string {
         if (str_contains($this->baseurl, '?')) {
-            // Caso querystring: http://host/index.php?m=tokens_manager&api=.
             $url = $this->baseurl . ltrim($endpoint, '/');
         } else {
-            // Caso RESTful: http://host/tokens/saldo.
             $url = rtrim($this->baseurl, '/') . '/' . ltrim($endpoint, '/');
         }
 

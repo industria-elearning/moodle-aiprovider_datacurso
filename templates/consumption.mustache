@@ -25,12 +25,44 @@
 }}
 
 <h3>{{#str}}link_consumptionhistory, aiprovider_datacurso{{/str}}</h3>
+
+    <!-- Filters Section -->
+    <div class="filters mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-end">
+                    <div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
+                        <div class="form-group mb-0">
+                            <label for="filter-service" class="form-label font-weight-bold">
+                                {{#str}}service, aiprovider_datacurso{{/str}}:
+                            </label>
+                            <select id="filter-service" class="form-control">
+                                <option value="all">{{#str}}all, core{{/str}}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
+                        <div class="form-group mb-0">
+                            <label for="filter-action" class="form-label font-weight-bold">
+                                {{#str}}action, aiprovider_datacurso{{/str}}:
+                            </label>
+                            <select id="filter-action" class="form-control">
+                                <option value="all">{{#str}}all, core{{/str}}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 <table class="generaltable">
     <thead>
         <tr>
             <th>{{#str}}id, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}userid, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}action, aiprovider_datacurso{{/str}}</th>
+            <th>{{#str}}service, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}tokensused, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}remainingtokens, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}date, core{{/str}}</th>
@@ -38,7 +70,35 @@
     </thead>
     <tbody id="consumption-table-body">
         <tr>
-            <td colspan="6">{{#str}}loading, core{{/str}}</td>
+            <td colspan="7">{{#str}}loading, core{{/str}}</td>
         </tr>
     </tbody>
 </table>
+
+   <!-- Pagination Section -->
+    <div class="pagination-section">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-sm-6 col-12 mb-2 mb-sm-0">
+                        <nav aria-label="Pagination Navigation">
+                            <div class="btn-group" role="group">
+                                <button id="prev-page" class="btn btn-outline-primary" disabled>
+                                    <i class="fa fa-chevron-left" aria-hidden="true"></i>
+                                    {{#str}}previous, core{{/str}}
+                                </button>
+                                <button id="next-page" class="btn btn-outline-primary" disabled>
+                                    {{#str}}next, core{{/str}}
+                                    <i class="fa fa-chevron-right" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                        </nav>
+                    </div>
+                    <div class="col-sm-6 col-12">
+                        <div class="text-sm-right text-center">
+                            <span id="page-info" class="text-muted font-weight-bold"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
