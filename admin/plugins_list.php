@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Página de listado de plugins compatibles con el provider Datacurso.
+ *
+ * @package    aiprovider_datacurso
+ * @category   admin
+ * @copyright  2025 Industria Elearning
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require('../../../../config.php');
 
 require_login();
@@ -23,27 +32,38 @@ $PAGE->set_url($url);
 $PAGE->set_context(context_system::instance());
 $PAGE->set_title(get_string('link_listplugings', 'aiprovider_datacurso'));
 
-// Ejemplo de plugins.
+global $DB;
+
+// Plugins lists.
 $pluginslist = [
     [
-        'name' => 'Forum IA',
+        'name' => 'Forum AI',
         'description' => 'Extiende los foros con análisis de IA para generar resúmenes automáticos.',
-        'installed' => true,
+        'component' => 'local_forum_ai',
         'url' => 'https://moodle.org/plugins/forum_ia',
     ],
     [
         'name' => 'Datacurso Ratings',
         'description' => 'Permite calificar automáticamente cursos con IA y estadísticas.',
-        'installed' => false,
+        'component' => 'local_datacurso_ratings',
         'url' => 'https://moodle.org/plugins/datacurso_ratings',
     ],
     [
-        'name' => 'Course AI',
+        'name' => 'Assign AI',
         'description' => 'Crea cursos, actividades y recursos completos con IA.',
-        'installed' => true,
+        'component' => 'local_assign_ai',
         'url' => 'https://moodle.org/plugins/course_ai',
     ],
 ];
+
+// Validate plugin installed in DB.
+foreach ($pluginslist as &$plugin) {
+    $plugin['installed'] = $DB->record_exists('config_plugins', [
+        'plugin' => $plugin['component'],
+    ]);
+    unset($plugin['component']);
+}
+unset($plugin);
 
 // Render.
 echo $OUTPUT->header();

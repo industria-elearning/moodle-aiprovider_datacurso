@@ -50,7 +50,7 @@ class datacurso_api {
         // Detecta automáticamente si es Moodle Workplace validando tool_wp en config_plugins.
         $this->workplace = $DB->record_exists('config_plugins', [
             'plugin' => 'tool_wp',
-            'name'   => 'version'
+            'name'   => 'version',
         ]);
 
         if (empty($this->baseurl) || empty($this->licensekey)) {

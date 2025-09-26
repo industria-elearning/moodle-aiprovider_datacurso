@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Code to be executed after the plugin's database scheme has been installed is defined here.
+ * Code to be executed after the plugin's database schema has been installed is defined here.
  *
  * @package     aiprovider_datacurso
  * @category    upgrade
@@ -27,6 +27,5 @@
  * Custom code to be run on installing the plugin.
  */
 function xmldb_aiprovider_datacurso_install() {
-
     return true;
 }

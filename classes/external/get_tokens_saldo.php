@@ -53,14 +53,14 @@ class get_tokens_saldo extends external_api {
             return [
                 'status' => 'error',
                 'saldo_actual' => 0,
-                'message' => 'No se pudo obtener el saldo de tokens desde la API externa'
+                'message' => 'No se pudo obtener el saldo de tokens desde la API externa',
             ];
         }
 
         return [
             'status' => $response['status'] ?? 'error',
             'saldo_actual' => (int) ($response['saldo_actual'] ?? 0),
-            'message' => $response['message'] ?? ''
+            'message' => $response['message'] ?? '',
         ];
     }
 

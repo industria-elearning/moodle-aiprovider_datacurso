@@ -34,6 +34,6 @@ $PAGE->set_title(get_string('link_report_statistic', 'aiprovider_datacurso'));
 
 // Render.
 echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('aiprovider_datacurso/report', []); 
+echo $OUTPUT->render_from_template('aiprovider_datacurso/report', []);
 $PAGE->requires->js_call_amd('aiprovider_datacurso/report_charts', 'init');
 echo $OUTPUT->footer();

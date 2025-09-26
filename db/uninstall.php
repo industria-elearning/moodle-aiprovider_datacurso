@@ -27,6 +27,5 @@
  * Custom uninstallation procedure.
  */
 function xmldb_aiprovider_datacurso_uninstall() {
-
     return true;
 }
