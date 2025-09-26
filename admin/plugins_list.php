@@ -50,8 +50,14 @@ $pluginslist = [
     ],
     [
         'name' => 'Assign AI',
-        'description' => 'Crea cursos, actividades y recursos completos con IA.',
+        'description' => 'Revisa tareas con asistencia de IA.',
         'component' => 'local_assign_ai',
+        'url' => 'https://moodle.org/plugins/assign_ai',
+    ],
+    [
+        'name' => 'Course AI',
+        'description' => 'Crea cursos, actividades y recursos completos con IA.',
+        'component' => 'local_course_ai',
         'url' => 'https://moodle.org/plugins/course_ai',
     ],
 ];
