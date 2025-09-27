@@ -35,7 +35,7 @@ if ($hassiteconfig) {
         true
     );
 
-    // Encabezado Configuración general.
+    // Settings general.
     $settings->add(new admin_setting_heading(
         'aiprovider_datacurso/general',
         new lang_string('settings', 'core'),
@@ -69,7 +69,7 @@ if ($hassiteconfig) {
         PARAM_INT
     ));
 
-    // Enlaces adicionales.
+
     $settings->add(new admin_setting_heading(
         'aiprovider_datacurso/links',
         null,

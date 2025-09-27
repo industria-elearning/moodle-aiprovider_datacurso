@@ -25,7 +25,6 @@
 require('../../../../config.php');
 require_login();
 
-// URL y contexto.
 $url = new moodle_url('/ai/provider/datacurso/admin/consumption.php');
 $PAGE->set_url($url);
 $PAGE->set_context(context_system::instance());

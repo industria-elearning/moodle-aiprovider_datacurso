@@ -19,7 +19,7 @@ namespace aiprovider_datacurso\httpclient;
 /**
  * Class ai_services_api
  *
- * Cliente HTTP para el servicio Plugins AI API.
+ * HTTP client for the Plugins AI API service.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
@@ -36,19 +36,19 @@ class ai_services_api {
     /**
      * Constructor.
      *
-     * @param string|null $token Token de autenticación Bearer
+     * @param string|null $token Bearer authentication token
      */
     public function __construct(?string $token = null) {
-        // Si no se pasa token, usar el definido (ejemplo de mock).
+        // If no token is provided, use the default one (mock example).
         $this->token = $token ?? 'xryQAHKm6sWafYoQRZmZX6VTY0UVqjUQuzWwUlMwITQYC7THAZbDoUFE81Mg0raw';
     }
 
     /**
-     * Método genérico para enviar peticiones HTTP al servicio.
+     * Generic method to send HTTP requests to the service.
      *
      * @param string $method GET, POST, PUT, DELETE
-     * @param string $path Endpoint relativo (ej: /health)
-     * @param array|null $body Datos del cuerpo en caso de POST/PUT
+     * @param string $path Relative endpoint (e.g., /health)
+     * @param array|null $body Body data in case of POST/PUT
      * @return array|null
      */
     public function request(string $method, string $path, ?array $body = null): ?array {
@@ -90,7 +90,7 @@ class ai_services_api {
     }
 
     /**
-     * Verifica el estado del servicio.
+     * Checks the service status.
      *
      * @return array|null
      */

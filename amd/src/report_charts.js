@@ -36,7 +36,7 @@ export const init = () => {
     let consumos = [];
     let chartBar, chartPie;
 
-    // 🔹 1. Llamadas a los WS
+    // 🔹 1. WS calls
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_consumption_history', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
@@ -44,21 +44,21 @@ export const init = () => {
         consumos = historyResponse?.consumos || [];
         const saldo = saldoResponse?.saldo_actual || 0;
 
-        // 🔹 2. Actualizar cards
+        // 🔹 2. Update cards
         tokensAvailable.textContent = saldo;
         tokensConsumed.textContent = consumos.reduce((sum, c) => sum + (c.cantidad_tokens || 0), 0);
 
-        // 🔹 3. Renderizar tabla
+        // 🔹 3. Render table
         renderTable(consumos, tableBody);
 
-        // 🔹 4. Inicializar filtros y charts
+        // 🔹 4. Initialize filters and charts
         initCharts(consumos);
 
     }).catch(err => {
-        console.error("❌ Error WS", err);
+        console.error("❌ WS Error", err);
     });
 
-    // 🔹 Tabla dinámica
+    // 🔹 Dynamic table
     const renderTable = async (data, container) => {
         container.innerHTML = '';
         if (!data.length) {
@@ -81,33 +81,33 @@ export const init = () => {
         });
     };
 
-    // 🔹 Inicializar filtros y gráficos
+    // 🔹 Initialize filters and charts
     const initCharts = (data) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
 
-        // Rellenar selects
+        // Fill selects
         const servicios = [...new Set(data.map(c => c.servicio))];
         servicios.forEach(s => {
             filterBar.innerHTML += `<option value="${s}">${s}</option>`;
             filterPie.innerHTML += `<option value="${s}">${s}</option>`;
         });
 
-        // Render inicial
+        // Initial render
         renderBarChart(data);
         renderPieChart(data);
         renderDayChart(data);
 
-        // Listeners → cada gráfico escucha SOLO su filtro
+        // Listeners → each chart listens ONLY to its filter
         filterBar.addEventListener('change', () => renderBarChart(data));
         filterPie.addEventListener('change', () => renderPieChart(data));
 
-        // Filtros de fecha para el chart de días
+        // Date filters for daily chart
         document.getElementById('filter-start-date').addEventListener('change', () => renderDayChart(data));
         document.getElementById('filter-end-date').addEventListener('change', () => renderDayChart(data));
     };
 
-    // 🔹 Gráfico de barras (solo depende de filter-service-bar)
+    // 🔹 Bar chart (depends only on filter-service-bar)
     const renderBarChart = (data) => {
         const filterValue = document.getElementById('filter-service-bar').value;
 
@@ -116,7 +116,7 @@ export const init = () => {
             filteredData = data.filter(c => c.servicio === filterValue);
         }
 
-        // Agrupar por mes
+        // Group by month
         const byMonth = {};
         filteredData.forEach(c => {
             const month = c.fecha.substring(0, 7); // yyyy-mm
@@ -130,7 +130,7 @@ export const init = () => {
             data: {
                 labels: Object.keys(byMonth),
                 datasets: [{
-                    label: 'Tokens consumidos',
+                    label: 'Tokens consumed',
                     data: Object.values(byMonth),
                     backgroundColor: '#0073e6'
                 }]
@@ -138,7 +138,7 @@ export const init = () => {
         });
     };
 
-    // 🔹 Gráfico de pie (solo depende de filter-service-pie)
+    // 🔹 Pie chart (depends only on filter-service-pie)
     const renderPieChart = (data) => {
         const filterValue = document.getElementById('filter-service-pie').value;
 
@@ -147,7 +147,7 @@ export const init = () => {
             filteredData = data.filter(c => c.servicio === filterValue);
         }
 
-        // Agrupar por acción
+        // Group by action
         const byAction = {};
         filteredData.forEach(c => {
             byAction[c.accion] = (byAction[c.accion] || 0) + c.cantidad_tokens;
@@ -169,14 +169,14 @@ export const init = () => {
 
     let chartDay;
 
-    // 🔹 Gráfico de consumo por día con filtros de fecha
+    // 🔹 Daily consumption chart with date filters
     const renderDayChart = (data) => {
         const startDate = document.getElementById('filter-start-date').value;
         const endDate = document.getElementById('filter-end-date').value;
 
         let filteredData = data;
 
-        // Filtrar por rango de fechas
+        // Filter by date range
         if (startDate) {
             filteredData = filteredData.filter(c => c.fecha >= startDate);
         }
@@ -184,7 +184,7 @@ export const init = () => {
             filteredData = filteredData.filter(c => c.fecha <= endDate);
         }
 
-        // Agrupar por día
+        // Group by day
         const byDay = {};
         filteredData.forEach(c => {
             const day = c.fecha.substring(0, 10); // yyyy-mm-dd
@@ -198,7 +198,7 @@ export const init = () => {
             data: {
                 labels: Object.keys(byDay),
                 datasets: [{
-                    label: 'Tokens consumidos por día',
+                    label: 'Tokens consumed per day',
                     data: Object.values(byDay),
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40,167,69,0.2)',

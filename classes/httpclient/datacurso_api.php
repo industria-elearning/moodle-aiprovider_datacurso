@@ -47,7 +47,7 @@ class datacurso_api {
         $this->baseurl    = rtrim(get_config('aiprovider_datacurso', 'apiurl'), '/');
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
-        // Detecta automáticamente si es Moodle Workplace validando tool_wp en config_plugins.
+        // Automatically detect if it is Moodle Workplace by checking tool_wp in config_plugins.
         $this->workplace = $DB->record_exists('config_plugins', [
             'plugin' => 'tool_wp',
             'name'   => 'version',

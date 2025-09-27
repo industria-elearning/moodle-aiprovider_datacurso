@@ -26,7 +26,7 @@ use external_value;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service para obtener el saldo de tokens.
+ * Web service to get the token balance.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
@@ -35,14 +35,14 @@ use aiprovider_datacurso\httpclient\datacurso_api;
 class get_tokens_saldo extends external_api {
 
     /**
-     * Parámetros de entrada (ninguno en este caso).
+     * Input parameters (none in this case).
      */
     public static function execute_parameters() {
         return new external_function_parameters([]);
     }
 
     /**
-     * Lógica del WS: hace la llamada a la API externa y retorna el array.
+     * WS logic: makes the call to the external API and returns the array.
      */
     public static function execute() {
         $client = new datacurso_api();
@@ -53,7 +53,7 @@ class get_tokens_saldo extends external_api {
             return [
                 'status' => 'error',
                 'saldo_actual' => 0,
-                'message' => 'No se pudo obtener el saldo de tokens desde la API externa',
+                'message' => 'Could not retrieve the token balance from the external API',
             ];
         }
 
@@ -65,13 +65,13 @@ class get_tokens_saldo extends external_api {
     }
 
     /**
-     * Estructura de salida.
+     * Output structure.
      */
     public static function execute_returns() {
         return new external_single_structure([
-            'status' => new external_value(PARAM_TEXT, 'Estado de la petición (success/error)'),
-            'saldo_actual' => new external_value(PARAM_INT, 'Saldo actual de tokens'),
-            'message' => new external_value(PARAM_RAW, 'Mensaje adicional de la API o error'),
+            'status' => new external_value(PARAM_TEXT, 'Request status (success/error)'),
+            'saldo_actual' => new external_value(PARAM_INT, 'Current token balance'),
+            'message' => new external_value(PARAM_RAW, 'Additional API message or error'),
         ]);
     }
 }

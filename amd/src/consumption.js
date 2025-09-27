@@ -40,7 +40,7 @@ export const init = () => {
     let currentPage = 1;
     const rowsPerPage = 10;
 
-    // Renderiza las filas en la tabla
+    // Render the rows in the table
     const renderTable = () => {
         tableBody.innerHTML = '';
         if (filteredConsumos.length === 0) {
@@ -71,14 +71,12 @@ export const init = () => {
             tableBody.appendChild(row);
         });
 
-        // Info de paginación
         const totalPages = Math.ceil(filteredConsumos.length / rowsPerPage);
         pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
         prevPageBtn.disabled = currentPage === 1;
         nextPageBtn.disabled = currentPage === totalPages;
     };
 
-    // Aplica filtros
     const applyFilters = () => {
         const serviceValue = filterService.value;
         const actionValue = filterAction.value;
@@ -93,14 +91,12 @@ export const init = () => {
         renderTable();
     };
 
-    // Llamada AJAX
     Ajax.call([{
         methodname: 'aiprovider_datacurso_get_consumption_history',
         args: {}
     }])[0].then(async (response) => {
         allConsumos = response?.consumos || [];
 
-        // Poblar selects dinámicamente
         const uniqueServices = [...new Set(allConsumos.map(c => c.servicio))];
         const uniqueActions = [...new Set(allConsumos.map(c => c.accion))];
 
@@ -118,11 +114,11 @@ export const init = () => {
             filterAction.appendChild(opt);
         });
 
-        // Listeners filtros
+        // Listeners filters
         filterService.addEventListener('change', applyFilters);
         filterAction.addEventListener('change', applyFilters);
 
-        // Listeners paginación
+        // Listeners pagination
         prevPageBtn.addEventListener('click', () => {
             if (currentPage > 1) {
                 currentPage--;
@@ -137,7 +133,7 @@ export const init = () => {
             }
         });
 
-        // Render inicial
+        // Render initial
         filteredConsumos = allConsumos;
         renderTable();
     }).catch(async (error) => {

@@ -19,7 +19,7 @@ namespace aiprovider_datacurso;
 use core_ai\aiactions;
 
 /**
- * Class provider for DataCurso.
+ * Provider class for DataCurso.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
@@ -31,7 +31,7 @@ class provider extends \core_ai\provider {
      * Constructor.
      */
     public function __construct() {
-        // Aquí podrías cargar configuraciones en el futuro (por ahora vacío).
+        // Here you could load configurations in the future (currently empty).
     }
 
     /**
@@ -53,7 +53,7 @@ class provider extends \core_ai\provider {
      * @return bool
      */
     public function is_provider_configured(): bool {
-        // Como no tienes settings aún, lo marcamos siempre como true.
+        // Since you don't have settings yet, always mark as true.
         return true;
     }
 
@@ -64,7 +64,7 @@ class provider extends \core_ai\provider {
      * @return array|bool
      */
     public function is_request_allowed(aiactions\base $action): array|bool {
-        // Sin restricciones por ahora.
+        // No restrictions for now.
         return true;
     }
 
@@ -83,7 +83,7 @@ class provider extends \core_ai\provider {
         string $section,
         bool $hassiteconfig
     ): array {
-        // No añadimos settings todavía.
+        // No settings added yet.
         return [];
     }
 }

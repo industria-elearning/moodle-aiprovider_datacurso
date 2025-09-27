@@ -27,7 +27,7 @@ use external_value;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service para obtener el historial de consumos de tokens.
+ * Web service to get the token consumption history.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
@@ -36,14 +36,14 @@ use aiprovider_datacurso\httpclient\datacurso_api;
 class get_consumption_history extends external_api {
 
     /**
-     * Parámetros de entrada (ninguno en este caso).
+     * Input parameters (none in this case).
      */
     public static function execute_parameters() {
         return new external_function_parameters([]);
     }
 
     /**
-     * Lógica del WS: llama al cliente API y retorna la respuesta formateada.
+     * WS logic: calls the API client and returns the formatted response.
      */
     public static function execute() {
         $client = new datacurso_api();
@@ -53,7 +53,7 @@ class get_consumption_history extends external_api {
         if (empty($response) || !isset($response['status'])) {
             return [
                 'status' => 'error',
-                'message' => 'No se pudo obtener el historial de consumos desde la API externa',
+                'message' => 'Could not retrieve the consumption history from the external API',
                 'consumos' => [],
             ];
         }
@@ -66,24 +66,24 @@ class get_consumption_history extends external_api {
     }
 
     /**
-     * Estructura de salida.
+     * Output structure.
      */
     public static function execute_returns() {
         return new external_single_structure([
-            'status' => new external_value(PARAM_TEXT, 'Estado de la petición (success/error)'),
-            'message' => new external_value(PARAM_RAW, 'Mensaje adicional de la API o error'),
+            'status' => new external_value(PARAM_TEXT, 'Request status (success/error)'),
+            'message' => new external_value(PARAM_RAW, 'Additional API message or error'),
             'consumos' => new external_multiple_structure(
                 new external_single_structure([
-                    'id_consumo'      => new external_value(PARAM_INT, 'Identificador único de consumo'),
-                    'id_usuario'      => new external_value(PARAM_INT, 'ID del usuario'),
-                    'id_key'          => new external_value(PARAM_INT, 'ID de la licencia usada'),
-                    'accion'          => new external_value(PARAM_TEXT, 'Acción realizada'),
-                    'servicio'          => new external_value(PARAM_TEXT, 'Servicio utilizado'),
-                    'cantidad_tokens' => new external_value(PARAM_INT, 'Cantidad de tokens consumidos'),
-                    'saldo_restante'  => new external_value(PARAM_INT, 'Saldo restante después del consumo'),
-                    'fecha'           => new external_value(PARAM_RAW, 'Fecha del consumo en formato ISO 8601'),
-                    'created_at'      => new external_value(PARAM_RAW, 'Fecha de creación en formato ISO 8601'),
-                    'updated_at'      => new external_value(PARAM_RAW, 'Fecha de actualización en formato ISO 8601'),
+                    'id_consumo'      => new external_value(PARAM_INT, 'Unique consumption identifier'),
+                    'id_usuario'      => new external_value(PARAM_INT, 'User ID'),
+                    'id_key'          => new external_value(PARAM_INT, 'ID of the license used'),
+                    'accion'          => new external_value(PARAM_TEXT, 'Action performed'),
+                    'servicio'        => new external_value(PARAM_TEXT, 'Service used'),
+                    'cantidad_tokens' => new external_value(PARAM_INT, 'Number of tokens consumed'),
+                    'saldo_restante'  => new external_value(PARAM_INT, 'Remaining balance after consumption'),
+                    'fecha'           => new external_value(PARAM_RAW, 'Consumption date in ISO 8601 format'),
+                    'created_at'      => new external_value(PARAM_RAW, 'Creation date in ISO 8601 format'),
+                    'updated_at'      => new external_value(PARAM_RAW, 'Update date in ISO 8601 format'),
                 ])
             ),
         ]);
