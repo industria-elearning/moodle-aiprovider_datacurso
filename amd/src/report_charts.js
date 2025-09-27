@@ -25,7 +25,7 @@
 
 import Ajax from 'core/ajax';
 import Chart from 'core/chartjs';
-import {get_string as getString} from 'core/str';
+import { get_string as getString } from 'core/str';
 
 export const init = () => {
 
@@ -96,10 +96,15 @@ export const init = () => {
         // Render inicial
         renderBarChart(data);
         renderPieChart(data);
+        renderDayChart(data);
 
         // Listeners → cada gráfico escucha SOLO su filtro
         filterBar.addEventListener('change', () => renderBarChart(data));
         filterPie.addEventListener('change', () => renderPieChart(data));
+
+        // Filtros de fecha para el chart de días
+        document.getElementById('filter-start-date').addEventListener('change', () => renderDayChart(data));
+        document.getElementById('filter-end-date').addEventListener('change', () => renderDayChart(data));
     };
 
     // 🔹 Gráfico de barras (solo depende de filter-service-bar)
@@ -157,6 +162,47 @@ export const init = () => {
                 datasets: [{
                     data: Object.values(byAction),
                     backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0']
+                }]
+            }
+        });
+    };
+
+    let chartDay;
+
+    // 🔹 Gráfico de consumo por día con filtros de fecha
+    const renderDayChart = (data) => {
+        const startDate = document.getElementById('filter-start-date').value;
+        const endDate = document.getElementById('filter-end-date').value;
+
+        let filteredData = data;
+
+        // Filtrar por rango de fechas
+        if (startDate) {
+            filteredData = filteredData.filter(c => c.fecha >= startDate);
+        }
+        if (endDate) {
+            filteredData = filteredData.filter(c => c.fecha <= endDate);
+        }
+
+        // Agrupar por día
+        const byDay = {};
+        filteredData.forEach(c => {
+            const day = c.fecha.substring(0, 10); // yyyy-mm-dd
+            byDay[day] = (byDay[day] || 0) + c.cantidad_tokens;
+        });
+
+        const ctx3 = document.getElementById('chart-tokens-by-day');
+        if (chartDay) chartDay.destroy();
+        chartDay = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: Object.keys(byDay),
+                datasets: [{
+                    label: 'Tokens consumidos por día',
+                    data: Object.values(byDay),
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40,167,69,0.2)',
+                    fill: true,
                 }]
             }
         });
