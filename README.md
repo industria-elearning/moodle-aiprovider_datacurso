@@ -4,7 +4,7 @@ The **Datacurso AI Provider** plugin enables seamless integration of Artificial 
 
 ## Requirements
 
-- **Moodle version**: 4.3+ (4.3, 4.4 recommended)
+- **Moodle version**: 4.0+
 - **PHP version**: 8.0 or higher
 - **Moodle AI subsystem**: Must be enabled
 - **External service**: Access to a Datacurso-compatible token management API

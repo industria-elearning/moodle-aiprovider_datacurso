@@ -53,8 +53,9 @@ class provider extends \core_ai\provider {
      * @return bool
      */
     public function is_provider_configured(): bool {
-        // Since you don't have settings yet, always mark as true.
-        return true;
+        $licensekey = get_config('aiprovider_datacurso', 'licensekey');
+        // Provider is configured if we have license key.
+        return !empty($licensekey);
     }
 
     /**
@@ -64,7 +65,11 @@ class provider extends \core_ai\provider {
      * @return array|bool
      */
     public function is_request_allowed(aiactions\base $action): array|bool {
-        // No restrictions for now.
+        global $USER;
+        // Check basic capability.
+        if (!has_capability('aiprovider/datacurso:use', \context_system::instance(), $USER)) {
+            return false;
+        }
         return true;
     }
 
