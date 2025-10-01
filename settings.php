@@ -60,6 +60,14 @@ if ($hassiteconfig) {
         PARAM_URL
     ));
 
+    // Web service token for course context.
+    $settings->add(new admin_setting_configpasswordunmask(
+        'aiprovider_datacurso/contextwstoken',
+        new lang_string('contextwstoken', 'aiprovider_datacurso'),
+        new lang_string('contextwstoken_desc', 'aiprovider_datacurso'),
+        ''
+    ));
+
     // Token threshold notification.
     $settings->add(new admin_setting_configtext(
         'aiprovider_datacurso/tokenthreshold',
