@@ -14,26 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace aiprovider_datacurso\output;
+
+use renderable;
+use templatable;
+use renderer_base;
+
 /**
- * Página de historial de consumo de tokens.
+ * Page to render the AI consumption information.
+ *
+ * This class provides the context data for the Mustache template
+ * used to render the AI consumption page.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025 Industria Elearning <info@industriaelearning.com>
+ * @category   output
+ * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class consumption_page implements renderable, templatable {
 
-require('../../../../config.php');
-require_login();
-
-$url = new moodle_url('/ai/provider/datacurso/admin/consumption.php');
-$PAGE->set_url($url);
-$PAGE->set_context(context_system::instance());
-$PAGE->set_title(get_string('link_consumptionhistory', 'aiprovider_datacurso'));
-
-// Render.
-echo $OUTPUT->header();
-
-echo $OUTPUT->render_from_template('aiprovider_datacurso/consumption', []);
-$PAGE->requires->js_call_amd('aiprovider_datacurso/consumption', 'init');
-
-echo $OUTPUT->footer();
+    /**
+     * Export data for the template.
+     *
+     * @param renderer_base $output The renderer in use.
+     * @return array Data to pass to the Mustache template.
+     */
+    public function export_for_template(renderer_base $output): array {
+        return []; // Más adelante aquí pasas data real.
+    }
+}

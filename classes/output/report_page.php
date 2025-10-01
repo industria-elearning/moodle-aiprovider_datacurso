@@ -14,26 +14,32 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace aiprovider_datacurso\output;
+
+use renderable;
+use templatable;
+use renderer_base;
+
 /**
- * TODO describe file report
+ * Page to render the AI report.
+ *
+ * Provides the context data for the Mustache template
+ * that displays the AI usage report.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025 Industria Elearning <info@industriaelearning.com>
+ * @category   output
+ * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class report_page implements renderable, templatable {
 
-require('../../../../config.php');
-
-require_login();
-
-$url = new moodle_url('/ai/provider/datacurso/admin/report.php', []);
-$PAGE->set_url($url);
-$PAGE->set_context(context_system::instance());
-$PAGE->set_title(get_string('link_report_statistic', 'aiprovider_datacurso'));
-
-
-// Render.
-echo $OUTPUT->header();
-echo $OUTPUT->render_from_template('aiprovider_datacurso/report', []);
-$PAGE->requires->js_call_amd('aiprovider_datacurso/report_charts', 'init');
-echo $OUTPUT->footer();
+    /**
+     * Export data for the Mustache template.
+     *
+     * @param renderer_base $output The renderer instance.
+     * @return array Data to be used in the template.
+     */
+    public function export_for_template(renderer_base $output): array {
+        return []; // Aquí luego pasas datos dinámicos.
+    }
+}

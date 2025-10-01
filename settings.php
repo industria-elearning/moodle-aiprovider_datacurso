@@ -69,23 +69,11 @@ if ($hassiteconfig) {
         PARAM_INT
     ));
 
-
-    $settings->add(new admin_setting_heading(
-        'aiprovider_datacurso/links',
-        null,
-        html_writer::tag('div',
-            html_writer::link(
-                new moodle_url('/ai/provider/datacurso/admin/consumption.php'),
-                get_string('link_consumptionhistory', 'aiprovider_datacurso')
-            ) . '<br>' .
-            html_writer::link(
-                new moodle_url('/ai/provider/datacurso/admin/report.php'),
-                get_string('link_generalreport', 'aiprovider_datacurso')
-            ) . '<br>' .
-            html_writer::link(
-                new moodle_url('/ai/provider/datacurso/admin/plugins_list.php'),
-                get_string('link_listplugings', 'aiprovider_datacurso')
-            )
-        )
+    $ADMIN->add('reports', new admin_externalpage(
+        'aiprovider_datacurso_reports', // Identificador único.
+        get_string('link_generalreport_datacurso', 'aiprovider_datacurso'),
+        new moodle_url('/ai/provider/datacurso/admin/report_sections.php'),
+        'moodle/site:config'
     ));
+
 }

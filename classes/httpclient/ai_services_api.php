@@ -16,6 +16,10 @@
 
 namespace aiprovider_datacurso\httpclient;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * HTTP client for the Datacurso AI services API.
  *
