@@ -84,4 +84,36 @@ if ($hassiteconfig) {
         'moodle/site:config'
     ));
 
+    // Web service configuration page for automatic setup and token management.
+    $ADMIN->add('server', new admin_externalpage(
+        'aiprovider_datacurso_webservice',
+        get_string('link_webservice_config', 'aiprovider_datacurso'),
+        new moodle_url('/ai/provider/datacurso/admin/webservice_config.php'),
+        'moodle/site:config'
+    ));
+
+    // Registration API settings.
+    $settings->add(new admin_setting_heading(
+        'aiprovider_datacurso/registration',
+        new lang_string('registrationsettings', 'aiprovider_datacurso'),
+        ''
+    ));
+
+    // Registration API URL (defaults to localhost endpoint).
+    $settings->add(new admin_setting_configtext(
+        'aiprovider_datacurso/registrationapiurl',
+        new lang_string('registrationapiurl', 'aiprovider_datacurso'),
+        new lang_string('registrationapiurl_desc', 'aiprovider_datacurso'),
+        'http://localhost:8001/register-site',
+        PARAM_URL
+    ));
+
+    // Registration API bearer token.
+    $settings->add(new admin_setting_configpasswordunmask(
+        'aiprovider_datacurso/registrationapibearer',
+        new lang_string('registrationapibearer', 'aiprovider_datacurso'),
+        new lang_string('registrationapibearer_desc', 'aiprovider_datacurso'),
+        ''
+    ));
+
 }

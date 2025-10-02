@@ -76,3 +76,60 @@ $string['userratelimit'] = 'Per-user request limit';
 $string['userratelimit_desc'] = 'Maximum number of requests allowed per hour for each individual user.';
 $string['workplace'] = 'Is this Moodle Workplace?';
 $string['workplace_desc'] = 'Defines whether the X-Workplace header should be sent with value true (Workplace) or false (Standard Moodle).';
+
+// Webservice configuration UI strings.
+$string['link_webservice_config'] = 'Datacurso webservice setup';
+$string['webserviceconfig_title'] = 'Datacurso webservice configuration';
+$string['webserviceconfig_heading'] = 'Automatic webservice setup';
+$string['webserviceconfig_desc'] = 'Create the dedicated service user, role, external service, token and enable REST in one click. The token value is never displayed here.';
+$string['webserviceconfig_current'] = 'Current configuration';
+$string['webserviceconfig_status'] = 'Status';
+$string['webserviceconfig_site'] = 'Site information';
+$string['ws_enabled'] = 'Web services enabled';
+$string['rest_enabled'] = 'REST protocol enabled';
+$string['ws_user'] = 'Service user';
+$string['ws_role'] = 'Service role';
+$string['ws_service'] = 'External service';
+$string['ws_userassigned'] = 'Role assigned to user';
+$string['ws_tokenexists'] = 'Token exists';
+$string['ws_activity'] = 'Activity log';
+$string['ws_btn_setup'] = 'Create/Repair configuration';
+$string['ws_btn_regenerate'] = 'Regenerate token';
+$string['ws_btn_register'] = 'Retry registration';
+$string['registration_last'] = 'Registration';
+$string['registration_status'] = 'Last status';
+$string['registration_error'] = 'Last error';
+$string['registration_lastsent'] = 'Last sent';
+
+// Settings for registration API.
+$string['registrationsettings'] = 'Registration API';
+$string['registrationapiurl'] = 'Registration endpoint URL';
+$string['registrationapiurl_desc'] = 'Endpoint to receive the site registration payload. Default: http://localhost:8001/register-site';
+$string['registrationapibearer'] = 'Registration bearer token';
+$string['registrationapibearer_desc'] = 'Bearer token used to authenticate the registration request.';
+
+// Step messages used in setup flow.
+$string['ws_step_enableauth'] = 'Enabling webservices auth plugin…';
+$string['ws_step_enablews'] = 'Enabling site web services…';
+$string['ws_step_enablerest'] = 'Enabling REST protocol…';
+$string['ws_step_user_check'] = 'Verifying if user "{$a}" exists…';
+$string['ws_step_user_create'] = 'Creating service user "{$a}"…';
+$string['ws_step_role_exists'] = 'Role already exists, using ID {$a}…';
+$string['ws_step_role_create'] = 'Creating role "{$a}"…';
+$string['ws_step_role_caps'] = 'Setting required role capabilities…';
+$string['ws_step_role_assign'] = 'Assigning role to service user…';
+$string['ws_step_service_enable'] = 'Creating/Enabling external service…';
+$string['ws_step_service_functions'] = 'Adding common core functions to the service…';
+$string['ws_step_service_user'] = 'Authorising user for the service…';
+$string['ws_step_token_create'] = 'Ensuring token exists…';
+$string['ws_step_token_regenerating'] = 'Regenerating token…';
+$string['ws_step_token_regenerated'] = 'Token regenerated.';
+$string['ws_step_registration_sent'] = 'Registration request sent.';
+
+// Errors.
+$string['ws_error_missing_setup'] = 'Service or user not found. Run setup first.';
+$string['ws_error_missing_token'] = 'Token not found. Generate it first.';
+
+// Generic labels used in template (fallback to core yes/no if not found).
+$string['domain'] = 'Domain';
+$string['siteid'] = 'Site ID';

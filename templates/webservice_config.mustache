@@ -1,0 +1,72 @@
+{{!  This file is part of Moodle - https://moodle.org/ }}
+{{!  Template for Datacurso Webservice Configuration UI }}
+
+<div class="aiprovider-datacurso-webservice">
+    <div class="mb-4">
+        <h3>{{#str}} webserviceconfig_heading, aiprovider_datacurso {{/str}}</h3>
+        <p class="text-muted">{{#str}} webserviceconfig_desc, aiprovider_datacurso {{/str}}</p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            {{#str}} webserviceconfig_current, aiprovider_datacurso {{/str}}
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6 class="mb-2">{{#str}} webserviceconfig_site, aiprovider_datacurso {{/str}}</h6>
+                    <dl>
+                        <dt>{{#str}} domain, aiprovider_datacurso {{/str}}</dt>
+                        <dd><code>{{site.domain}}</code></dd>
+                        <dt>{{#str}} siteid, aiprovider_datacurso {{/str}}</dt>
+                        <dd><code>{{site.siteid}}</code></dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <h6 class="mb-2">{{#str}} webserviceconfig_status, aiprovider_datacurso {{/str}}</h6>
+                    <dl>
+                        <dt>{{#str}} ws_enabled, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#webservicesenabled}}{{#str}} yes {{/str}}{{/webservicesenabled}}{{^webservicesenabled}}{{#str}} no {{/str}}{{/webservicesenabled}}</dd>
+                        <dt>{{#str}} rest_enabled, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#restenabled}}{{#str}} yes {{/str}}{{/restenabled}}{{^restenabled}}{{#str}} no {{/str}}{{/restenabled}}</dd>
+                        <dt>{{#str}} ws_user, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#user.username}}{{user.username}} ({{user.email}}){{/user.username}}{{^user.username}}—{{/user.username}}</dd>
+                        <dt>{{#str}} ws_role, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#role.shortname}}{{role.name}} ({{role.shortname}}){{/role.shortname}}{{^role.shortname}}—{{/role.shortname}}</dd>
+                        <dt>{{#str}} ws_service, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#service.name}}{{service.name}}{{/service.name}}{{^service.name}}—{{/service.name}}</dd>
+                        <dt>{{#str}} ws_userassigned, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#userassigned}}{{#str}} yes {{/str}}{{/userassigned}}{{^userassigned}}{{#str}} no {{/str}}{{/userassigned}}</dd>
+                        <dt>{{#str}} ws_tokenexists, aiprovider_datacurso {{/str}}</dt>
+                        <dd>{{#tokenexists}}{{#str}} yes {{/str}}{{/tokenexists}}{{^tokenexists}}{{#str}} no {{/str}}{{/tokenexists}}</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="alert alert-info mb-0">
+                <div class="small text-muted mb-1">{{#str}} registration_last, aiprovider_datacurso {{/str}}</div>
+                <div>{{#str}} registration_status, aiprovider_datacurso {{/str}}: <strong>{{registration.laststatus}}</strong></div>
+                {{#registration.lasterror}}
+                    <div>{{#str}} registration_error, aiprovider_datacurso {{/str}}: <code>{{registration.lasterror}}</code></div>
+                {{/registration.lasterror}}
+                {{#registration.lastsent}}
+                    <div>{{#str}} registration_lastsent, aiprovider_datacurso {{/str}}: {{registration.lastsent}}</div>
+                {{/registration.lastsent}}
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mb-4">
+        <button class="btn btn-primary" data-action="setup">{{#str}} ws_btn_setup, aiprovider_datacurso {{/str}}</button>
+        <button class="btn btn-warning" data-action="regenerate">{{#str}} ws_btn_regenerate, aiprovider_datacurso {{/str}}</button>
+        <button class="btn btn-secondary" data-action="register">{{#str}} ws_btn_register, aiprovider_datacurso {{/str}}</button>
+    </div>
+
+    <div class="card">
+        <div class="card-header">{{#str}} ws_activity, aiprovider_datacurso {{/str}}</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0" id="dc-ws-log"></ul>
+        </div>
+    </div>
+</div>
+
