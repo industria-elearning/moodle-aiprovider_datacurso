@@ -50,12 +50,18 @@ use moodle_exception;
  */
 class webservice_config {
     /** Constants used for creating items. */
-    public const USERNAME = 'datacurso';
-    public const USEREMAIL = 'datacurso@localhost';
+    /** @var string Username for the webservice user. */
+    public const USERNAME = 'datacursows';
+    /** @var string Email for the webservice user. */
+    public const USEREMAIL = 'webservice@datacurso.com';
+    /** @var string Name for the role. */
     public const ROLENAME = 'Datacurso web service';
+    /** @var string Short name for the role. */
     public const ROLESHORTNAME = 'datacursows';
-    public const SERVICENAME = 'datacurso';
-    public const SERVICESHORTNAME = 'datacurso';
+    /** @var string Name for the service. */
+    public const SERVICENAME = 'Datacurso web service';
+    /** @var string Short name for the service. */
+    public const SERVICESHORTNAME = 'datacursows';
 
     /**
      * Returns a summary of the current configuration status.
@@ -68,21 +74,21 @@ class webservice_config {
         $status = [
             'webservicesenabled' => (bool)get_config('core', 'enablewebservices'),
             'restenabled' => false,
-            'user' => null,
+            'user' => [],
             'role' => null,
             'service' => null,
             'userassigned' => false,
             'tokenexists' => false,
             'tokencreated' => null,
             'registration' => [
-                'laststatus' => get_config('aiprovider_datacurso', 'registration_last_status') ?: '',
-                'lasterror' => get_config('aiprovider_datacurso', 'registration_last_error') ?: '',
-                'lastsent' => get_config('aiprovider_datacurso', 'registration_last_sent') ?: '',
+                'verified' => get_config('aiprovider_datacurso', 'registration_verified') ?: false,
             ],
             'site' => [
                 'domain' => $CFG->wwwroot,
                 'siteid' => self::get_site_id(),
             ],
+            'isconfigured' => false,
+            'needsrepair' => true,
         ];
 
         // Check REST enabled.
@@ -141,6 +147,38 @@ class webservice_config {
             }
         }
 
+        // Determine configuration flags.
+        $status['isconfigured'] = (
+            !empty($status['webservicesenabled']) &&
+            !empty($status['restenabled']) &&
+            !empty($status['user']['id'] ?? 0) &&
+            !empty($status['role']['id'] ?? 0) &&
+            !empty($status['service']['id'] ?? 0) &&
+            !empty($status['userassigned']) &&
+            !empty($status['tokenexists'])
+        );
+        // Needs repair only if partially configured (some elements exist) but not fully ready.
+        $anypresent = (
+            !empty($status['webservicesenabled']) ||
+            !empty($status['restenabled']) ||
+            !empty($status['user']['id'] ?? 0) ||
+            !empty($status['role']['id'] ?? 0) ||
+            !empty($status['service']['id'] ?? 0) ||
+            !empty($status['userassigned']) ||
+            !empty($status['tokenexists'])
+        );
+        $status['needsrepair'] = (!$status['isconfigured'] && $anypresent);
+
+        // Query external register-status to verify if site token has been registered on Datacurso AI service.
+        $client = new \aiprovider_datacurso\external_api_client();
+        $check = $client->get_register_status([
+            'site_id' => self::get_site_id(),
+            'domain' => $CFG->wwwroot,
+        ]);
+        if (!empty($check['ok'])) {
+            $status['registration']['verified'] = !empty($check['registered']);
+        }
+
         return $status;
     }
 
@@ -197,10 +235,18 @@ class webservice_config {
         }
 
         // Assignable contexts and permissions.
-        set_role_contextlevels($roleid, [CONTEXT_SYSTEM]);
+        set_role_contextlevels($roleid, [CONTEXT_SYSTEM, CONTEXT_COURSE, CONTEXT_MODULE]);
         $messages[] = get_string('ws_step_role_caps', 'aiprovider_datacurso');
         $context = context_system::instance();
         assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddensections', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddenactivities', CAP_ALLOW, $roleid, $context, true);
 
         // Assign role to user.
         $messages[] = get_string('ws_step_role_assign', 'aiprovider_datacurso');
@@ -219,32 +265,26 @@ class webservice_config {
                 'shortname' => self::SERVICESHORTNAME,
                 'enabled' => 1,
                 'restrictedusers' => 1,
-                'downloadfiles' => 0,
+                'downloadfiles' => 1,
                 'uploadfiles' => 0,
-                'timecreated' => time(),
-                'component' => 'aiprovider_datacurso',
             ];
             $service->id = $webservicemanager->add_external_service($service);
         }
 
         // Attach some common core functions if they exist.
         $messages[] = get_string('ws_step_service_functions', 'aiprovider_datacurso');
-        $corefunctions = [
-            'core_course_get_courses',
-            'core_course_get_courses_by_field',
-            'core_enrol_get_enrolled_users',
-            'core_user_get_users',
-            'core_user_get_users_by_field',
+        $wsfunctions = [
+            'core_course_get_contents',
+            'mod_assign_get_submissions',
         ];
-        foreach ($corefunctions as $fname) {
-            if ($function = $DB->get_record('external_functions', ['name' => $fname])) {
-                $exists = $DB->record_exists('external_services_functions', [
-                    'externalserviceid' => $service->id,
-                    'functionname' => $fname,
-                ]);
-                if (!$exists) {
-                    $webservicemanager->add_external_function_to_service($fname, $service->id);
-                }
+        foreach ($wsfunctions as $functionname) {
+            $existfunction = $DB->record_exists('external_functions', ['name' => $functionname]);
+            $isassigned = $DB->record_exists('external_services_functions', [
+                'externalserviceid' => $service->id,
+                'functionname' => $functionname,
+            ]);
+            if ($existfunction && !$isassigned) {
+                $webservicemanager->add_external_function_to_service($functionname, $service->id);
             }
         }
 
@@ -258,7 +298,6 @@ class webservice_config {
             $serviceuser = (object) [
                 'externalserviceid' => $service->id,
                 'userid' => $user->id,
-                'timecreated' => time(),
             ];
             $webservicemanager->add_ws_authorised_user($serviceuser);
         }
@@ -330,8 +369,9 @@ class webservice_config {
         // Create new permanent token.
         $service = $DB->get_record('external_services', ['id' => $status['service']['id']], '*', MUST_EXIST);
         $userid = $status['user']['id'];
+        $token = null;
         if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
-            \core_external\util::generate_token(
+            $token = \core_external\util::generate_token(
                 EXTERNAL_TOKEN_PERMANENT,
                 $service,
                 $userid,
@@ -341,7 +381,7 @@ class webservice_config {
                 'datacurso token'
             );
         } else {
-            external_generate_token(
+            $token = external_generate_token(
                 EXTERNAL_TOKEN_PERMANENT,
                 $service,
                 $userid,
@@ -351,9 +391,13 @@ class webservice_config {
             );
         }
 
-        $newstatus = self::get_status();
-        $newstatus['messages'] = array_merge($messages, [get_string('ws_step_token_regenerated', 'aiprovider_datacurso')]);
-        return $newstatus;
+        if (!empty($token)) {
+            self::send_registration($token);
+        }
+
+        $status = self::get_status();
+        $status['messages'] = array_merge($messages, [get_string('ws_step_token_regenerated', 'aiprovider_datacurso')]);
+        return $status;
     }
 
     /**
@@ -363,43 +407,20 @@ class webservice_config {
      * @return array
      * @throws moodle_exception
      */
-    public static function send_registration(): array {
-        global $DB, $CFG;
-
-        require_capability('moodle/site:config', context_system::instance());
-
-        $status = self::get_status();
-        if (empty($status['service']['id']) || empty($status['user']['id'])) {
-            throw new moodle_exception('ws_error_missing_setup', 'aiprovider_datacurso');
-        }
-
-        // Fetch token for sending.
-        $tokenrec = $DB->get_record('external_tokens', [
-            'userid' => $status['user']['id'],
-            'externalserviceid' => $status['service']['id'],
-        ], '*', IGNORE_MULTIPLE);
-
-        if (!$tokenrec || empty($tokenrec->token)) {
-            throw new moodle_exception('ws_error_missing_token', 'aiprovider_datacurso');
-        }
+    private static function send_registration($token): array {
+        global $CFG;
 
         $payload = [
             'site_id' => self::get_site_id(),
             'domain' => $CFG->wwwroot,
-            'token' => $tokenrec->token,
+            'token' => $token,
         ];
 
         $client = new \aiprovider_datacurso\external_api_client();
         $result = $client->register_site($payload);
+        set_config('registration_verified', $result['verified'] ?? false, 'aiprovider_datacurso');
 
-        // Persist last registration status.
-        set_config('registration_last_status', $result['status'] ?? '', 'aiprovider_datacurso');
-        set_config('registration_last_error', $result['error'] ?? '', 'aiprovider_datacurso');
-        set_config('registration_last_sent', time(), 'aiprovider_datacurso');
-
-        $status = self::get_status();
-        $status['messages'] = [get_string('ws_step_registration_sent', 'aiprovider_datacurso')];
-        return $status;
+        return [get_string('ws_step_registration_sent', 'aiprovider_datacurso')];
     }
 
     /**
@@ -408,14 +429,7 @@ class webservice_config {
      * @return string
      */
     private static function get_site_id(): string {
-        global $CFG, $DB;
-        // Prefer the core site identifier if present.
-        $siteid = get_config('core', 'siteidentifier');
-        if (!empty($siteid)) {
-            return $siteid;
-        }
-        // Fallback: md5 of wwwroot.
+        global $CFG;
         return md5($CFG->wwwroot);
     }
 }
-
