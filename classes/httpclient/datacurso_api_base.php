@@ -139,11 +139,11 @@ class datacurso_api_base {
      *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, UPLOAD).
      * @param string $path   Relative endpoint. Example: '/create-course'.
-     * @param array  $body   Data for request.
+     * @param array $body Data for request.
      * @return array|null
      * @throws \Exception
      */
-    public function request(string $method, string $path, ?array $body = []): ?array {
+    public function request(string $method, string $path, array $body = []): ?array {
         $headers = ['Content-Type: application/json'];
         return $this->send_request($method, $path, $body, $headers);
     }
