@@ -87,7 +87,7 @@ class datacurso_api_base {
         try {
             switch (strtoupper($method)) {
                 case 'GET':
-                    $response = $curl->get($url, [], $options);
+                    $response = $curl->get($url, $payload, $options);
                     break;
                 case 'POST':
                     $response = $curl->post($url, json_encode($payload), $options);
@@ -96,7 +96,7 @@ class datacurso_api_base {
                     $response = $curl->put($url, $payload, $options);
                     break;
                 case 'DELETE':
-                    $response = $curl->delete($url, [], $options);
+                    $response = $curl->delete($url, $payload, $options);
                     break;
                 case 'UPLOAD':
                     $response = $curl->post($url, $payload, $options);
