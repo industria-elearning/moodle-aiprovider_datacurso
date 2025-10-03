@@ -176,7 +176,6 @@ class webservice_config {
             $client = new ai_services_api();
             $registration = $client->request('GET', '/registration-status', [
                 'site_id' => self::get_site_id(),
-                'domain' => $CFG->wwwroot,
             ]);
             if (!empty($registration['is_registered'])) {
                 $status['registration']['verified'] = true;
@@ -357,7 +356,7 @@ class webservice_config {
             return $status;
         }
 
-        $messages = [get_string('ws_step_token_regenerating', 'aiprovider_datacurso')];
+        $messages = [];
 
         try {
             // Delete existing tokens for this user/service.
@@ -372,13 +371,15 @@ class webservice_config {
             $token = self::create_token($service, $userid);
 
             if (!empty($token)) {
-                $messages[] = self::send_registration($token);
+                $sendmessages = self::send_registration($token);
+                $messages = array_merge($messages, $sendmessages);
             }
 
             $status = self::get_status();
             if ($status['registration']['verified']) {
-                $status['messages'][] = get_string('ws_step_token_regenerated', 'aiprovider_datacurso');
+                $messages[] = get_string('ws_step_token_regenerated', 'aiprovider_datacurso');
             }
+            $status['messages'] = $messages;
             return $status;
 
         } catch (\Exception $e) {
