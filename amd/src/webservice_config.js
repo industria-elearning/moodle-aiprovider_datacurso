@@ -19,7 +19,7 @@
  * displays progress via UI notifications and a simple log list.
  *
  * @module      aiprovider_datacurso/webservice_config
- * @copyright   2025
+ * @copyright   2025 Wilber Narvaez <wilber@buendata.com>
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -60,9 +60,9 @@ const handleAction = async(action) => {
         } else if (action === 'regenerate') {
             methodname = 'aiprovider_datacurso_webservice_regenerate_token';
             log('Regenerating token…');
-        } else if (action === 'register') {
-            methodname = 'aiprovider_datacurso_webservice_send_registration';
-            log('Sending registration…');
+        } else if (action === 'retry') {
+            methodname = 'aiprovider_datacurso_webservice_setup';
+            log('Retrying setup…');
         } else {
             return;
         }
@@ -98,4 +98,3 @@ export const init = () => {
 };
 
 export default {init};
-
