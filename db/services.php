@@ -44,15 +44,6 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
-    'aiprovider_datacurso_webservice_get_status' => [
-        'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
-        'methodname'  => 'get_status',
-        'classpath'   => '',
-        'description' => 'Get current automatic webservice configuration status',
-        'type'        => 'read',
-        'ajax'        => true,
-        'capabilities'=> 'moodle/site:config',
-    ],
     'aiprovider_datacurso_webservice_setup' => [
         'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
         'methodname'  => 'setup',
@@ -60,7 +51,7 @@ $functions = [
         'description' => 'Run automatic setup: enable WS, user/role, service, token',
         'type'        => 'write',
         'ajax'        => true,
-        'capabilities'=> 'moodle/site:config',
+        'capabilities' => 'moodle/site:config',
     ],
     'aiprovider_datacurso_webservice_regenerate_token' => [
         'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
@@ -69,15 +60,6 @@ $functions = [
         'description' => 'Regenerate the permanent token for the service user',
         'type'        => 'write',
         'ajax'        => true,
-        'capabilities'=> 'moodle/site:config',
-    ],
-    'aiprovider_datacurso_webservice_send_registration' => [
-        'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
-        'methodname'  => 'send_registration',
-        'classpath'   => '',
-        'description' => 'Send registration payload to external endpoint using bearer',
-        'type'        => 'write',
-        'ajax'        => true,
-        'capabilities'=> 'moodle/site:config',
+        'capabilities' => 'moodle/site:config',
     ],
 ];

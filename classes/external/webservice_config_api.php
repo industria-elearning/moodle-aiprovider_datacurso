@@ -16,15 +16,17 @@
 
 namespace aiprovider_datacurso\external;
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->libdir . '/externallib.php');
-
+use external_multiple_structure;
 use external_api;
 use external_function_parameters;
 use external_value;
 use external_single_structure;
 use aiprovider_datacurso\webservice_config;
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir . '/externallib.php');
+
 
 /**
  * AJAX external functions for configuring the Datacurso web service.
@@ -35,56 +37,59 @@ use aiprovider_datacurso\webservice_config;
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class webservice_config_api extends external_api {
-
-    public static function get_status_parameters(): external_function_parameters {
-        return new external_function_parameters([]);
-    }
-
-    public static function get_status(): array {
-        self::validate_parameters(self::get_status_parameters(), []);
-        return webservice_config::get_status();
-    }
-
-    public static function get_status_returns(): external_single_structure {
-        return self::status_structure();
-    }
-
+    /**
+     * Defines the parameters for the setup function.
+     *
+     * @return external_function_parameters The parameters object.
+     */
     public static function setup_parameters(): external_function_parameters {
         return new external_function_parameters([]);
     }
 
+    /**
+     * Performs the web service setup.
+     *
+     * @return array The setup result.
+     */
     public static function setup(): array {
         self::validate_parameters(self::setup_parameters(), []);
         return webservice_config::setup();
     }
 
+    /**
+     * Defines the return structure for the setup function.
+     *
+     * @return external_single_structure The return structure object.
+     */
     public static function setup_returns(): external_single_structure {
         return self::status_structure(true);
     }
 
+    /**
+     * Defines the parameters for the regenerate_token function.
+     *
+     * @return external_function_parameters The parameters object.
+     */
     public static function regenerate_token_parameters(): external_function_parameters {
         return new external_function_parameters([]);
     }
 
+    /**
+     * Regenerates the web service token.
+     *
+     * @return array The regeneration result.
+     */
     public static function regenerate_token(): array {
         self::validate_parameters(self::regenerate_token_parameters(), []);
         return webservice_config::regenerate_token();
     }
 
+    /**
+     * Defines the return structure for the regenerate_token function.
+     *
+     * @return external_single_structure The return structure object.
+     */
     public static function regenerate_token_returns(): external_single_structure {
-        return self::status_structure(true);
-    }
-
-    public static function send_registration_parameters(): external_function_parameters {
-        return new external_function_parameters([]);
-    }
-
-    public static function send_registration(): array {
-        self::validate_parameters(self::send_registration_parameters(), []);
-        return webservice_config::send_registration();
-    }
-
-    public static function send_registration_returns(): external_single_structure {
         return self::status_structure(true);
     }
 
@@ -101,6 +106,8 @@ class webservice_config_api extends external_api {
             'userassigned' => new external_value(PARAM_BOOL, 'Role assigned to service user'),
             'tokenexists' => new external_value(PARAM_BOOL, 'Token exists'),
             'tokencreated' => new external_value(PARAM_INT, 'Token creation time', VALUE_DEFAULT, null),
+            'isconfigured' => new external_value(PARAM_BOOL, 'Everything configured properly'),
+            'needsrepair' => new external_value(PARAM_BOOL, 'Needs setup/repair'),
             'user' => new external_single_structure([
                 'id' => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
                 'username' => new external_value(PARAM_TEXT, 'Username', VALUE_DEFAULT, ''),
@@ -123,6 +130,7 @@ class webservice_config_api extends external_api {
                 'laststatus' => new external_value(PARAM_TEXT, 'Last registration status', VALUE_DEFAULT, ''),
                 'lasterror' => new external_value(PARAM_TEXT, 'Last registration error', VALUE_DEFAULT, ''),
                 'lastsent' => new external_value(PARAM_TEXT, 'Last registration timestamp', VALUE_DEFAULT, ''),
+                'verified' => new external_value(PARAM_BOOL, 'Registration verified with external service', VALUE_DEFAULT, false),
             ], 'Registration status', VALUE_DEFAULT, []),
             'site' => new external_single_structure([
                 'domain' => new external_value(PARAM_URL, 'Site domain'),
@@ -131,8 +139,8 @@ class webservice_config_api extends external_api {
         ];
 
         if ($withmessages) {
-            $fields['messages'] = new \external_multiple_structure(
-                new \external_value(PARAM_TEXT, 'Message'),
+            $fields['messages'] = new external_multiple_structure(
+                new external_value(PARAM_TEXT, 'Message'),
                 'Step messages', VALUE_DEFAULT, []
             );
         }
