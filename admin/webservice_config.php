@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-require(__DIR__ . '/../../../config.php');
+/**
+ * TODO describe file report_sections
+ *
+ * @package    aiprovider_datacurso
+ * @copyright  2025 Wilber Narvaez <wilber@buendata.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+require('../../../../config.php');
 
 require_login();
 require_capability('moodle/site:config', context_system::instance());
