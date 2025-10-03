@@ -16,6 +16,8 @@
 
 namespace aiprovider_datacurso;
 
+use aiprovider_datacurso\httpclient\ai_services_api;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/clilib.php');
@@ -194,152 +196,161 @@ class webservice_config {
 
         $messages = [];
 
-        // Enable web services and REST protocol.
-        $messages[] = get_string('ws_step_enableauth', 'aiprovider_datacurso');
-        $authclass = core_plugin_manager::resolve_plugininfo_class('auth');
-        $authclass::enable_plugin('webservice', true);
+        try {
+            // Enable web services and REST protocol.
+            $messages[] = get_string('ws_step_enableauth', 'aiprovider_datacurso');
+            $authclass = core_plugin_manager::resolve_plugininfo_class('auth');
+            $authclass::enable_plugin('webservice', true);
 
-        $messages[] = get_string('ws_step_enablews', 'aiprovider_datacurso');
-        set_config('enablewebservices', 1);
+            $messages[] = get_string('ws_step_enablews', 'aiprovider_datacurso');
+            set_config('enablewebservices', 1);
 
-        $messages[] = get_string('ws_step_enablerest', 'aiprovider_datacurso');
-        $webserviceclass = core_plugin_manager::resolve_plugininfo_class('webservice');
-        $webserviceclass::enable_plugin('rest', true);
+            $messages[] = get_string('ws_step_enablerest', 'aiprovider_datacurso');
+            $webserviceclass = core_plugin_manager::resolve_plugininfo_class('webservice');
+            $webserviceclass::enable_plugin('rest', true);
 
-        // Ensure user exists.
-        $messages[] = get_string('ws_step_user_check', 'aiprovider_datacurso', self::USERNAME);
-        $user = $DB->get_record('user', ['username' => self::USERNAME, 'deleted' => 0]);
-        if (!$user) {
-            $messages[] = get_string('ws_step_user_create', 'aiprovider_datacurso', self::USERNAME);
-            $user = (object) [
-                'username' => self::USERNAME,
-                'password' => AUTH_PASSWORD_NOT_CACHED,
-                'firstname' => 'Datacurso',
-                'lastname' => 'Service',
-                'email' => self::USEREMAIL,
-                'auth' => 'webservice',
-                'confirmed' => 1,
-                'maildisplay' => 0,
-                'mnethostid' => $CFG->mnet_localhost_id,
-            ];
-            $user->id = user_create_user($user, false, false);
-        }
-
-        // Create role if needed.
-        if ($DB->record_exists('role', ['shortname' => self::ROLESHORTNAME])) {
-            $roleid = (int)$DB->get_field('role', 'id', ['shortname' => self::ROLESHORTNAME]);
-            $messages[] = get_string('ws_step_role_exists', 'aiprovider_datacurso', $roleid);
-        } else {
-            $messages[] = get_string('ws_step_role_create', 'aiprovider_datacurso', self::ROLENAME);
-            $roleid = create_role(self::ROLENAME, self::ROLESHORTNAME, 'Role for Datacurso web service');
-        }
-
-        // Assignable contexts and permissions.
-        set_role_contextlevels($roleid, [CONTEXT_SYSTEM, CONTEXT_COURSE, CONTEXT_MODULE]);
-        $messages[] = get_string('ws_step_role_caps', 'aiprovider_datacurso');
-        $context = context_system::instance();
-        assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:viewhiddensections', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
-        assign_capability('moodle/course:viewhiddenactivities', CAP_ALLOW, $roleid, $context, true);
-
-        // Assign role to user.
-        $messages[] = get_string('ws_step_role_assign', 'aiprovider_datacurso');
-        role_assign($roleid, $user->id, $context->id);
-
-        // Ensure external service exists and is enabled.
-        $messages[] = get_string('ws_step_service_enable', 'aiprovider_datacurso');
-        $webservicemanager = new \webservice();
-        if ($service = $DB->get_record('external_services', ['shortname' => self::SERVICESHORTNAME])) {
-            $service->enabled = 1;
-            $service->restrictedusers = 1;
-            $webservicemanager->update_external_service($service);
-        } else {
-            $service = (object) [
-                'name' => self::SERVICENAME,
-                'shortname' => self::SERVICESHORTNAME,
-                'enabled' => 1,
-                'restrictedusers' => 1,
-                'downloadfiles' => 1,
-                'uploadfiles' => 0,
-            ];
-            $service->id = $webservicemanager->add_external_service($service);
-        }
-
-        // Attach some common core functions if they exist.
-        $messages[] = get_string('ws_step_service_functions', 'aiprovider_datacurso');
-        $wsfunctions = [
-            'core_course_get_contents',
-            'mod_assign_get_submissions',
-        ];
-        foreach ($wsfunctions as $functionname) {
-            $existfunction = $DB->record_exists('external_functions', ['name' => $functionname]);
-            $isassigned = $DB->record_exists('external_services_functions', [
-                'externalserviceid' => $service->id,
-                'functionname' => $functionname,
-            ]);
-            if ($existfunction && !$isassigned) {
-                $webservicemanager->add_external_function_to_service($functionname, $service->id);
+            // Ensure user exists.
+            $messages[] = get_string('ws_step_user_check', 'aiprovider_datacurso', self::USERNAME);
+            $user = $DB->get_record('user', ['username' => self::USERNAME, 'deleted' => 0]);
+            if (!$user) {
+                $messages[] = get_string('ws_step_user_create', 'aiprovider_datacurso', self::USERNAME);
+                $user = (object) [
+                    'username' => self::USERNAME,
+                    'password' => AUTH_PASSWORD_NOT_CACHED,
+                    'firstname' => 'Datacurso',
+                    'lastname' => 'Service',
+                    'email' => self::USEREMAIL,
+                    'auth' => 'webservice',
+                    'confirmed' => 1,
+                    'maildisplay' => 0,
+                    'mnethostid' => $CFG->mnet_localhost_id,
+                ];
+                $user->id = user_create_user($user, false, false);
             }
-        }
 
-        // Add user to the external service if not already authorised.
-        $messages[] = get_string('ws_step_service_user', 'aiprovider_datacurso');
-        $authorised = $DB->record_exists('external_services_users', [
-            'externalserviceid' => $service->id,
-            'userid' => $user->id,
-        ]);
-        if (!$authorised) {
-            $serviceuser = (object) [
+            // Create role if needed.
+            if ($DB->record_exists('role', ['shortname' => self::ROLESHORTNAME])) {
+                $roleid = (int)$DB->get_field('role', 'id', ['shortname' => self::ROLESHORTNAME]);
+                $messages[] = get_string('ws_step_role_exists', 'aiprovider_datacurso', $roleid);
+            } else {
+                $messages[] = get_string('ws_step_role_create', 'aiprovider_datacurso', self::ROLENAME);
+                $roleid = create_role(self::ROLENAME, self::ROLESHORTNAME, 'Role for Datacurso web service');
+            }
+
+            // Assignable contexts and permissions.
+            set_role_contextlevels($roleid, [CONTEXT_SYSTEM, CONTEXT_COURSE, CONTEXT_MODULE]);
+            $messages[] = get_string('ws_step_role_caps', 'aiprovider_datacurso');
+            $context = context_system::instance();
+            assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:viewhiddensections', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
+            assign_capability('moodle/course:viewhiddenactivities', CAP_ALLOW, $roleid, $context, true);
+
+            // Assign role to user.
+            $messages[] = get_string('ws_step_role_assign', 'aiprovider_datacurso');
+            role_assign($roleid, $user->id, $context->id);
+
+            // Ensure external service exists and is enabled.
+            $messages[] = get_string('ws_step_service_enable', 'aiprovider_datacurso');
+            $webservicemanager = new \webservice();
+            if ($service = $DB->get_record('external_services', ['shortname' => self::SERVICESHORTNAME])) {
+                $service->enabled = 1;
+                $service->restrictedusers = 1;
+                $webservicemanager->update_external_service($service);
+            } else {
+                $service = (object) [
+                    'name' => self::SERVICENAME,
+                    'shortname' => self::SERVICESHORTNAME,
+                    'enabled' => 1,
+                    'restrictedusers' => 1,
+                    'downloadfiles' => 1,
+                    'uploadfiles' => 0,
+                ];
+                $service->id = $webservicemanager->add_external_service($service);
+            }
+
+            // Attach some common core functions if they exist.
+            $messages[] = get_string('ws_step_service_functions', 'aiprovider_datacurso');
+            $wsfunctions = [
+                'core_course_get_contents',
+                'mod_assign_get_submissions',
+            ];
+            foreach ($wsfunctions as $functionname) {
+                $existfunction = $DB->record_exists('external_functions', ['name' => $functionname]);
+                $isassigned = $DB->record_exists('external_services_functions', [
+                    'externalserviceid' => $service->id,
+                    'functionname' => $functionname,
+                ]);
+                if ($existfunction && !$isassigned) {
+                    $webservicemanager->add_external_function_to_service($functionname, $service->id);
+                }
+            }
+
+            // Add user to the external service if not already authorised.
+            $messages[] = get_string('ws_step_service_user', 'aiprovider_datacurso');
+            $authorised = $DB->record_exists('external_services_users', [
                 'externalserviceid' => $service->id,
                 'userid' => $user->id,
-            ];
-            $webservicemanager->add_ws_authorised_user($serviceuser);
-        }
-
-        // Create or reuse a permanent token (not returned in response).
-        $messages[] = get_string('ws_step_token_create', 'aiprovider_datacurso');
-        $tokenrec = $DB->get_record('external_tokens', [
-            'userid' => $user->id,
-            'externalserviceid' => $service->id,
-        ], '*', IGNORE_MULTIPLE);
-
-        if (!$tokenrec) {
-            if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
-                $token = \core_external\util::generate_token(
-                    EXTERNAL_TOKEN_PERMANENT,
-                    $service,
-                    $user->id,
-                    context_system::instance(),
-                    0,
-                    '',
-                    'datacurso token'
-                );
-            } else {
-                $token = external_generate_token(
-                    EXTERNAL_TOKEN_PERMANENT,
-                    $service,
-                    $user->id,
-                    context_system::instance(),
-                    0,
-                    ''
-                );
+            ]);
+            if (!$authorised) {
+                $serviceuser = (object) [
+                    'externalserviceid' => $service->id,
+                    'userid' => $user->id,
+                ];
+                $webservicemanager->add_ws_authorised_user($serviceuser);
             }
-            // Refetch for status.
+
+            // Create or reuse a permanent token (not returned in response).
+            $messages[] = get_string('ws_step_token_create', 'aiprovider_datacurso');
             $tokenrec = $DB->get_record('external_tokens', [
                 'userid' => $user->id,
                 'externalserviceid' => $service->id,
             ], '*', IGNORE_MULTIPLE);
+
+            if (!$tokenrec) {
+                if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
+                    $token = \core_external\util::generate_token(
+                        EXTERNAL_TOKEN_PERMANENT,
+                        $service,
+                        $user->id,
+                        context_system::instance(),
+                        0,
+                        '',
+                        'datacurso token'
+                    );
+                } else {
+                    $token = external_generate_token(
+                        EXTERNAL_TOKEN_PERMANENT,
+                        $service,
+                        $user->id,
+                        context_system::instance(),
+                        0,
+                        ''
+                    );
+                }
+                // Refetch for status.
+                $tokenrec = $DB->get_record('external_tokens', [
+                    'userid' => $user->id,
+                    'externalserviceid' => $service->id,
+                ], '*', IGNORE_MULTIPLE);
+            }
+
+            $status = self::get_status();
+            $status['messages'] = $messages;
+            return $status;
+
+        } catch (\Exception $e) {
+            $status = self::get_status();
+            $messages[] = get_string('ws_error_setup', 'aiprovider_datacurso');
+            $status['messages'] = $messages;
+            return $status;
         }
 
-        $status = self::get_status();
-        $status['messages'] = $messages;
-        return $status;
     }
 
     /**
@@ -355,49 +366,57 @@ class webservice_config {
 
         $status = self::get_status();
         if (empty($status['service']['id']) || empty($status['user']['id'])) {
-            throw new moodle_exception('ws_error_missing_setup', 'aiprovider_datacurso');
+            $status['messages'][] = get_string('ws_error_missing_setup', 'aiprovider_datacurso');
+            return $status;
         }
-
-        // Delete existing tokens for this user/service.
-        $DB->delete_records('external_tokens', [
-            'userid' => $status['user']['id'],
-            'externalserviceid' => $status['service']['id'],
-        ]);
 
         $messages = [get_string('ws_step_token_regenerating', 'aiprovider_datacurso')];
 
-        // Create new permanent token.
-        $service = $DB->get_record('external_services', ['id' => $status['service']['id']], '*', MUST_EXIST);
-        $userid = $status['user']['id'];
-        $token = null;
-        if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
-            $token = \core_external\util::generate_token(
-                EXTERNAL_TOKEN_PERMANENT,
-                $service,
-                $userid,
-                context_system::instance(),
-                0,
-                '',
-                'datacurso token'
-            );
-        } else {
-            $token = external_generate_token(
-                EXTERNAL_TOKEN_PERMANENT,
-                $service,
-                $userid,
-                context_system::instance(),
-                0,
-                ''
-            );
+        try {
+            // Delete existing tokens for this user/service.
+            $DB->delete_records('external_tokens', [
+                'userid' => $status['user']['id'],
+                'externalserviceid' => $status['service']['id'],
+            ]);
+
+            // Create new permanent token.
+            $service = $DB->get_record('external_services', ['id' => $status['service']['id']], '*', MUST_EXIST);
+            $userid = $status['user']['id'];
+            $token = null;
+            if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
+                $token = \core_external\util::generate_token(
+                    EXTERNAL_TOKEN_PERMANENT,
+                    $service,
+                    $userid,
+                    context_system::instance(),
+                    0,
+                    '',
+                    'datacurso token'
+                );
+            } else {
+                $token = external_generate_token(
+                    EXTERNAL_TOKEN_PERMANENT,
+                    $service,
+                    $userid,
+                    context_system::instance(),
+                    0,
+                    ''
+                );
+            }
+
+            if (!empty($token)) {
+                self::send_registration($token);
+            }
+
+            $status = self::get_status();
+            $status['messages'] = array_merge($messages, [get_string('ws_step_token_regenerated', 'aiprovider_datacurso')]);
+            return $status;
+
+        } catch (\Exception $e) {
+            $status['messages'][] = get_string('ws_error_regenerate_token', 'aiprovider_datacurso');
+            return $status;
         }
 
-        if (!empty($token)) {
-            self::send_registration($token);
-        }
-
-        $status = self::get_status();
-        $status['messages'] = array_merge($messages, [get_string('ws_step_token_regenerated', 'aiprovider_datacurso')]);
-        return $status;
     }
 
     /**
@@ -416,7 +435,7 @@ class webservice_config {
             'token' => $token,
         ];
 
-        $client = new \aiprovider_datacurso\external_api_client();
+        $client = new ai_services_api();
         $result = $client->register_site($payload);
         set_config('registration_verified', $result['verified'] ?? false, 'aiprovider_datacurso');
 
