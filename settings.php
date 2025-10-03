@@ -60,14 +60,6 @@ if ($hassiteconfig) {
         PARAM_URL
     ));
 
-    // Web service token for course context.
-    $settings->add(new admin_setting_configpasswordunmask(
-        'aiprovider_datacurso/contextwstoken',
-        new lang_string('contextwstoken', 'aiprovider_datacurso'),
-        new lang_string('contextwstoken_desc', 'aiprovider_datacurso'),
-        ''
-    ));
-
     // Token threshold notification.
     $settings->add(new admin_setting_configtext(
         'aiprovider_datacurso/tokenthreshold',
@@ -90,30 +82,6 @@ if ($hassiteconfig) {
         get_string('link_webservice_config', 'aiprovider_datacurso'),
         new moodle_url('/ai/provider/datacurso/admin/webservice_config.php'),
         'moodle/site:config'
-    ));
-
-    // Registration API settings.
-    $settings->add(new admin_setting_heading(
-        'aiprovider_datacurso/registration',
-        new lang_string('registrationsettings', 'aiprovider_datacurso'),
-        ''
-    ));
-
-    // Registration API URL (defaults to localhost endpoint).
-    $settings->add(new admin_setting_configtext(
-        'aiprovider_datacurso/registrationapiurl',
-        new lang_string('registrationapiurl', 'aiprovider_datacurso'),
-        new lang_string('registrationapiurl_desc', 'aiprovider_datacurso'),
-        'http://localhost:8001/register-site',
-        PARAM_URL
-    ));
-
-    // Registration API bearer token.
-    $settings->add(new admin_setting_configpasswordunmask(
-        'aiprovider_datacurso/registrationapibearer',
-        new lang_string('registrationapibearer', 'aiprovider_datacurso'),
-        new lang_string('registrationapibearer_desc', 'aiprovider_datacurso'),
-        ''
     ));
 
 }
