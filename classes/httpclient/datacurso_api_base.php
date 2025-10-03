@@ -36,56 +36,44 @@ class datacurso_api_base {
     /** @var string|null $licensekey The license key obtained from Datacurso SHOP */
     protected $licensekey;
 
-    /**
-     * Constructor.
-     *
-     * @param string      $baseurl    The base URL for the API.
-     * @param string|null $licensekey The license key obtained from Datacurso SHOP.
-     */
     public function __construct(string $baseurl, ?string $licensekey = null) {
         $this->baseurl = $baseurl;
         $this->licensekey = $licensekey ?? get_config('aiprovider_datacurso', 'licensekey');
     }
 
     /**
-     * Sends an HTTP request to the Datacurso API service.
+     * Generic handler for HTTP calls to Datacurso API.
      *
-     * @param string     $method HTTP method (GET, POST, PUT, DELETE).
-     * @param string     $path   Relative endpoint (e.g., /create-course).
-     * @param array|null $body   Request body (for POST/PUT).
-     * @return array|null The decoded JSON response, or null on failure.
-     * @throws \invalid_parameter_exception If an invalid HTTP method is used.
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, UPLOAD).
+     * @param string $path   Relative endpoint (starting with "/").
+     * @param mixed  $payload Data for request (array, string, or multipart).
+     * @param array  $headers Extra headers if needed.
+     * @return array|null
+     * @throws \Exception
      */
-    public function request(string $method, string $path, ?array $body = []): ?array {
-        // Validate HTTP method.
-        $allowedmethods = ['GET', 'POST', 'PUT', 'DELETE'];
-        if (!in_array(strtoupper($method), $allowedmethods)) {
-            throw new \invalid_parameter_exception('Invalid HTTP method: ' . $method);
-        }
-
-        // Ensure path starts with "/".
-        if (!str_starts_with($path, '/')) {
-            $path = '/' . $path;
-        }
-
-        // License key check.
+    protected function send_request(string $method, string $path, $payload = [], array $headers = []): ?array {
         if (empty($this->licensekey)) {
             debugging('Cannot make this request: no license key available', DEBUG_DEVELOPER);
             return null;
         }
 
-        $curl = new \curl();
+        if (!str_starts_with($path, '/')) {
+            $path = '/' . $path;
+        }
 
-        $headers = [
-            'Content-Type: application/json',
+        $curl = new \curl();
+        $baseheaders = [
             'License-Key: ' . $this->licensekey,
         ];
+
+        // Fusionar headers adicionales.
+        $headers = array_merge($baseheaders, $headers);
 
         $options = [
             'CURLOPT_RETURNTRANSFER' => true,
             'CURLOPT_HTTPHEADER' => $headers,
-            'CURLOPT_TIMEOUT' => 30,
-            'CURLOPT_CONNECTTIMEOUT' => 10,
+            'CURLOPT_TIMEOUT' => 60,
+            'CURLOPT_CONNECTTIMEOUT' => 15,
         ];
 
         $url = $this->baseurl . $path;
@@ -97,56 +85,73 @@ class datacurso_api_base {
                     $response = $curl->get($url, [], $options);
                     break;
                 case 'POST':
-                    $response = $curl->post($url, json_encode($body), $options);
+                    $response = $curl->post($url, json_encode($payload), $options);
                     break;
                 case 'PUT':
-                    $response = $curl->put($url, $body, $options);
+                    $response = $curl->put($url, $payload, $options);
                     break;
                 case 'DELETE':
                     $response = $curl->delete($url, [], $options);
                     break;
+                case 'UPLOAD':
+                    // Aquí $payload debe ser array con 'file' => new \CURLFile(...)
+                    $response = $curl->post($url, $payload, $options);
+                    break;
+                default:
+                    throw new \coding_exception('Invalid HTTP method: ' . $method);
             }
         } catch (\Exception $e) {
             debugging('HTTP request exception: ' . $e->getMessage(), DEBUG_DEVELOPER);
-            return null;
+            throw $e;
         }
 
-        // Handle cURL errors.
-        if ($curl->get_errno() !== 0) {
-            debugging('cURL error (' . $curl->get_errno() . '): ' . $curl->error, DEBUG_DEVELOPER);
-            return null;
-        }
-
-        // Validate response.
         if (!$response) {
             debugging('Empty response from Datacurso API', DEBUG_DEVELOPER);
-            return null;
+            throw new \Exception('Could not get response from Datacurso API');
         }
 
-        // HTTP code check.
+        if ($curl->error) {
+            debugging('cURL error (' . $curl->error . ')', DEBUG_DEVELOPER);
+            throw new \Exception('Error in Datacurso API request: ' . $curl->error);
+        }
+
         $httpcode = $curl->get_info()['http_code'] ?? 0;
         if ($httpcode >= 400) {
             debugging("HTTP error {$httpcode} from Datacurso API: {$response}", DEBUG_DEVELOPER);
-            return null;
+            throw new \Exception("HTTP error {$httpcode}");
         }
 
-        // Decode JSON response.
         $decodedresponse = json_decode($response, true);
-
         if (json_last_error() !== JSON_ERROR_NONE) {
             debugging('JSON decode error: ' . json_last_error_msg() . '. Response: ' . $response, DEBUG_DEVELOPER);
-            return null;
+            throw new \Exception('Error processing response from Datacurso API');
         }
 
         return $decodedresponse;
     }
 
     /**
-     * Get the configured base URL (for debugging or logging).
-     *
-     * @return string The base URL.
+     * Standard JSON API call.
      */
-    public function get_base_url(): string {
-        return $this->baseurl;
+    public function request(string $method, string $path, ?array $body = []): ?array {
+        $headers = ['Content-Type: application/json'];
+        return $this->send_request($method, $path, $body, $headers);
+    }
+
+    /**
+     * Upload a file using multipart/form-data.
+     */
+    public function upload_file(string $path, string $filepath, array $extraparams = []): ?array {
+        if (!file_exists($filepath)) {
+            $filename = basename($filepath);
+            throw new \coding_exception("File not found: {$filename}");
+        }
+
+        $postdata = array_merge($extraparams, [
+            'file' => new \CURLFile($filepath),
+        ]);
+
+        return $this->send_request('UPLOAD', $path, $postdata);
     }
 }
+
