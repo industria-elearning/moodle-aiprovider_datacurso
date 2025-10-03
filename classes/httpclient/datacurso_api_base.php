@@ -36,6 +36,12 @@ class datacurso_api_base {
     /** @var string|null $licensekey The license key obtained from Datacurso SHOP */
     protected $licensekey;
 
+    /**
+     * Constructor.
+     *
+     * @param string $baseurl The base URL for Datacurso API requests.
+     * @param string|null $licensekey The license key obtained from Datacurso SHOP.
+     */
     public function __construct(string $baseurl, ?string $licensekey = null) {
         $this->baseurl = $baseurl;
         $this->licensekey = $licensekey ?? get_config('aiprovider_datacurso', 'licensekey');
@@ -66,7 +72,6 @@ class datacurso_api_base {
             'License-Key: ' . $this->licensekey,
         ];
 
-        // Fusionar headers adicionales.
         $headers = array_merge($baseheaders, $headers);
 
         $options = [
@@ -94,7 +99,6 @@ class datacurso_api_base {
                     $response = $curl->delete($url, [], $options);
                     break;
                 case 'UPLOAD':
-                    // Aquí $payload debe ser array con 'file' => new \CURLFile(...)
                     $response = $curl->post($url, $payload, $options);
                     break;
                 default:
@@ -132,6 +136,12 @@ class datacurso_api_base {
 
     /**
      * Standard JSON API call.
+     *
+     * @param string $method HTTP method (GET, POST, PUT, DELETE, UPLOAD).
+     * @param string $path   Relative endpoint. Example: '/create-course'.
+     * @param array  $body   Data for request.
+     * @return array|null
+     * @throws \Exception
      */
     public function request(string $method, string $path, ?array $body = []): ?array {
         $headers = ['Content-Type: application/json'];
@@ -140,6 +150,12 @@ class datacurso_api_base {
 
     /**
      * Upload a file using multipart/form-data.
+     *
+     * @param string $path   Relative endpoint. Example: '/upload-file'.
+     * @param string $filepath Path to the file to upload.
+     * @param array  $extraparams Extra parameters for the request.
+     * @return array|null
+     * @throws \Exception
      */
     public function upload_file(string $path, string $filepath, array $extraparams = []): ?array {
         if (!file_exists($filepath)) {
