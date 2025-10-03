@@ -25,6 +25,7 @@
 
 import Ajax from 'core/ajax';
 import Notification from 'core/notification';
+import { get_string } from 'core/str';
 
 const log = (msg, type = 'info') => {
     const list = document.getElementById('dc-ws-log');
@@ -56,13 +57,16 @@ const handleAction = async(action) => {
         let methodname;
         if (action === 'setup') {
             methodname = 'aiprovider_datacurso_webservice_setup';
-            log('Starting setup…');
+            const message = await get_string('ws_step_setup', 'aiprovider_datacurso');
+            log(message);
         } else if (action === 'regenerate') {
             methodname = 'aiprovider_datacurso_webservice_regenerate_token';
-            log('Regenerating token…');
+            const message = await get_string('ws_step_token_regenerating', 'aiprovider_datacurso');
+            log(message);
         } else if (action === 'retry') {
             methodname = 'aiprovider_datacurso_webservice_setup';
-            log('Retrying setup…');
+            const message = await get_string('ws_step_token_retry', 'aiprovider_datacurso');
+            log(message);
         } else {
             return;
         }
