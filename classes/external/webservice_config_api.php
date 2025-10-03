@@ -62,7 +62,7 @@ class webservice_config_api extends external_api {
      * @return external_single_structure The return structure object.
      */
     public static function setup_returns(): external_single_structure {
-        return self::status_structure(true);
+        return self::status_structure();
     }
 
     /**
@@ -81,7 +81,8 @@ class webservice_config_api extends external_api {
      */
     public static function regenerate_token(): array {
         self::validate_parameters(self::regenerate_token_parameters(), []);
-        return webservice_config::regenerate_token();
+        $result = webservice_config::regenerate_token();
+        return $result;
     }
 
     /**
@@ -90,16 +91,15 @@ class webservice_config_api extends external_api {
      * @return external_single_structure The return structure object.
      */
     public static function regenerate_token_returns(): external_single_structure {
-        return self::status_structure(true);
+        return self::status_structure();
     }
 
     /**
      * Common return structure for status responses.
      *
-     * @param bool $withmessages
      * @return external_single_structure
      */
-    private static function status_structure(bool $withmessages = false): external_single_structure {
+    private static function status_structure(): external_single_structure {
         $fields = [
             'webservicesenabled' => new external_value(PARAM_BOOL, 'Web services enabled'),
             'restenabled' => new external_value(PARAM_BOOL, 'REST protocol enabled'),
@@ -136,14 +136,11 @@ class webservice_config_api extends external_api {
                 'domain' => new external_value(PARAM_URL, 'Site domain'),
                 'siteid' => new external_value(PARAM_ALPHANUMEXT, 'Site unique id'),
             ], 'Site info'),
-        ];
-
-        if ($withmessages) {
-            $fields['messages'] = new external_multiple_structure(
+            'messages' => new external_multiple_structure(
                 new external_value(PARAM_TEXT, 'Message'),
                 'Step messages', VALUE_DEFAULT, []
-            );
-        }
+            ),
+        ];
 
         return new external_single_structure($fields);
     }
