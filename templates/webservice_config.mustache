@@ -12,14 +12,14 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{#str}} webserviceconfig_current, aiprovider_datacurso {{/str}}</h5>
             {{#isconfigured}}
-                <span class="badge badge-success">{{#str}} status{{/str}}: {{#str}} configured, aiprovider_datacurso{{/str}}</span>
+                <span class="badge badge-success">{{#str}} configured, aiprovider_datacurso{{/str}}</span>
             {{/isconfigured}}
             {{^isconfigured}}
                 {{#needsrepair}}
-                    <span class="badge badge-warning">{{#str}} status{{/str}}: {{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
+                    <span class="badge badge-warning">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
                 {{/needsrepair}}
                 {{^needsrepair}}
-                    <span class="badge badge-danger">{{#str}} status{{/str}}: {{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
+                    <span class="badge badge-danger">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
                 {{/needsrepair}}
             {{/isconfigured}}
         </div>
@@ -48,23 +48,25 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#user}}info{{/user}}{{^user}}danger{{/user}} mr-2">
-                            {{#user}}{{user.username}}{{/user}}{{^user}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/user}}
+                        <span class="badge badge-{{#user}}success{{/user}}{{^user}}danger{{/user}} mr-2">
+                            {{#user}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/user}}{{^user}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/user}}
                         </span>
                         <strong>{{#str}} ws_user, aiprovider_datacurso {{/str}}</strong>
                     </div>
                     {{#user}}
+                        <div>{{user.username}}</div>
                         <small class="text-muted">{{user.email}}</small>
                     {{/user}}
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#role}}info{{/role}}{{^role}}danger{{/role}} mr-2">
-                            {{#role}}{{role.shortname}}{{/role}}{{^role}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/role}}
+                        <span class="badge badge-{{#role}}success{{/role}}{{^role}}danger{{/role}} mr-2">
+                            {{#role}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/role}}{{^role}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/role}}
                         </span>
                         <strong>{{#str}} ws_role, aiprovider_datacurso {{/str}}</strong>
                     </div>
                     {{#role}}
+                        <div>{{role.shortname}}</div>
                         <small class="text-muted">{{role.name}}</small>
                     {{/role}}
                 </div>
@@ -74,11 +76,14 @@
             <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#service}}info{{/service}}{{^service}}danger{{/service}} mr-2">
-                            {{#service}}{{service.name}}{{/service}}{{^service}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/service}}
+                        <span class="badge badge-{{#service}}success{{/service}}{{^service}}danger{{/service}} mr-2">
+                            {{#service}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/service}}{{^service}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/service}}
                         </span>
                         <strong>{{#str}} ws_service, aiprovider_datacurso {{/str}}</strong>
                     </div>
+                    {{#service}}
+                        <div>{{service.name}}</div>
+                    {{/service}}
                 </div>
                 <div class="col-md-6">
                     <div class="d-flex align-items-center mb-2">
@@ -165,3 +170,4 @@
         </div>
     </div>
 </div>
+
