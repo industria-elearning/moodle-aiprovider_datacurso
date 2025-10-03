@@ -56,7 +56,7 @@ class datacurso_api_base {
      * @return array|null The decoded JSON response, or null on failure.
      * @throws \invalid_parameter_exception If an invalid HTTP method is used.
      */
-    protected function request(string $method, string $path, ?array $body = []): ?array {
+    public function request(string $method, string $path, ?array $body = []): ?array {
         // Validate HTTP method.
         $allowedmethods = ['GET', 'POST', 'PUT', 'DELETE'];
         if (!in_array(strtoupper($method), $allowedmethods)) {
