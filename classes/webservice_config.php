@@ -171,14 +171,18 @@ class webservice_config {
         );
         $status['needsrepair'] = (!$status['isconfigured'] && $anypresent);
 
-        // Query external register-status to verify if site token has been registered on Datacurso AI service.
-        $client = new \aiprovider_datacurso\external_api_client();
-        $check = $client->get_register_status([
-            'site_id' => self::get_site_id(),
-            'domain' => $CFG->wwwroot,
-        ]);
-        if (!empty($check['ok'])) {
-            $status['registration']['verified'] = !empty($check['registered']);
+        try {
+            // Query external register-status to verify if site token has been registered on Datacurso AI service.
+            $client = new ai_services_api();
+            $registration = $client->request('GET', '/registration-status', [
+                'site_id' => self::get_site_id(),
+                'domain' => $CFG->wwwroot,
+            ]);
+            if (!empty($registration['is_registered'])) {
+                $status['registration']['verified'] = true;
+            }
+        } catch (\Exception $e) {
+            $status['registration']['verified'] = false;
         }
 
         return $status;
@@ -312,32 +316,15 @@ class webservice_config {
                 'externalserviceid' => $service->id,
             ], '*', IGNORE_MULTIPLE);
 
+            $token = null;
             if (!$tokenrec) {
-                if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
-                    $token = \core_external\util::generate_token(
-                        EXTERNAL_TOKEN_PERMANENT,
-                        $service,
-                        $user->id,
-                        context_system::instance(),
-                        0,
-                        '',
-                        'datacurso token'
-                    );
-                } else {
-                    $token = external_generate_token(
-                        EXTERNAL_TOKEN_PERMANENT,
-                        $service,
-                        $user->id,
-                        context_system::instance(),
-                        0,
-                        ''
-                    );
-                }
-                // Refetch for status.
-                $tokenrec = $DB->get_record('external_tokens', [
-                    'userid' => $user->id,
-                    'externalserviceid' => $service->id,
-                ], '*', IGNORE_MULTIPLE);
+                $token = self::create_token($service, $user->id);
+            } else {
+                $token = $tokenrec->token;
+            }
+
+            if (!empty($token)) {
+                $messages[] = self::send_registration($token);
             }
 
             $status = self::get_status();
@@ -382,34 +369,16 @@ class webservice_config {
             // Create new permanent token.
             $service = $DB->get_record('external_services', ['id' => $status['service']['id']], '*', MUST_EXIST);
             $userid = $status['user']['id'];
-            $token = null;
-            if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
-                $token = \core_external\util::generate_token(
-                    EXTERNAL_TOKEN_PERMANENT,
-                    $service,
-                    $userid,
-                    context_system::instance(),
-                    0,
-                    '',
-                    'datacurso token'
-                );
-            } else {
-                $token = external_generate_token(
-                    EXTERNAL_TOKEN_PERMANENT,
-                    $service,
-                    $userid,
-                    context_system::instance(),
-                    0,
-                    ''
-                );
-            }
+            $token = self::create_token($service, $userid);
 
             if (!empty($token)) {
-                self::send_registration($token);
+                $messages[] = self::send_registration($token);
             }
 
             $status = self::get_status();
-            $status['messages'] = array_merge($messages, [get_string('ws_step_token_regenerated', 'aiprovider_datacurso')]);
+            if ($status['registration']['verified']) {
+                $status['messages'][] = get_string('ws_step_token_regenerated', 'aiprovider_datacurso');
+            }
             return $status;
 
         } catch (\Exception $e) {
@@ -436,10 +405,15 @@ class webservice_config {
         ];
 
         $client = new ai_services_api();
-        $result = $client->register_site($payload);
-        set_config('registration_verified', $result['verified'] ?? false, 'aiprovider_datacurso');
 
-        return [get_string('ws_step_registration_sent', 'aiprovider_datacurso')];
+        try {
+            $result = $client->request('POST', '/register-site', $payload);
+            set_config('registration_verified', $result['verified'] ?? false, 'aiprovider_datacurso');
+            return [get_string('ws_step_registration_sent', 'aiprovider_datacurso')];
+        } catch (\Exception $e) {
+            set_config('registration_verified', false, 'aiprovider_datacurso');
+            return [get_string('ws_error_registration', 'aiprovider_datacurso')];
+        }
     }
 
     /**
@@ -450,5 +424,28 @@ class webservice_config {
     private static function get_site_id(): string {
         global $CFG;
         return md5($CFG->wwwroot);
+    }
+
+    /**
+     * Create a permanent token for the service user.
+     *
+     * @param object $service The external service record
+     * @param int $userid The user ID
+     * @return string The generated token
+     */
+    private static function create_token($service, $userid) {
+        if (function_exists('moodle_major_version') && moodle_major_version() >= 4.5 && class_exists('core_external\\util')) {
+            return \core_external\util::generate_token(
+                EXTERNAL_TOKEN_PERMANENT,
+                $service,
+                $userid,
+                context_system::instance(),
+                0,
+                '',
+                'datacurso token'
+            );
+        }
+
+        return external_generate_token(EXTERNAL_TOKEN_PERMANENT, $service, $userid, context_system::instance(), 0, '');
     }
 }
