@@ -60,14 +60,6 @@ if ($hassiteconfig) {
         PARAM_URL
     ));
 
-    // Web service token for course context.
-    $settings->add(new admin_setting_configpasswordunmask(
-        'aiprovider_datacurso/contextwstoken',
-        new lang_string('contextwstoken', 'aiprovider_datacurso'),
-        new lang_string('contextwstoken_desc', 'aiprovider_datacurso'),
-        ''
-    ));
-
     // Token threshold notification.
     $settings->add(new admin_setting_configtext(
         'aiprovider_datacurso/tokenthreshold',
@@ -81,6 +73,14 @@ if ($hassiteconfig) {
         'aiprovider_datacurso_reports', // Identificador único.
         get_string('link_generalreport_datacurso', 'aiprovider_datacurso'),
         new moodle_url('/ai/provider/datacurso/admin/report_sections.php'),
+        'moodle/site:config'
+    ));
+
+    // Web service configuration page for automatic setup and token management.
+    $ADMIN->add('server', new admin_externalpage(
+        'aiprovider_datacurso_webservice',
+        get_string('link_webservice_config', 'aiprovider_datacurso'),
+        new moodle_url('/ai/provider/datacurso/admin/webservice_config.php'),
         'moodle/site:config'
     ));
 
