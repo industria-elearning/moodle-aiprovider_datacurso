@@ -19,86 +19,43 @@ namespace aiprovider_datacurso\httpclient;
 /**
  * Class ai_course_api
  *
- * HTTP client for the FastAPI service for course planning and resources.
+ * HTTP client for the Datacurso AI service for course generation.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class ai_course_api {
-
-    /** @var string */
-    private $baseurl = 'https://moodle-langgraph-dev';
-
-    /** @var string|null */
-    private $token;
-
+class ai_course_api extends datacurso_api_base {
     /**
      * Constructor.
      *
-     * @param string|null $token Bearer authentication token
+     * @param string|null $licensekey The license key obtained from Datacurso SHOP.
      */
-    public function __construct(?string $token = null) {
-        // If no token is provided, use the default one (mock example).
-        $this->token = $token ?? 'xryQAHKm6sWafYoQRZmZX6VTY0UVqjUQuzWwUlMwITQYC7THAZbDoUFE81Mg0raw';
+    public function __construct(?string $licensekey = null) {
+        parent::__construct('http://moodle-langgraph.datacurso.com', $licensekey);
     }
 
     /**
-     * Generic method to send HTTP requests to the service.
+     * Build the streaming URL for a given session ID, adjusting base URL for localhost dev environments.
      *
-     * @param string $method GET, POST, PUT, DELETE
-     * @param string $path Relative endpoint (e.g., /planning/plan-course)
-     * @param array|null $body Body data in case of POST/PUT
-     * @param bool $authrequired Indicates if this endpoint requires authentication
-     * @return array|null
+     * @param string $sessionid
+     * @return string streaming URL
      */
-    public function request(string $method, string $path, ?array $body = null, bool $authrequired = true): ?array {
-        $curl = new \curl();
-
-        $headers = [
-            'Content-Type: application/json',
-        ];
-
-        if ($authrequired && !empty($this->token)) {
-            $headers[] = 'Authorization: Bearer ' . $this->token;
-        }
-
-        $options = [
-            'CURLOPT_RETURNTRANSFER' => true,
-            'CURLOPT_HTTPHEADER' => $headers,
-        ];
-
-        $url = $this->baseurl . $path;
-        $response = null;
-
-        switch (strtoupper($method)) {
-            case 'GET':
-                $response = $curl->get($url, [], $options);
-                break;
-            case 'POST':
-                $response = $curl->post($url, json_encode($body ?? []), $options);
-                break;
-            case 'PUT':
-                $response = $curl->put($url, json_encode($body ?? []), $options);
-                break;
-            case 'DELETE':
-                $response = $curl->delete($url, [], $options);
-                break;
-        }
-
-        if (!$response) {
-            return null;
-        }
-
-        return json_decode($response, true);
+    public function get_streaming_url_for_session(string $sessionid): string {
+        // Build streaming URL with session ID.
+        $baseurl = rtrim($this->baseurl, '/');
+        return $baseurl . '/planning/plan-course/stream?session_id=' . urlencode($sessionid);
     }
 
     /**
-     * Checks the service status (public endpoint, no auth).
+     * Build the streaming URL for a module creation job (create-mod), adjusting base URL for localhost dev environments.
      *
-     * @return array|null
+     * @param string $jobid
+     * @return string streaming URL
      */
-    public function get_health(): ?array {
-        return $this->request('GET', '/health', null, false);
+    public function get_mod_streaming_url_for_job(string $jobid): string {
+        // Build streaming URL with job ID.
+        $baseurl = rtrim($this->baseurl, '/');
+        return $baseurl . '/resources/create-mod/stream?job_id=' . urlencode($jobid);
     }
 }
