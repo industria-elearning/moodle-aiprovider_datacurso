@@ -153,6 +153,8 @@ class datacurso_api_base {
      *
      * @param string $path   Relative endpoint. Example: '/upload-file'.
      * @param string $filepath Path to the file to upload.
+     * @param string $mimetype MIME type of the file.
+     * @param string $filename Name of the file to upload.
      * @param array  $extraparams Extra parameters for the request.
      * @return array|null
      * @throws \Exception
