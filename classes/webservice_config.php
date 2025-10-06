@@ -392,7 +392,7 @@ class webservice_config {
     /**
      * Retrieve current token value (server-side only) and POST registration.
      * This does NOT expose the token to the UI.
-     *
+     * @param string $token The webservice token to send.
      * @return array
      * @throws moodle_exception
      */
