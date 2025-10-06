@@ -15,12 +15,13 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * TODO describe file report_sections
+ * Webservice configuration page for Datacurso AI provider.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025 Wilber Narvaez <wilber@buendata.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @copyright  2025 Wilber Narvaez
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 require('../../../../config.php');
 
 require_login();
