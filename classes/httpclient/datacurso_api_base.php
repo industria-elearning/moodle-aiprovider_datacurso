@@ -157,14 +157,14 @@ class datacurso_api_base {
      * @return array|null
      * @throws \Exception
      */
-    public function upload_file(string $path, string $filepath, array $extraparams = []): ?array {
+    public function upload_file(string $path, string $filepath, $mimetype = null, $filename = null, array $extraparams = []): ?array {
         if (!file_exists($filepath)) {
             $filename = basename($filepath);
             throw new \coding_exception("File not found: {$filename}");
         }
 
         $postdata = array_merge($extraparams, [
-            'file' => new \CURLFile($filepath),
+            'file' => new \CURLFile($filepath, $mimetype, $filename),
         ]);
 
         return $this->send_request('UPLOAD', $path, $postdata);
