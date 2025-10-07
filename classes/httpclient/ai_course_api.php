@@ -32,7 +32,7 @@ class ai_course_api extends datacurso_api_base {
      * @param string|null $licensekey The license key obtained from Datacurso SHOP.
      */
     public function __construct(?string $licensekey = null) {
-        parent::__construct('http://moodle-langgraph.datacurso.com', $licensekey);
+        parent::__construct('https://moodle-langgraph.datacurso.com', $licensekey);
     }
 
     /**
