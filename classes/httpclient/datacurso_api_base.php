@@ -91,18 +91,18 @@ class datacurso_api_base {
                     $response = $curl->get($url, $payload, $options);
                     break;
                 case 'POST':
-                    $payload['userid'] = $USER->id;
+                    $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->post($url, json_encode($payload), $options);
                     break;
                 case 'PUT':
-                    $payload['userid'] = $USER->id;
+                    $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->put($url, $payload, $options);
                     break;
                 case 'DELETE':
                     $response = $curl->delete($url, $payload, $options);
                     break;
                 case 'UPLOAD':
-                    $payload['userid'] = $USER->id;
+                    $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->post($url, $payload, $options);
                     break;
                 default:
