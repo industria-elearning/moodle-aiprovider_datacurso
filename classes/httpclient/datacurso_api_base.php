@@ -58,7 +58,7 @@ class datacurso_api_base {
      * @throws \Exception
      */
     protected function send_request(string $method, string $path, $payload = [], array $headers = []): ?array {
-        global $USER;
+        global $USER, $CFG;
         if (empty($this->licensekey)) {
             debugging('Cannot make this request: no license key available', DEBUG_DEVELOPER);
             return null;
@@ -91,10 +91,12 @@ class datacurso_api_base {
                     $response = $curl->get($url, $payload, $options);
                     break;
                 case 'POST':
+                    $payload['site_id'] = md5($CFG->wwwroot);
                     $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->post($url, json_encode($payload), $options);
                     break;
                 case 'PUT':
+                    $payload['site_id'] = md5($CFG->wwwroot);
                     $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->put($url, $payload, $options);
                     break;
@@ -102,6 +104,7 @@ class datacurso_api_base {
                     $response = $curl->delete($url, $payload, $options);
                     break;
                 case 'UPLOAD':
+                    $payload['site_id'] = md5($CFG->wwwroot);
                     $payload['userid'] = $payload['userid'] ?? $USER->id;
                     $response = $curl->post($url, $payload, $options);
                     break;
