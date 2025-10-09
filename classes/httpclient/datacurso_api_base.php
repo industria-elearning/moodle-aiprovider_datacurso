@@ -58,7 +58,7 @@ class datacurso_api_base {
      * @throws \Exception
      */
     protected function send_request(string $method, string $path, $payload = [], array $headers = []): ?array {
-        global $USER;
+        global $USER, $CFG;
         if (empty($this->licensekey)) {
             debugging('Cannot make this request: no license key available', DEBUG_DEVELOPER);
             return null;
@@ -85,24 +85,30 @@ class datacurso_api_base {
         $url = $this->baseurl . $path;
         $response = null;
 
+        $defaultpayload = [
+            'site_id' => md5($CFG->wwwroot),
+            'userid' => $payload['userid'] ?? $USER->id,
+            'timezone' => \core_date::get_user_timezone(),
+            'lang' => $payload['lang'] ?? current_language(),
+        ];
         try {
             switch (strtoupper($method)) {
                 case 'GET':
                     $response = $curl->get($url, $payload, $options);
                     break;
                 case 'POST':
-                    $payload['userid'] = $USER->id;
+                    $payload = array_merge($payload, $defaultpayload);
                     $response = $curl->post($url, json_encode($payload), $options);
                     break;
                 case 'PUT':
-                    $payload['userid'] = $USER->id;
+                    $payload = array_merge($payload, $defaultpayload);
                     $response = $curl->put($url, $payload, $options);
                     break;
                 case 'DELETE':
                     $response = $curl->delete($url, $payload, $options);
                     break;
                 case 'UPLOAD':
-                    $payload['userid'] = $USER->id;
+                    $payload = array_merge($payload, $defaultpayload);
                     $response = $curl->post($url, $payload, $options);
                     break;
                 default:
