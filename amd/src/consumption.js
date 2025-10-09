@@ -153,8 +153,8 @@ export const init = () => {
             limit: 10,
             servicio: serviceValue !== 'all' ? serviceValue : '',
             accion: actionValue !== 'all' ? actionValue : '',
-            fecha_desde: fromValue || '',
-            fecha_hasta: toValue || ''
+            fechadesde: fromValue || '',
+            fechahasta: toValue || ''
         };
 
         console.log("📤 Enviando petición al WS con args:", JSON.stringify(args));
