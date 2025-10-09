@@ -17,75 +17,173 @@
 namespace aiprovider_datacurso\external;
 
 defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->libdir . '/externallib.php');
 
-use external_api;
 use external_function_parameters;
-use external_multiple_structure;
-use external_single_structure;
 use external_value;
+use external_single_structure;
+use external_multiple_structure;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service to get the token consumption history.
+ * Web service to retrieve token consumption history.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class get_consumption_history extends external_api {
+class get_consumption_history extends \external_api {
 
     /**
-     * Input parameters (none in this case).
+     * Define parameters.
+     *
+     * @return external_function_parameters
      */
     public static function execute_parameters() {
-        return new external_function_parameters([]);
+        return new external_function_parameters([
+            // All optional parameters must be declared with VALUE_DEFAULT to avoid reordering by Moodle.
+            'page' => new external_value(PARAM_INT, 'Page number', VALUE_DEFAULT, 1),
+            'limit' => new external_value(PARAM_INT, 'Results per page', VALUE_DEFAULT, 10),
+            'userid' => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
+            'servicio' => new external_value(PARAM_TEXT, 'Service ID', VALUE_DEFAULT, ''),
+            'accion' => new external_value(PARAM_TEXT, 'Action name', VALUE_DEFAULT, ''),
+            'fechadesde' => new external_value(PARAM_TEXT, 'Start date', VALUE_DEFAULT, ''),
+            'fechahasta' => new external_value(PARAM_TEXT, 'End date', VALUE_DEFAULT, ''),
+        ]);
     }
 
     /**
-     * WS logic: calls the API client and returns the formatted response.
+     * Execute function.
+     *
+     * @param int $page
+     * @param int $limit
+     * @param int|null $userid
+     * @param string|null $servicio
+     * @param string|null $accion
+     * @param string|null $fechadesde
+     * @param string|null $fechahasta
+     * @return array
      */
-    public static function execute() {
+    public static function execute($page = 1, $limit = 10, $userid = null, $servicio = null,
+        $accion = null, $fechadesde = null, $fechahasta = null) {
+
+        global $USER;
+
+        // Ensure page and limit have valid values.
+        $page = (empty($page) || $page < 1) ? 1 : (int)$page;
+        $limit = (empty($limit) || $limit < 1) ? 10 : (int)$limit;
+
         $client = new datacurso_api();
 
-        $response = $client->get('/tokens/historial-consumos');
+        // Base request parameters.
+        $params = [
+            'page' => $page,
+            'limit' => $limit,
+        ];
 
-        if (empty($response) || !isset($response['status'])) {
-            return [
-                'status' => 'error',
-                'message' => 'Could not retrieve the consumption history from the external API',
-                'consumos' => [],
-            ];
+        if (!empty($userid)) {
+            $params['userid'] = $userid;
         }
 
-        return [
-            'status' => $response['status'] ?? 'error',
-            'message' => $response['message'] ?? '',
-            'consumos' => $response['consumos'] ?? [],
-        ];
+        if (!empty($servicio)) {
+            $params['servicio'] = str_replace('%2F', '/', urlencode($servicio));
+        }
+
+        if (!empty($accion) && $accion !== 'all') {
+            $params['accion'] = $accion;
+        }
+
+        if (!empty($fechadesde)) {
+            $params['fecha_desde'] = $fechadesde;
+        }
+
+        if (!empty($fechahasta)) {
+            $params['fecha_hasta'] = $fechahasta;
+        }
+
+        try {
+            // Call to external API endpoint.
+            $response = $client->get('/tokens/historial-consumos', $params);
+
+            if (isset($response['status']) && $response['status'] === 'success') {
+                $usuarios = $response['usuarios'] ?? [];
+                $consumos = [];
+
+                foreach ($usuarios as $usuario) {
+                    if (!empty($usuario['consumos'])) {
+                        foreach ($usuario['consumos'] as $consumo) {
+                            $consumos[] = [
+                                'id_consumption' => $consumo['id_consumo'] ?? 0,
+                                'userid' => $consumo['userid'] ?? 0,
+                                'action' => $consumo['accion'] ?? '',
+                                'id_service' => $consumo['id_servicio'] ?? '',
+                                'cant_tokens' => $consumo['cantidad_tokens'] ?? 0,
+                                'balance' => $consumo['saldo_restante'] ?? 0,
+                                'date' => $consumo['fecha'] ?? '',
+                            ];
+                        }
+                    }
+                }
+
+                // Adapt pagination keys according to external API.
+                $pagination = $response['pagination'] ?? $response['paginacion'] ?? [];
+
+                return [
+                    'status' => 'success',
+                    'consumption' => $consumos,
+                    'pagination' => [
+                        'current_page' => $pagination['current_page'] ?? $pagination['pagina_actual'] ?? $page,
+                        'limit' => $pagination['limit'] ?? $pagination['limite'] ?? $limit,
+                        'total' => $pagination['total'] ?? count($consumos),
+                        'total_pages' => $pagination['total_pages'] ?? $pagination['total_paginas'] ?? 1,
+                    ],
+                ];
+            }
+
+            // No valid results found.
+            return [
+                'status' => 'error',
+                'message' => 'No se encontraron datos de consumo',
+                'consumption' => [],
+            ];
+
+        } catch (\Exception $e) {
+            // Connection or response error.
+            return [
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'consumption' => [],
+            ];
+        }
     }
 
     /**
-     * Output structure.
+     * Define return structure.
+     *
+     * @return external_single_structure
      */
     public static function execute_returns() {
         return new external_single_structure([
-            'status' => new external_value(PARAM_TEXT, 'Request status (success/error)'),
-            'message' => new external_value(PARAM_RAW, 'Additional API message or error'),
-            'consumos' => new external_multiple_structure(
+            'status' => new external_value(PARAM_TEXT, 'Operation status'),
+            'message' => new external_value(PARAM_TEXT, 'Message', VALUE_OPTIONAL),
+            'consumption' => new external_multiple_structure(
                 new external_single_structure([
-                    'id_consumo'      => new external_value(PARAM_INT, 'Unique consumption identifier'),
-                    'id_usuario'      => new external_value(PARAM_INT, 'User ID'),
-                    'id_key'          => new external_value(PARAM_INT, 'ID of the license used'),
-                    'accion'          => new external_value(PARAM_TEXT, 'Action performed'),
-                    'servicio'        => new external_value(PARAM_TEXT, 'Service used'),
-                    'cantidad_tokens' => new external_value(PARAM_INT, 'Number of tokens consumed'),
-                    'saldo_restante'  => new external_value(PARAM_INT, 'Remaining balance after consumption'),
-                    'fecha'           => new external_value(PARAM_RAW, 'Consumption date in ISO 8601 format'),
-                    'created_at'      => new external_value(PARAM_RAW, 'Creation date in ISO 8601 format'),
-                    'updated_at'      => new external_value(PARAM_RAW, 'Update date in ISO 8601 format'),
+                    'id_consumption' => new external_value(PARAM_INT, 'Consumption ID'),
+                    'userid' => new external_value(PARAM_INT, 'User ID'),
+                    'action' => new external_value(PARAM_TEXT, 'Action performed'),
+                    'id_service' => new external_value(PARAM_TEXT, 'Service identifier'),
+                    'cant_tokens' => new external_value(PARAM_INT, 'Tokens used'),
+                    'balance' => new external_value(PARAM_INT, 'Remaining balance'),
+                    'date' => new external_value(PARAM_TEXT, 'Consumption date'),
                 ])
             ),
+            'pagination' => new external_single_structure([
+                'current_page' => new external_value(PARAM_INT, 'Current page'),
+                'limit' => new external_value(PARAM_INT, 'Limit per page'),
+                'total' => new external_value(PARAM_INT, 'Total records'),
+                'total_pages' => new external_value(PARAM_INT, 'Total pages'),
+            ], 'Pagination information', VALUE_OPTIONAL),
         ]);
     }
 }

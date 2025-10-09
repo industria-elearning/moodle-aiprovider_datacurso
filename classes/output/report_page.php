@@ -40,6 +40,6 @@ class report_page implements renderable, templatable {
      * @return array Data to be used in the template.
      */
     public function export_for_template(renderer_base $output): array {
-        return []; // Aquí luego pasas datos dinámicos.
+        return [];
     }
 }

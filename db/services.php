@@ -62,4 +62,20 @@ $functions = [
         'ajax'        => true,
         'capabilities' => 'moodle/site:config',
     ],
+    'aiprovider_datacurso_get_services' => [
+        'classname'   => 'aiprovider_datacurso\external\get_services',
+        'methodname'  => 'execute',
+        'classpath'   => '',
+        'description' => 'Get the list of available AI services for filtering.',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
+    'aiprovider_datacurso_get_actions' => [
+        'classname'   => 'aiprovider_datacurso\external\get_actions',
+        'methodname'  => 'execute',
+        'classpath'   => '',
+        'description' => 'Get the list of available AI actions.',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
 ];
