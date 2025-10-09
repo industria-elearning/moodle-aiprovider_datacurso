@@ -37,7 +37,7 @@ class consumption_page implements renderable, templatable {
      * Export data for the template.
      *
      * @param renderer_base $output The renderer in use.
-     * @return array Data to pass to the Mustache template.
+     * @return array Data to pass to the Mustache.
      */
     public function export_for_template(renderer_base $output): array {
         return [];
