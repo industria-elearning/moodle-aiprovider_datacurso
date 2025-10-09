@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Report charts module.
+ * Report charts module (with advanced table).
  *
  * @module     aiprovider_datacurso/report_charts
  * @copyright  2025 Industria Elearning
@@ -22,7 +22,6 @@
  */
 
 /* eslint-disable */
-
 import Ajax from 'core/ajax';
 import Chart from 'core/chartjs';
 import { get_string as getString } from 'core/str';
@@ -33,61 +32,54 @@ export const init = () => {
     const tokensConsumed = document.getElementById('tokens-consumed');
     const tableBody = document.getElementById('consumption-table-body');
 
+    // Filtros y paginación
+    const filterService = document.getElementById('filter-service');
+    const filterAction = document.getElementById('filter-action');
+    const prevPageBtn = document.getElementById('prev-page');
+    const nextPageBtn = document.getElementById('next-page');
+    const pageInfo = document.getElementById('page-info');
+
     let consumos = [];
-    let chartBar, chartPie;
+    let filteredConsumos = [];
+    let currentPage = 1;
+    const rowsPerPage = 10;
+
+    let chartBar, chartPie, chartDay;
 
     // 🔹 1. WS calls
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_consumption_history', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
     ]).then(async ([historyResponse, saldoResponse]) => {
-        consumos = historyResponse?.consumos || [];
+
+        console.log("response", historyResponse)
+        consumos = historyResponse?.consumption || [];
         const saldo = saldoResponse?.saldo_actual || 0;
 
         // 🔹 2. Update cards
         tokensAvailable.textContent = saldo;
         tokensConsumed.textContent = consumos.reduce((sum, c) => sum + (c.cantidad_tokens || 0), 0);
 
-        // 🔹 3. Render table
-        renderTable(consumos, tableBody);
+        // 🔹 3. Initialize filters for table
+        initTable(consumos);
 
-        // 🔹 4. Initialize filters and charts
+        // 🔹 4. Initialize charts
         initCharts(consumos);
 
     }).catch(err => {
         console.error("❌ WS Error", err);
     });
 
-    // 🔹 Dynamic table
-    const renderTable = async (data, container) => {
-        container.innerHTML = '';
-        if (!data.length) {
-            const nodata = await getString('nodata', 'aiprovider_datacurso');
-            container.innerHTML = `<tr><td colspan="7" class="text-center">${nodata}</td></tr>`;
-            return;
-        }
-        data.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.id_consumo}</td>
-                <td>${item.id_usuario}</td>
-                <td>${item.accion}</td>
-                <td>${item.servicio}</td>
-                <td>${item.cantidad_tokens}</td>
-                <td>${item.saldo_restante}</td>
-                <td>${item.fecha}</td>
-            `;
-            container.appendChild(row);
-        });
-    };
 
-    // 🔹 Initialize filters and charts
+    // ============================================================
+    // 📊 CHARTS SECTION
+    // ============================================================
     const initCharts = (data) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
 
         // Fill selects
-        const servicios = [...new Set(data.map(c => c.servicio))];
+        const servicios = [...new Set(data.map(c => c.id_servicio))];
         servicios.forEach(s => {
             filterBar.innerHTML += `<option value="${s}">${s}</option>`;
             filterPie.innerHTML += `<option value="${s}">${s}</option>`;
@@ -107,19 +99,13 @@ export const init = () => {
         document.getElementById('filter-end-date').addEventListener('change', () => renderDayChart(data));
     };
 
-    // 🔹 Bar chart (depends only on filter-service-bar)
     const renderBarChart = (data) => {
         const filterValue = document.getElementById('filter-service-bar').value;
+        let filteredData = filterValue === 'ALL' ? data : data.filter(c => c.id_servicio === filterValue);
 
-        let filteredData = data;
-        if (filterValue !== 'ALL') {
-            filteredData = data.filter(c => c.servicio === filterValue);
-        }
-
-        // Group by month
         const byMonth = {};
         filteredData.forEach(c => {
-            const month = c.fecha.substring(0, 7); // yyyy-mm
+            const month = c.fecha.substring(0, 7);
             byMonth[month] = (byMonth[month] || 0) + c.cantidad_tokens;
         });
 
@@ -138,16 +124,10 @@ export const init = () => {
         });
     };
 
-    // 🔹 Pie chart (depends only on filter-service-pie)
     const renderPieChart = (data) => {
         const filterValue = document.getElementById('filter-service-pie').value;
+        let filteredData = filterValue === 'ALL' ? data : data.filter(c => c.id_servicio === filterValue);
 
-        let filteredData = data;
-        if (filterValue !== 'ALL') {
-            filteredData = data.filter(c => c.servicio === filterValue);
-        }
-
-        // Group by action
         const byAction = {};
         filteredData.forEach(c => {
             byAction[c.accion] = (byAction[c.accion] || 0) + c.cantidad_tokens;
@@ -167,27 +147,17 @@ export const init = () => {
         });
     };
 
-    let chartDay;
-
-    // 🔹 Daily consumption chart with date filters
     const renderDayChart = (data) => {
         const startDate = document.getElementById('filter-start-date').value;
         const endDate = document.getElementById('filter-end-date').value;
 
         let filteredData = data;
+        if (startDate) filteredData = filteredData.filter(c => c.fecha >= startDate);
+        if (endDate) filteredData = filteredData.filter(c => c.fecha <= endDate);
 
-        // Filter by date range
-        if (startDate) {
-            filteredData = filteredData.filter(c => c.fecha >= startDate);
-        }
-        if (endDate) {
-            filteredData = filteredData.filter(c => c.fecha <= endDate);
-        }
-
-        // Group by day
         const byDay = {};
         filteredData.forEach(c => {
-            const day = c.fecha.substring(0, 10); // yyyy-mm-dd
+            const day = c.fecha.substring(0, 10);
             byDay[day] = (byDay[day] || 0) + c.cantidad_tokens;
         });
 

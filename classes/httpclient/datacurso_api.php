@@ -17,6 +17,7 @@
 namespace aiprovider_datacurso\httpclient;
 
 use moodle_exception;
+use moodle_url;
 
 /**
  * HTTP client for Tokens Manager API.
@@ -47,7 +48,7 @@ class datacurso_api {
         $this->baseurl    = rtrim(get_config('aiprovider_datacurso', 'apiurl'), '/');
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
-        // Automatically detect if it is Moodle Workplace by checking tool_wp in config_plugins.
+        // Detectar si es Moodle Workplace.
         $this->workplace = $DB->record_exists('config_plugins', [
             'plugin' => 'tool_wp',
             'name'   => 'version',
@@ -66,17 +67,9 @@ class datacurso_api {
      * @return string
      */
     private function build_url(string $endpoint, array $params = []): string {
-        if (str_contains($this->baseurl, '?')) {
-            $url = $this->baseurl . ltrim($endpoint, '/');
-        } else {
-            $url = rtrim($this->baseurl, '/') . '/' . ltrim($endpoint, '/');
-        }
-
-        if (!empty($params)) {
-            $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($params);
-        }
-
-        return $url;
+        $url = rtrim( $this->baseurl, '/') . '/' . ltrim($endpoint, '/');
+        $url = new moodle_url($url, $params);
+        return $url->out(false);
     }
 
     /**

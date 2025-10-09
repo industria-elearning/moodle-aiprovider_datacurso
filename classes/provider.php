@@ -91,4 +91,42 @@ class provider extends \core_ai\provider {
         // No settings added yet.
         return [];
     }
+
+    /**
+     * 🔹 Retorna los servicios disponibles del proveedor IA.
+     *
+     * @return array
+     */
+    public static function get_services(): array {
+        return [
+            ['id' => 'course_ai', 'name' => 'Course AI'],
+            ['id' => 'local_datacurso_ratings', 'name' => 'Rating AI'],
+            ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
+            ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
+            ['id' => 'tutor_ai', 'name' => 'Tutor IA'],
+            ['id' => 'local_socialcert', 'name' => 'Certificate AI'],
+        ];
+    }
+
+    /**
+     * 🔹 Retorna las acciones disponibles del proveedor IA.
+     *
+     * @return array
+     */
+    public static function get_actions(): array {
+        return [
+            ['id' => 'generate_text', 'name' => 'Generar texto con IA'],
+            ['id' => '/assign/answer', 'name' => 'Generar revisión para tarea con IA'],
+            ['id' => '/planning/plan-course/start', 'name' => 'Crear plan de curso con IA'],
+            ['id' => '/planning/plan-course/execute', 'name' => 'Crear un curso completo con IA'],
+            ['id' => '/rating/general', 'name' => 'Generar análisis global de reporte con IA'],
+            ['id' => '/rating/course', 'name' => 'Generar análisis del curso con IA'],
+            ['id' => '/rating/query', 'name' => 'Generar análisis de una actividad con IA'],
+            ['id' => '/resources/create-mod', 'name' => 'Generar una actividad con IA'],
+            ['id' => '/forum/chat', 'name' => 'Generar respuesta foro con IA'],
+            ['id' => '/context/upload', 'name' => 'Proporcionar silabo a la IA para la creación del curso'],
+            ['id' => '/resources/create-mod/stream', 'name' => 'Generar una actividad con IA'],
+            ['id' => '/certificate/answer', 'name' => 'Generar respuesta para certificado'],
+        ];
+    }
 }

@@ -26,35 +26,46 @@
 
 <h3>{{#str}}link_consumptionhistory, aiprovider_datacurso{{/str}}</h3>
 
-    <!-- Filters Section -->
-    <div class="filters mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="row align-items-end">
-                    <div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
-                        <div class="form-group mb-0">
-                            <label for="filter-service" class="form-label font-weight-bold">
-                                {{#str}}service, aiprovider_datacurso{{/str}}:
-                            </label>
-                            <select id="filter-service" class="form-control">
-                                <option value="all">{{#str}}all, core{{/str}}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-6 col-12 mb-3 mb-lg-0">
-                        <div class="form-group mb-0">
-                            <label for="filter-action" class="form-label font-weight-bold">
-                                {{#str}}action, aiprovider_datacurso{{/str}}:
-                            </label>
-                            <select id="filter-action" class="form-control">
-                                <option value="all">{{#str}}all, core{{/str}}</option>
-                            </select>
-                        </div>
-                    </div>
+<!-- Filters Section -->
+<div class="filters mb-4">
+    <div class="card">
+        <div class="card-body">
+            <div class="row align-items-end">
+                <div class="col-lg-3 col-md-6 col-12 mb-3">
+                    <label for="filter-service" class="form-label font-weight-bold">
+                        {{#str}}service, aiprovider_datacurso{{/str}}:
+                    </label>
+                    <select id="filter-service" class="form-control">
+                        <option value="">{{#str}}all, core{{/str}}</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-12 mb-3">
+                    <label for="filter-action" class="form-label font-weight-bold">
+                        {{#str}}action, aiprovider_datacurso{{/str}}:
+                    </label>
+                    <select id="filter-action" class="form-control">
+                        <option value="">{{#str}}all, core{{/str}}</option>
+                    </select>
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-12 mb-3">
+                    <label for="filter-date-from" class="form-label font-weight-bold">
+                        {{#str}}fromdate, core{{/str}}:
+                    </label>
+                    <input type="date" id="filter-date-from" class="form-control">
+                </div>
+
+                <div class="col-lg-3 col-md-6 col-12 mb-3">
+                    <label for="filter-date-to" class="form-label font-weight-bold">
+                        {{#str}}todate, core{{/str}}:
+                    </label>
+                    <input type="date" id="filter-date-to" class="form-control">
                 </div>
             </div>
         </div>
     </div>
+</div>
 
 <table class="generaltable">
     <thead>
