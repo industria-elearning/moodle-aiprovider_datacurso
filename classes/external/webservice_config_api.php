@@ -95,6 +95,34 @@ class webservice_config_api extends external_api {
     }
 
     /**
+     * Parameters for get_status.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_status_parameters(): external_function_parameters {
+        return new external_function_parameters([]);
+    }
+
+    /**
+     * Return current configuration status.
+     *
+     * @return array
+     */
+    public static function get_status(): array {
+        self::validate_parameters(self::get_status_parameters(), []);
+        return webservice_config::get_status();
+    }
+
+    /**
+     * Return structure for get_status.
+     *
+     * @return external_single_structure
+     */
+    public static function get_status_returns(): external_single_structure {
+        return self::status_structure();
+    }
+
+    /**
      * Common return structure for status responses.
      *
      * @return external_single_structure
@@ -105,7 +133,8 @@ class webservice_config_api extends external_api {
             'restenabled' => new external_value(PARAM_BOOL, 'REST protocol enabled'),
             'userassigned' => new external_value(PARAM_BOOL, 'Role assigned to service user'),
             'tokenexists' => new external_value(PARAM_BOOL, 'Token exists'),
-            'tokencreated' => new external_value(PARAM_INT, 'Token creation time', VALUE_DEFAULT, null),
+            // Token created is formatted string for UI consistency.
+            'tokencreated' => new external_value(PARAM_TEXT, 'Token creation time (formatted)', VALUE_DEFAULT, ''),
             'isconfigured' => new external_value(PARAM_BOOL, 'Everything configured properly'),
             'needsrepair' => new external_value(PARAM_BOOL, 'Needs setup/repair'),
             'retryonly' => new external_value(

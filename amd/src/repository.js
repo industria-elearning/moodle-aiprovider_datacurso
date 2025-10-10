@@ -41,3 +41,13 @@ export function webserviceRegenerateToken() {
         args: {}
     }])[0];
 }
+
+/**
+ * Get current Datacurso webservice status.
+ */
+export function webserviceGetStatus() {
+    return Ajax.call([{
+        methodname: 'aiprovider_datacurso_webservice_get_status',
+        args: {}
+    }])[0];
+}

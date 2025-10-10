@@ -1,0 +1,55 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template aiprovider_datacurso/webservice/user_role
+  Renders the user and role status section.
+
+  Context:
+  {
+    "user": {"username": string, "email": string} | null,
+    "role": {"shortname": string, "name": string} | null
+  }
+}}
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge badge-{{#user}}success{{/user}}{{^user}}danger{{/user}} mr-2">
+        {{#user}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/user}}{{^user}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/user}}
+      </span>
+      <strong>{{#str}} ws_user, aiprovider_datacurso {{/str}}</strong>
+    </div>
+    {{#user}}
+      <div>{{user.username}}</div>
+      <small class="text-muted">{{user.email}}</small>
+    {{/user}}
+  </div>
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge badge-{{#role}}success{{/role}}{{^role}}danger{{/role}} mr-2">
+        {{#role}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/role}}{{^role}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/role}}
+      </span>
+      <strong>{{#str}} ws_role, aiprovider_datacurso {{/str}}</strong>
+    </div>
+    {{#role}}
+      <div>{{role.shortname}}</div>
+      <small class="text-muted">{{role.name}}</small>
+    {{/role}}
+  </div>
+</div>
