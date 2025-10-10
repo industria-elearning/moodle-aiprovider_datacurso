@@ -137,6 +137,7 @@ $string['ws_step_service_functions'] = 'Adding common core functions to the serv
 $string['ws_step_service_user'] = 'Authorising user for the service…';
 $string['ws_step_setup'] = 'Starting setup…';
 $string['ws_step_token_create'] = 'Ensuring token exists…';
+$string['ws_step_token_generated'] = 'Token generated.';
 $string['ws_step_token_regenerated'] = 'Token regenerated.';
 $string['ws_step_token_regenerating'] = 'Regenerating token…';
 $string['ws_step_token_retry'] = 'Retrying setup…';
