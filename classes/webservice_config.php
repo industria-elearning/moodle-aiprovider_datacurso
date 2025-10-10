@@ -71,9 +71,25 @@ class webservice_config {
      * @return array
      */
     public static function get_status(): array {
-        global $DB, $CFG;
+        // Compose status from small, self-explanatory steps.
+        $status = self::base_status();
+        self::set_rest_status($status);
+        self::set_user($status);
+        self::set_role_and_assignment($status);
+        self::set_service_and_token($status);
+        self::compute_flags($status);
+        $status = self::verify_remote_registration($status);
+        return $status;
+    }
 
-        $status = [
+    /**
+     * Build the initial status scaffold with site and registration info.
+     *
+     * @return array
+     */
+    private static function base_status(): array {
+        global $CFG;
+        return [
             'webservicesenabled' => (bool)get_config('core', 'enablewebservices'),
             'restenabled' => false,
             'user' => [],
@@ -95,12 +111,27 @@ class webservice_config {
             'needsrepair' => true,
             'retryonly' => false,
         ];
+    }
 
-        // Check REST enabled.
+    /**
+     * Populate REST protocol enabled status.
+     *
+     * @param array $status
+     * @return void
+     */
+    private static function set_rest_status(array &$status): void {
         $plugininfo = core_plugin_manager::instance()->get_plugin_info('webservice_rest');
         $status['restenabled'] = $plugininfo && $plugininfo->is_enabled();
+    }
 
-        // User.
+    /**
+     * Populate service user details if exists.
+     *
+     * @param array $status
+     * @return void
+     */
+    private static function set_user(array &$status): void {
+        global $DB;
         if ($user = $DB->get_record('user', ['username' => self::USERNAME, 'deleted' => 0])) {
             $status['user'] = [
                 'id' => (int)$user->id,
@@ -110,16 +141,22 @@ class webservice_config {
                 'auth' => $user->auth,
             ];
         }
+    }
 
-        // Role.
+    /**
+     * Populate role info and whether it's assigned to the user at system context.
+     *
+     * @param array $status
+     * @return void
+     */
+    private static function set_role_and_assignment(array &$status): void {
+        global $DB;
         if ($roleid = $DB->get_field('role', 'id', ['shortname' => self::ROLESHORTNAME])) {
             $status['role'] = [
                 'id' => (int)$roleid,
                 'name' => self::ROLENAME,
                 'shortname' => self::ROLESHORTNAME,
             ];
-
-            // Assigned?
             if (!empty($status['user']['id'])) {
                 $context = context_system::instance();
                 $assigned = $DB->record_exists('role_assignments', [
@@ -130,8 +167,16 @@ class webservice_config {
                 $status['userassigned'] = (bool)$assigned;
             }
         }
+    }
 
-        // Service.
+    /**
+     * Populate service info and token status for the user.
+     *
+     * @param array $status
+     * @return void
+     */
+    private static function set_service_and_token(array &$status): void {
+        global $DB;
         if ($service = $DB->get_record('external_services', ['shortname' => self::SERVICESHORTNAME])) {
             $status['service'] = [
                 'id' => (int)$service->id,
@@ -139,20 +184,28 @@ class webservice_config {
                 'enabled' => (bool)$service->enabled,
                 'restrictedusers' => (bool)$service->restrictedusers,
             ];
-
-            // Token existence.
             if (!empty($status['user']['id'])) {
                 if ($token = $DB->get_record('external_tokens', [
                     'userid' => $status['user']['id'],
                     'externalserviceid' => $service->id,
                 ], '*', IGNORE_MULTIPLE)) {
                     $status['tokenexists'] = true;
-                    $status['tokencreated'] = !empty($token->timecreated) ? (int)$token->timecreated : null;
+                    $timecreated = !empty($token->timecreated) ? (int)$token->timecreated : 0;
+                    $status['tokencreated'] = $timecreated
+                        ? userdate($timecreated, get_string('strftimedatetime', 'langconfig'))
+                        : null;
                 }
             }
         }
+    }
 
-        // Determine configuration flags. Now require registration to be verified as part of complete configuration.
+    /**
+     * Compute high-level flags like isconfigured, needsrepair, retryonly.
+     *
+     * @param array $status
+     * @return void
+     */
+    private static function compute_flags(array &$status): void {
         $status['isconfigured'] = (
             !empty($status['webservicesenabled']) &&
             !empty($status['restenabled']) &&
@@ -163,7 +216,6 @@ class webservice_config {
             !empty($status['tokenexists']) &&
             !empty($status['registration']['verified'])
         );
-        // Needs repair only if partially configured (some elements exist) but not fully ready.
         $anypresent = (
             !empty($status['webservicesenabled']) ||
             !empty($status['restenabled']) ||
@@ -174,26 +226,8 @@ class webservice_config {
             !empty($status['tokenexists'])
         );
         $status['needsrepair'] = (!$status['isconfigured'] && $anypresent);
-
-        // Retry-only condition: registration was attempted before but it's not currently verified.
-        // In this state, we prefer to show only a Retry button to re-run the configuration/registration.
         $hadattempt = !empty($status['registration']['lastsent']);
         $status['retryonly'] = (!$status['isconfigured'] && $hadattempt && empty($status['registration']['verified']));
-
-        try {
-            // Query external register-status to verify if site token has been registered on Datacurso AI service.
-            $client = new ai_services_api();
-            $registration = $client->request('GET', '/registration-status', [
-                'site_id' => self::get_site_id(),
-            ]);
-            if (!empty($registration['is_registered'])) {
-                $status['registration']['verified'] = true;
-            }
-        } catch (\Exception $e) {
-            $status['registration']['verified'] = false;
-        }
-
-        return $status;
     }
 
     /**
@@ -202,135 +236,42 @@ class webservice_config {
      * @return array
      */
     public static function setup(): array {
-        global $CFG, $DB;
+        global $DB;
 
         require_capability('moodle/site:config', context_system::instance());
 
         $messages = [];
 
         try {
-            // Enable web services and REST protocol.
+            // 1) Enable required plugins.
             $messages[] = get_string('ws_step_enableauth', 'aiprovider_datacurso');
-            $authclass = core_plugin_manager::resolve_plugininfo_class('auth');
-            $authclass::enable_plugin('webservice', true);
+            self::enable_webservices_and_rest();
 
-            $messages[] = get_string('ws_step_enablews', 'aiprovider_datacurso');
-            set_config('enablewebservices', 1);
-
-            $messages[] = get_string('ws_step_enablerest', 'aiprovider_datacurso');
-            $webserviceclass = core_plugin_manager::resolve_plugininfo_class('webservice');
-            $webserviceclass::enable_plugin('rest', true);
-
-            // Ensure user exists.
+            // 2) Ensure service user exists.
             $messages[] = get_string('ws_step_user_check', 'aiprovider_datacurso', self::USERNAME);
-            $user = $DB->get_record('user', ['username' => self::USERNAME, 'deleted' => 0]);
-            if (!$user) {
-                $messages[] = get_string('ws_step_user_create', 'aiprovider_datacurso', self::USERNAME);
-                $user = (object) [
-                    'username' => self::USERNAME,
-                    'password' => AUTH_PASSWORD_NOT_CACHED,
-                    'firstname' => 'Datacurso',
-                    'lastname' => 'Service',
-                    'email' => self::USEREMAIL,
-                    'auth' => 'webservice',
-                    'confirmed' => 1,
-                    'maildisplay' => 0,
-                    'mnethostid' => $CFG->mnet_localhost_id,
-                ];
-                $user->id = user_create_user($user, false, false);
-            }
+            $user = self::ensure_service_user();
 
-            // Create role if needed.
-            if ($DB->record_exists('role', ['shortname' => self::ROLESHORTNAME])) {
-                $roleid = (int)$DB->get_field('role', 'id', ['shortname' => self::ROLESHORTNAME]);
-                $messages[] = get_string('ws_step_role_exists', 'aiprovider_datacurso', $roleid);
-            } else {
-                $messages[] = get_string('ws_step_role_create', 'aiprovider_datacurso', self::ROLENAME);
-                $roleid = create_role(self::ROLENAME, self::ROLESHORTNAME, 'Role for Datacurso web service');
-            }
-
-            // Assignable contexts and permissions.
-            set_role_contextlevels($roleid, [CONTEXT_SYSTEM, CONTEXT_COURSE, CONTEXT_MODULE]);
+            // 3) Ensure role and caps.
+            list($roleid, $rolecreated) = self::ensure_role();
+            $messages[] = $rolecreated
+                ? get_string('ws_step_role_create', 'aiprovider_datacurso', self::ROLENAME)
+                : get_string('ws_step_role_exists', 'aiprovider_datacurso', $roleid);
             $messages[] = get_string('ws_step_role_caps', 'aiprovider_datacurso');
-            $context = context_system::instance();
-            assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:viewhiddensections', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
-            assign_capability('moodle/course:viewhiddenactivities', CAP_ALLOW, $roleid, $context, true);
-
-            // Assign role to user.
+            self::assign_role_capabilities($roleid);
             $messages[] = get_string('ws_step_role_assign', 'aiprovider_datacurso');
-            role_assign($roleid, $user->id, $context->id);
+            self::assign_role_to_user($roleid, $user->id);
 
-            // Ensure external service exists and is enabled.
+            // 4) Ensure external service and functions.
             $messages[] = get_string('ws_step_service_enable', 'aiprovider_datacurso');
-            $webservicemanager = new \webservice();
-            if ($service = $DB->get_record('external_services', ['shortname' => self::SERVICESHORTNAME])) {
-                $service->enabled = 1;
-                $service->restrictedusers = 1;
-                $webservicemanager->update_external_service($service);
-            } else {
-                $service = (object) [
-                    'name' => self::SERVICENAME,
-                    'shortname' => self::SERVICESHORTNAME,
-                    'enabled' => 1,
-                    'restrictedusers' => 1,
-                    'downloadfiles' => 1,
-                    'uploadfiles' => 0,
-                ];
-                $service->id = $webservicemanager->add_external_service($service);
-            }
-
-            // Attach some common core functions if they exist.
+            $service = self::ensure_external_service();
             $messages[] = get_string('ws_step_service_functions', 'aiprovider_datacurso');
-            $wsfunctions = [
-                'core_course_get_contents',
-                'mod_assign_get_submissions',
-            ];
-            foreach ($wsfunctions as $functionname) {
-                $existfunction = $DB->record_exists('external_functions', ['name' => $functionname]);
-                $isassigned = $DB->record_exists('external_services_functions', [
-                    'externalserviceid' => $service->id,
-                    'functionname' => $functionname,
-                ]);
-                if ($existfunction && !$isassigned) {
-                    $webservicemanager->add_external_function_to_service($functionname, $service->id);
-                }
-            }
-
-            // Add user to the external service if not already authorised.
+            self::attach_default_functions($service->id);
             $messages[] = get_string('ws_step_service_user', 'aiprovider_datacurso');
-            $authorised = $DB->record_exists('external_services_users', [
-                'externalserviceid' => $service->id,
-                'userid' => $user->id,
-            ]);
-            if (!$authorised) {
-                $serviceuser = (object) [
-                    'externalserviceid' => $service->id,
-                    'userid' => $user->id,
-                ];
-                $webservicemanager->add_ws_authorised_user($serviceuser);
-            }
+            self::authorise_user_for_service($service->id, $user->id);
 
-            // Create or reuse a permanent token (not returned in response).
+            // 5) Ensure token and send registration.
             $messages[] = get_string('ws_step_token_create', 'aiprovider_datacurso');
-            $tokenrec = $DB->get_record('external_tokens', [
-                'userid' => $user->id,
-                'externalserviceid' => $service->id,
-            ], '*', IGNORE_MULTIPLE);
-
-            $token = null;
-            if (!$tokenrec) {
-                $token = self::create_token($service, $user->id);
-            } else {
-                $token = $tokenrec->token;
-            }
-
+            $token = self::get_or_create_token($service, $user->id);
             if (!empty($token)) {
                 $sendmessages = self::send_registration($token);
                 if (is_array($sendmessages)) {
@@ -376,16 +317,13 @@ class webservice_config {
         $messages = [];
 
         try {
-            // Delete existing tokens for this user/service.
+            // Recreate token.
             $DB->delete_records('external_tokens', [
                 'userid' => $status['user']['id'],
                 'externalserviceid' => $status['service']['id'],
             ]);
-
-            // Create new permanent token.
             $service = $DB->get_record('external_services', ['id' => $status['service']['id']], '*', MUST_EXIST);
-            $userid = $status['user']['id'];
-            $token = self::create_token($service, $userid);
+            $token = self::create_token($service, $status['user']['id']);
 
             if (!empty($token)) {
                 $sendmessages = self::send_registration($token);
@@ -404,6 +342,210 @@ class webservice_config {
             return $status;
         }
 
+    }
+
+    /**
+     * Enable core web service auth and REST protocol.
+     * Single-responsibility: only toggles plugin settings required for WS.
+     *
+     * @return void
+     */
+    private static function enable_webservices_and_rest(): void {
+        // Enable web service authentication plugin.
+        $authclass = core_plugin_manager::resolve_plugininfo_class('auth');
+        $authclass::enable_plugin('webservice', true);
+        // Enable global web services.
+        set_config('enablewebservices', 1);
+        // Enable REST protocol.
+        $webserviceclass = core_plugin_manager::resolve_plugininfo_class('webservice');
+        $webserviceclass::enable_plugin('rest', true);
+    }
+
+    /**
+     * Ensure service user exists with correct auth and confirmation.
+     *
+     * @return object Moodle user record
+     */
+    private static function ensure_service_user(): object {
+        global $DB, $CFG;
+        $user = $DB->get_record('user', ['username' => self::USERNAME, 'deleted' => 0]);
+        if ($user) {
+            return $user;
+        }
+        $user = (object) [
+            'username' => self::USERNAME,
+            'password' => AUTH_PASSWORD_NOT_CACHED,
+            'firstname' => 'Datacurso',
+            'lastname' => 'Service',
+            'email' => self::USEREMAIL,
+            'auth' => 'webservice',
+            'confirmed' => 1,
+            'maildisplay' => 0,
+            'mnethostid' => $CFG->mnet_localhost_id,
+        ];
+        $user->id = user_create_user($user, false, false);
+        return $user;
+    }
+
+    /**
+     * Ensure role exists. Returns [roleid, created].
+     *
+     * @return array{0:int,1:bool}
+     */
+    private static function ensure_role(): array {
+        global $DB;
+        if ($DB->record_exists('role', ['shortname' => self::ROLESHORTNAME])) {
+            $roleid = (int)$DB->get_field('role', 'id', ['shortname' => self::ROLESHORTNAME]);
+            return [$roleid, false];
+        }
+        $roleid = create_role(self::ROLENAME, self::ROLESHORTNAME, 'Role for Datacurso web service');
+        return [$roleid, true];
+    }
+
+    /**
+     * Assign role capabilities for required contexts.
+     *
+     * @param int $roleid
+     * @return void
+     */
+    private static function assign_role_capabilities(int $roleid): void {
+        $context = context_system::instance();
+        set_role_contextlevels($roleid, [CONTEXT_SYSTEM, CONTEXT_COURSE, CONTEXT_MODULE]);
+        assign_capability('webservice/rest:use', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/category:viewhiddencategories', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:enrolreview', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:view', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddencourses', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddensections', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewparticipants', CAP_ALLOW, $roleid, $context, true);
+        assign_capability('moodle/course:viewhiddenactivities', CAP_ALLOW, $roleid, $context, true);
+    }
+
+    /**
+     * Assign role to the target user in system context.
+     *
+     * @param int $roleid
+     * @param int $userid
+     * @return void
+     */
+    private static function assign_role_to_user(int $roleid, int $userid): void {
+        $context = context_system::instance();
+        role_assign($roleid, $userid, $context->id);
+    }
+
+    /**
+     * Ensure external service exists and is enabled.
+     *
+     * @return object external service record (with id)
+     */
+    private static function ensure_external_service(): object {
+        global $DB;
+        $webservicemanager = new \webservice();
+        if ($service = $DB->get_record('external_services', ['shortname' => self::SERVICESHORTNAME])) {
+            $service->enabled = 1;
+            $service->restrictedusers = 1;
+            $webservicemanager->update_external_service($service);
+            return $service;
+        }
+        $service = (object) [
+            'name' => self::SERVICENAME,
+            'shortname' => self::SERVICESHORTNAME,
+            'enabled' => 1,
+            'restrictedusers' => 1,
+            'downloadfiles' => 1,
+            'uploadfiles' => 0,
+        ];
+        $service->id = $webservicemanager->add_external_service($service);
+        return $service;
+    }
+
+    /**
+     * Attach a predefined set of core functions to the service if present.
+     *
+     * @param int $serviceid
+     * @return void
+     */
+    private static function attach_default_functions(int $serviceid): void {
+        global $DB;
+        $webservicemanager = new \webservice();
+        $wsfunctions = [
+            'core_course_get_contents',
+            'mod_assign_get_submissions',
+        ];
+        foreach ($wsfunctions as $functionname) {
+            $existfunction = $DB->record_exists('external_functions', ['name' => $functionname]);
+            $isassigned = $DB->record_exists('external_services_functions', [
+                'externalserviceid' => $serviceid,
+                'functionname' => $functionname,
+            ]);
+            if ($existfunction && !$isassigned) {
+                $webservicemanager->add_external_function_to_service($functionname, $serviceid);
+            }
+        }
+    }
+
+    /**
+     * Ensure the user is authorized for the service.
+     *
+     * @param int $serviceid
+     * @param int $userid
+     * @return void
+     */
+    private static function authorise_user_for_service(int $serviceid, int $userid): void {
+        global $DB;
+        $webservicemanager = new \webservice();
+        $authorised = $DB->record_exists('external_services_users', [
+            'externalserviceid' => $serviceid,
+            'userid' => $userid,
+        ]);
+        if (!$authorised) {
+            $serviceuser = (object) [
+                'externalserviceid' => $serviceid,
+                'userid' => $userid,
+            ];
+            $webservicemanager->add_ws_authorised_user($serviceuser);
+        }
+    }
+
+    /**
+     * Get or create a permanent token for the user/service pair.
+     *
+     * @param object $service
+     * @param int $userid
+     * @return string token
+     */
+    private static function get_or_create_token(object $service, int $userid): string {
+        global $DB;
+        $tokenrec = $DB->get_record('external_tokens', [
+            'userid' => $userid,
+            'externalserviceid' => $service->id,
+        ], '*', IGNORE_MULTIPLE);
+        if ($tokenrec && !empty($tokenrec->token)) {
+            return $tokenrec->token;
+        }
+        return (string)self::create_token($service, $userid);
+    }
+
+    /**
+     * Verify remote registration status and return updated status array.
+     * Non-fatal: any exception results in verified=false.
+     *
+     * @param array $status
+     * @return array
+     */
+    private static function verify_remote_registration(array $status): array {
+        try {
+            $client = new ai_services_api();
+            $registration = $client->request('GET', '/registration-status', [
+                'site_id' => self::get_site_id(),
+            ]);
+            if (!empty($registration['is_registered'])) {
+                $status['registration']['verified'] = true;
+            }
+        } catch (\Exception $e) {
+            $status['registration']['verified'] = false;
+        }
+        return $status;
     }
 
     /**
