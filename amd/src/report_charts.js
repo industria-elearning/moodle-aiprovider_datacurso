@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Report charts module (with advanced table).
+ * Report charts module.
  *
  * @module     aiprovider_datacurso/report_charts
  * @copyright  2025 Industria Elearning
@@ -24,157 +24,230 @@
 /* eslint-disable */
 import Ajax from 'core/ajax';
 import Chart from 'core/chartjs';
-import { get_string as getString } from 'core/str';
 
 export const init = () => {
-
     const tokensAvailable = document.getElementById('tokens-available');
     const tokensConsumed = document.getElementById('tokens-consumed');
-    const tableBody = document.getElementById('consumption-table-body');
-
-    // Filtros y paginación
-    const filterService = document.getElementById('filter-service');
-    const filterAction = document.getElementById('filter-action');
-    const prevPageBtn = document.getElementById('prev-page');
-    const nextPageBtn = document.getElementById('next-page');
-    const pageInfo = document.getElementById('page-info');
-
-    let consumos = [];
-    let filteredConsumos = [];
-    let currentPage = 1;
-    const rowsPerPage = 10;
 
     let chartBar, chartPie, chartDay;
 
-    // 🔹 1. WS calls
+    // ============================================================
+    // 🔹 1. CARGA INICIAL: SALDO Y SERVICIOS
+    // ============================================================
     Promise.all([
-        Ajax.call([{ methodname: 'aiprovider_datacurso_get_consumption_history', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
-    ]).then(async ([historyResponse, saldoResponse]) => {
+        Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
+    ]).then(([saldoResponse, servicesResponse]) => {
 
-        console.log("response", historyResponse)
-        consumos = historyResponse?.consumption || [];
         const saldo = saldoResponse?.saldo_actual || 0;
-
-        // 🔹 2. Update cards
         tokensAvailable.textContent = saldo;
-        tokensConsumed.textContent = consumos.reduce((sum, c) => sum + (c.cantidad_tokens || 0), 0);
 
-        // 🔹 3. Initialize filters for table
-        initTable(consumos);
+        const servicios = servicesResponse?.services || [];
+        initCharts(servicios);
 
-        // 🔹 4. Initialize charts
-        initCharts(consumos);
-
-    }).catch(err => {
-        console.error("❌ WS Error", err);
-    });
-
+    }).catch(err => console.error("❌ Error inicial:", err));
 
     // ============================================================
-    // 📊 CHARTS SECTION
+    // 📊 INICIALIZAR GRÁFICAS CON FILTROS
     // ============================================================
-    const initCharts = (data) => {
+    const initCharts = (servicios) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
+        const filterStart = document.getElementById('filter-start-date');
+        const filterEnd = document.getElementById('filter-end-date');
 
-        // Fill selects
-        const servicios = [...new Set(data.map(c => c.id_servicio))];
-        servicios.forEach(s => {
-            filterBar.innerHTML += `<option value="${s}">${s}</option>`;
-            filterPie.innerHTML += `<option value="${s}">${s}</option>`;
-        });
+        // Llenar selects de servicios
+        const fillSelect = (select) => {
+            select.innerHTML = '<option value="">Todos</option>';
+            if (servicios?.length) {
+                servicios.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.name;
+                    opt.textContent = s.name;
+                    select.appendChild(opt);
+                });
+            }
+        };
 
-        // Initial render
-        renderBarChart(data);
-        renderPieChart(data);
-        renderDayChart(data);
+        fillSelect(filterBar);
+        fillSelect(filterPie);
 
-        // Listeners → each chart listens ONLY to its filter
-        filterBar.addEventListener('change', () => renderBarChart(data));
-        filterPie.addEventListener('change', () => renderPieChart(data));
+        // Render inicial
+        updateBarChart();
+        updatePieChart();
+        updateDayChart();
 
-        // Date filters for daily chart
-        document.getElementById('filter-start-date').addEventListener('change', () => renderDayChart(data));
-        document.getElementById('filter-end-date').addEventListener('change', () => renderDayChart(data));
+        // Listeners de filtros
+        filterBar.addEventListener('change', updateBarChart);
+        filterPie.addEventListener('change', updatePieChart);
+        filterStart.addEventListener('change', updateDayChart);
+        filterEnd.addEventListener('change', updateDayChart);
     };
 
-    const renderBarChart = (data) => {
-        const filterValue = document.getElementById('filter-service-bar').value;
-        let filteredData = filterValue === 'ALL' ? data : data.filter(c => c.id_servicio === filterValue);
+    // ============================================================
+    // 🔹 FUNCIONES DE WS
+    // ============================================================
+const fetchConsumptionData = async (params = {}) => {
+    const defaults = {
+        servicio: "",
+        accion: "",
+        fechadesde: "",
+        fechahasta: ""
+    };
+    const finalParams = { ...defaults, ...params };
 
-        const byMonth = {};
-        filteredData.forEach(c => {
-            const month = c.fecha.substring(0, 7);
-            byMonth[month] = (byMonth[month] || 0) + c.cantidad_tokens;
+    try {
+        const response = await Ajax.call([{
+            methodname: 'aiprovider_datacurso_get_all_consumption',
+            args: finalParams
+        }])[0];
+
+        if (response.status !== 'success') {
+            console.warn("⚠️ WS devolvió estado:", response.status);
+            return [];
+        }
+        console.log("response", response);
+        return response.consumption || [];
+
+    } catch (error) {
+        console.error("❌ Error al obtener consumos:", error);
+        return [];
+    }
+};
+    // ============================================================
+    // 📊 GRÁFICA DE BARRAS: Consumo por mes + filtro por servicio
+    // ============================================================
+    const updateBarChart = async () => {
+        const servicio = document.getElementById('filter-service-bar').value;
+
+        const data = await fetchConsumptionData({
+            servicio: servicio !== 'all' ? servicio : ''
         });
 
-        const ctx1 = document.getElementById('chart-tokens-by-month');
+        console.log("respueta barra",  data);
+
+        // Calcular totales por mes
+        const byMonth = {};
+        data.forEach(c => {
+            const month = c.date.substring(0, 7);
+            byMonth[month] = (byMonth[month] || 0) + c.cant_tokens;
+        });
+
+        // Actualizar tarjeta de total consumido
+        const totalTokens = data.reduce((sum, c) => sum + (c.cant_tokens || 0), 0);
+        tokensConsumed.textContent = totalTokens;
+
+        // Renderizar gráfico
+        const ctx = document.getElementById('chart-tokens-by-month');
         if (chartBar) chartBar.destroy();
-        chartBar = new Chart(ctx1, {
+
+        chartBar = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: Object.keys(byMonth),
                 datasets: [{
-                    label: 'Tokens consumed',
+                    label: 'Tokens consumidos por mes',
                     data: Object.values(byMonth),
-                    backgroundColor: '#0073e6'
+                    backgroundColor: '#0073e6',
                 }]
-            }
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
     };
 
-    const renderPieChart = (data) => {
-        const filterValue = document.getElementById('filter-service-pie').value;
-        let filteredData = filterValue === 'ALL' ? data : data.filter(c => c.id_servicio === filterValue);
+    // ============================================================
+    // 📊 GRÁFICA CIRCULAR: Distribución por acción + filtro servicio
+    // ============================================================
+    const updatePieChart = async () => {
+        const servicio = document.getElementById('filter-service-pie').value;
 
-        const byAction = {};
-        filteredData.forEach(c => {
-            byAction[c.accion] = (byAction[c.accion] || 0) + c.cantidad_tokens;
+        const data = await fetchConsumptionData({
+            servicio: servicio !== 'all' ? servicio : null
         });
 
-        const ctx2 = document.getElementById('chart-actions');
+        console.log("respueta pai ",  data);
+
+        const byAction = {};
+        data.forEach(c => {
+            byAction[c.action] = (byAction[c.action] || 0) + c.cant_tokens;
+        });
+
+        const ctx = document.getElementById('chart-actions');
         if (chartPie) chartPie.destroy();
-        chartPie = new Chart(ctx2, {
+
+        chartPie = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: Object.keys(byAction),
                 datasets: [{
                     data: Object.values(byAction),
-                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0']
+                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
                 }]
-            }
+            },
+            options: { responsive: true, maintainAspectRatio: false }
         });
     };
 
-    const renderDayChart = (data) => {
-        const startDate = document.getElementById('filter-start-date').value;
-        const endDate = document.getElementById('filter-end-date').value;
+    // ============================================================
+    // 📊 GRÁFICA DE LÍNEA: Consumo diario + filtros de fechas
+    // ============================================================
+const updateDayChart = async () => {
+    const fechadesde = document.getElementById('filter-start-date').value;
+    const fechahasta = document.getElementById('filter-end-date').value;
 
-        let filteredData = data;
-        if (startDate) filteredData = filteredData.filter(c => c.fecha >= startDate);
-        if (endDate) filteredData = filteredData.filter(c => c.fecha <= endDate);
+    const data = await fetchConsumptionData({
+        fechadesde: fechadesde || "",
+        fechahasta: fechahasta || ""
+    });
 
-        const byDay = {};
-        filteredData.forEach(c => {
-            const day = c.fecha.substring(0, 10);
-            byDay[day] = (byDay[day] || 0) + c.cantidad_tokens;
-        });
+    console.log("respuesta day", data);
 
-        const ctx3 = document.getElementById('chart-tokens-by-day');
-        if (chartDay) chartDay.destroy();
-        chartDay = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: Object.keys(byDay),
-                datasets: [{
-                    label: 'Tokens consumed per day',
-                    data: Object.values(byDay),
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40,167,69,0.2)',
-                    fill: true,
-                }]
+    // Agrupar tokens por día
+    const byDay = {};
+    data.forEach(c => {
+        const day = c.date.substring(0, 10);
+        byDay[day] = (byDay[day] || 0) + c.cant_tokens;
+    });
+
+    // 🔹 Ordenar fechas de lo más antiguo a lo más reciente
+    const labels = Object.keys(byDay).sort((a, b) => new Date(a) - new Date(b));
+    const values = labels.map(day => byDay[day]);
+
+    console.log(values)
+
+    // Renderizar gráfico
+    const ctx = document.getElementById('chart-tokens-by-day');
+    if (chartDay) chartDay.destroy();
+
+    chartDay = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Tokens consumidos por día',
+                data: values,
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40,167,69,0.2)',
+                fill: true,
+                tension: 0.2,
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    title: { display: true, text: 'Fecha' }
+                },
+                y: {
+                    title: { display: true, text: 'Tokens consumidos' },
+                    beginAtZero: true
+                }
             }
-        });
-    };
+        }
+    });
+};
 };

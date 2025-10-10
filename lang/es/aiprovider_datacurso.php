@@ -42,6 +42,7 @@ $string['enableuserratelimit_desc'] = 'Si está habilitado, cada usuario tendrá
 $string['globalratelimit'] = 'Límite global de peticiones';
 $string['globalratelimit_desc'] = 'Número máximo de peticiones permitidas por hora para todo el sistema.';
 $string['goto'] = 'Ir al Informe';
+$string['gotopage'] = 'Ir a página';
 $string['id'] = 'ID';
 $string['licensekey'] = 'Clave de licencia';
 $string['licensekey_desc'] = 'Introduce la clave de licencia proporcionada (ejemplo: LICENSE_KEY_CLIENTE).';

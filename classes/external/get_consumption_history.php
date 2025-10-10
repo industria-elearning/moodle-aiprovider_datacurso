@@ -87,7 +87,7 @@ class get_consumption_history extends \external_api {
         }
 
         if (!empty($servicio)) {
-            $params['servicio'] = str_replace('%2F', '/', urlencode($servicio));
+            $params['servicio'] = $servicio;
         }
 
         if (!empty($accion) && $accion !== 'all') {

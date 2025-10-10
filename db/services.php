@@ -44,6 +44,14 @@ $functions = [
         'type'        => 'read',
         'ajax'        => true,
     ],
+    'aiprovider_datacurso_get_all_consumption' => [
+        'classname'   => 'aiprovider_datacurso\external\get_all_consumption',
+        'methodname'  => 'execute',
+        'classpath'   => '',
+        'description' => 'Obtiene el historial completo de consumos de tokens desde la API externa',
+        'type'        => 'read',
+        'ajax'        => true,
+    ],
     'aiprovider_datacurso_webservice_setup' => [
         'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
         'methodname'  => 'setup',
