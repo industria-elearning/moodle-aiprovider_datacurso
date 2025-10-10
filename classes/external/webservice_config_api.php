@@ -108,6 +108,12 @@ class webservice_config_api extends external_api {
             'tokencreated' => new external_value(PARAM_INT, 'Token creation time', VALUE_DEFAULT, null),
             'isconfigured' => new external_value(PARAM_BOOL, 'Everything configured properly'),
             'needsrepair' => new external_value(PARAM_BOOL, 'Needs setup/repair'),
+            'retryonly' => new external_value(
+                PARAM_BOOL,
+                'Show only Retry when registration was attempted but is not active',
+                VALUE_DEFAULT,
+                false
+            ),
             'user' => new external_single_structure([
                 'id' => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
                 'username' => new external_value(PARAM_TEXT, 'Username', VALUE_DEFAULT, ''),
