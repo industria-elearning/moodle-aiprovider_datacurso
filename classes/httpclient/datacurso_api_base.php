@@ -48,6 +48,56 @@ class datacurso_api_base {
     }
 
     /**
+     * Returns the base URL for Datacurso API requests.
+     * The URL is trimmed to remove any trailing slashes and a trailing slash is added.
+     *
+     * @return string The base URL for Datacurso API requests.
+     */
+    public function get_base_url(): string {
+        return rtrim($this->baseurl, '/') . '/';
+    }
+
+    /**
+     * Download a file from Datacurso API.
+     *
+     * @param string $endpoint   Relative endpoint (starting with "/").
+     * @param string $filename The name of the file to download.
+     * @param array $filerecord {@link create_file_from_url()} filerecord if empty file will be stored in the draft user area.
+     * @return \stored_file|null The downloaded file.
+     * @throws \Exception
+     */
+    public function download_file($endpoint, $filename, $filerecord = []): ?\stored_file {
+        global $USER;
+
+        $client = new ai_course_api();
+        $baseurl = $client->get_base_url();
+        $packageurl = $baseurl . ltrim($endpoint, '/');
+
+        $userid = $USER->id;
+        $draftid = file_get_unused_draft_itemid();
+
+        // Store SCORM package in moodledata draft area directly from URL.
+        $fs = get_file_storage();
+        $context = \context_user::instance($userid);
+        $fileinfo = [
+            'contextid' => $context->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftid,
+            'filepath' => '/',
+            'filename' => $filename,
+        ];
+        $fileinfo = array_merge($fileinfo, $filerecord);
+        $options = [];
+        $options['headers'] = [
+            'License-Key: ' . $this->licensekey,
+        ];
+
+        $file = $fs->create_file_from_url($fileinfo, $packageurl, $options, true);
+        return $file;
+    }
+
+    /**
      * Generic handler for HTTP calls to Datacurso API.
      *
      * @param string $method HTTP method (GET, POST, PUT, DELETE, UPLOAD).
