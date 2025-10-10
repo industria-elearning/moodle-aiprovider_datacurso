@@ -1,0 +1,47 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template aiprovider_datacurso/webservice/status
+  Renders the Web Services and REST status badges.
+
+  Context:
+  {
+    "webservicesenabled": bool,
+    "restenabled": bool
+  }
+}}
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge mr-2 {{#webservicesenabled}}badge-success{{/webservicesenabled}}{{^webservicesenabled}}badge-danger{{/webservicesenabled}}" data-region="aiprovider_datacurso/ws-enabled">
+        {{#webservicesenabled}}{{#str}} enabled, aiprovider_datacurso{{/str}}{{/webservicesenabled}}{{^webservicesenabled}}{{#str}} disabled, aiprovider_datacurso{{/str}}{{/webservicesenabled}}
+      </span>
+      <strong>{{#str}} ws_enabled, aiprovider_datacurso {{/str}}</strong>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge mr-2 {{#restenabled}}badge-success{{/restenabled}}{{^restenabled}}badge-danger{{/restenabled}}" data-region="aiprovider_datacurso/rest-enabled">
+        {{#restenabled}}{{#str}} enabled, aiprovider_datacurso{{/str}}{{/restenabled}}{{^restenabled}}{{#str}} disabled, aiprovider_datacurso{{/str}}{{/restenabled}}
+      </span>
+      <strong>{{#str}} rest_enabled, aiprovider_datacurso {{/str}}</strong>
+    </div>
+  </div>
+</div>

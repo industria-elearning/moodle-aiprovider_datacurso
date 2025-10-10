@@ -1,0 +1,53 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+  @template aiprovider_datacurso/webservice/service_assignment
+  Renders the external service existence and user assignment.
+
+  Context:
+  {
+    "service": {"name": string} | null,
+    "userassigned": bool
+  }
+}}
+<div class="row mb-3">
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge mr-2 {{#service}}badge-success{{/service}}{{^service}}badge-danger{{/service}}" data-region="aiprovider_datacurso/service-badge">
+        {{#service}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/service}}{{^service}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/service}}
+      </span>
+      <strong>{{#str}} ws_service, aiprovider_datacurso {{/str}}</strong>
+    </div>
+    <div data-region="aiprovider_datacurso/service-name">{{#service}}{{service.name}}{{/service}}</div>
+  </div>
+  <div class="col-md-6">
+    <div class="d-flex align-items-center mb-2">
+      <span class="badge mr-2 {{#userassigned}}badge-success{{/userassigned}}{{^userassigned}}badge-danger{{/userassigned}}" data-region="aiprovider_datacurso/user-assigned-badge">
+        {{#userassigned}}{{#str}} assigned, aiprovider_datacurso{{/str}}{{/userassigned}}{{^userassigned}}{{#str}} not_assigned, aiprovider_datacurso{{/str}}{{/userassigned}}
+      </span>
+      <strong>{{#str}} ws_userassigned, aiprovider_datacurso {{/str}}</strong>
+    </div>
+    {{#userassigned}}
+      {{#role}}
+        <small class="text-muted" data-region="aiprovider_datacurso/role-label">{{role.shortname}} — {{role.name}}</small>
+      {{/role}}
+    {{/userassigned}}
+  </div>
+</div>
