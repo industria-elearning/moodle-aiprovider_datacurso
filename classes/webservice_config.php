@@ -47,7 +47,7 @@ use moodle_exception;
  * All methods return structured arrays (safe for AJAX) and never expose tokens.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025
+ * @copyright  Datacurso 2025
  * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class webservice_config {
@@ -77,13 +77,15 @@ class webservice_config {
             'webservicesenabled' => (bool)get_config('core', 'enablewebservices'),
             'restenabled' => false,
             'user' => [],
-            'role' => null,
-            'service' => null,
+            'role' => [],
+            'service' => [],
             'userassigned' => false,
             'tokenexists' => false,
             'tokencreated' => null,
             'registration' => [
                 'verified' => get_config('aiprovider_datacurso', 'registration_verified') ?: false,
+                'lastsent' => get_config('aiprovider_datacurso', 'registration_lastsent') ?: '',
+                'laststatus' => get_config('aiprovider_datacurso', 'registration_laststatus') ?: '',
             ],
             'site' => [
                 'domain' => $CFG->wwwroot,
@@ -91,6 +93,7 @@ class webservice_config {
             ],
             'isconfigured' => false,
             'needsrepair' => true,
+            'retryonly' => false,
         ];
 
         // Check REST enabled.
@@ -149,7 +152,7 @@ class webservice_config {
             }
         }
 
-        // Determine configuration flags.
+        // Determine configuration flags. Now require registration to be verified as part of complete configuration.
         $status['isconfigured'] = (
             !empty($status['webservicesenabled']) &&
             !empty($status['restenabled']) &&
@@ -157,7 +160,8 @@ class webservice_config {
             !empty($status['role']['id'] ?? 0) &&
             !empty($status['service']['id'] ?? 0) &&
             !empty($status['userassigned']) &&
-            !empty($status['tokenexists'])
+            !empty($status['tokenexists']) &&
+            !empty($status['registration']['verified'])
         );
         // Needs repair only if partially configured (some elements exist) but not fully ready.
         $anypresent = (
@@ -170,6 +174,11 @@ class webservice_config {
             !empty($status['tokenexists'])
         );
         $status['needsrepair'] = (!$status['isconfigured'] && $anypresent);
+
+        // Retry-only condition: registration was attempted before but it's not currently verified.
+        // In this state, we prefer to show only a Retry button to re-run the configuration/registration.
+        $hadattempt = !empty($status['registration']['lastsent']);
+        $status['retryonly'] = (!$status['isconfigured'] && $hadattempt && empty($status['registration']['verified']));
 
         try {
             // Query external register-status to verify if site token has been registered on Datacurso AI service.
@@ -323,10 +332,18 @@ class webservice_config {
             }
 
             if (!empty($token)) {
-                $messages[] = self::send_registration($token);
+                $sendmessages = self::send_registration($token);
+                if (is_array($sendmessages)) {
+                    $messages = array_merge($messages, $sendmessages);
+                } else if (!empty($sendmessages)) {
+                    $messages[] = (string)$sendmessages;
+                }
             }
 
             $status = self::get_status();
+            if ($status['registration']['verified']) {
+                $messages[] = get_string('ws_step_token_generated', 'aiprovider_datacurso');
+            }
             $status['messages'] = $messages;
             return $status;
 
@@ -409,10 +426,19 @@ class webservice_config {
 
         try {
             $result = $client->request('POST', '/register-site', $payload);
-            set_config('registration_verified', $result['verified'] ?? false, 'aiprovider_datacurso');
+            $verified = $result['verified'] ?? false;
+            set_config('registration_verified', $verified, 'aiprovider_datacurso');
+            // Persist last sent time and human status for UI clarity.
+            $datestr = userdate(time(), get_string('strftimedatetime', 'langconfig'));
+            set_config('registration_lastsent', $datestr, 'aiprovider_datacurso');
+            set_config('registration_laststatus', $verified ? 'sent_verified' : 'sent_pending', 'aiprovider_datacurso');
             return [get_string('ws_step_registration_sent', 'aiprovider_datacurso')];
         } catch (\Exception $e) {
             set_config('registration_verified', false, 'aiprovider_datacurso');
+            // Persist failure state as well, so UI can decide retry-only.
+            $datestr = userdate(time(), get_string('strftimedatetime', 'langconfig'));
+            set_config('registration_lastsent', $datestr, 'aiprovider_datacurso');
+            set_config('registration_laststatus', 'error', 'aiprovider_datacurso');
             return [get_string('ws_error_registration', 'aiprovider_datacurso')];
         }
     }
