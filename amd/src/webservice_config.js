@@ -23,82 +23,125 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-import Ajax from 'core/ajax';
-import Notification from 'core/notification';
-import { get_string } from 'core/str';
+import Notification from "core/notification";
+import {get_string as getString} from "core/str";
+import {
+  webserviceSetup,
+  webserviceRegenerateToken,
+} from "aiprovider_datacurso/repository";
 
-const log = (msg, type = 'info') => {
-    const list = document.getElementById('dc-ws-log');
-    if (!list) {
-        return;
+/**
+ * Initialize the webservice configuration.
+ */
+export function init() {
+  const root = document.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-root"]'
+  );
+  if (!root) {
+    return;
+  }
+  const btnSetup = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-setup"]'
+  );
+  const btnRetry = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-retry"]'
+  );
+  const btnRegenerate = root.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-btn-regenerate"]'
+  );
+
+  if (btnSetup) {
+    btnSetup.addEventListener("click", setup);
+  }
+  if (btnRetry) {
+    btnRetry.addEventListener("click", retry);
+  }
+  if (btnRegenerate) {
+    btnRegenerate.addEventListener("click", regenerate);
+  }
+}
+
+/**
+ * Setup the webservice for Datacurso.
+ */
+async function setup() {
+  try {
+    const message = await getString('ws_step_setup', 'aiprovider_datacurso');
+    log(message);
+    const res = await webserviceSetup();
+    if (res.messages && Array.isArray(res.messages)) {
+      res.messages.forEach((m) => log(m));
     }
-    const li = document.createElement('li');
-    li.textContent = msg;
-    li.classList.add('mb-1');
-    if (type === 'success') {
-        li.classList.add('text-success');
-    } else if (type === 'error') {
-        li.classList.add('text-danger');
-    } else {
-        li.classList.add('text-muted');
-    }
-    list.appendChild(li);
-};
-
-const call = (methodname) => {
-    return Ajax.call([{
-        methodname,
-        args: {}
-    }])[0];
-};
-
-const handleAction = async(action) => {
-    try {
-        let methodname;
-        if (action === 'setup') {
-            methodname = 'aiprovider_datacurso_webservice_setup';
-            const message = await get_string('ws_step_setup', 'aiprovider_datacurso');
-            log(message);
-        } else if (action === 'regenerate') {
-            methodname = 'aiprovider_datacurso_webservice_regenerate_token';
-            const message = await get_string('ws_step_token_regenerating', 'aiprovider_datacurso');
-            log(message);
-        } else if (action === 'retry') {
-            methodname = 'aiprovider_datacurso_webservice_setup';
-            const message = await get_string('ws_step_token_retry', 'aiprovider_datacurso');
-            log(message);
-        } else {
-            return;
-        }
-
-        const res = await call(methodname);
-        if (res.messages && Array.isArray(res.messages)) {
-            res.messages.forEach(m => log(m));
-        }
-        Notification.addNotification({
-            message: 'Done: ' + action,
-            type: 'success'
-        });
-    } catch (e) {
-        Notification.exception(e);
-        log('Error: ' + (e.message || e), 'error');
-    }
-};
-
-export const init = () => {
-    const container = document.querySelector('.aiprovider-datacurso-webservice');
-    if (!container) {
-        return;
-    }
-    container.addEventListener('click', (ev) => {
-        const btn = ev.target.closest('button[data-action]');
-        if (!btn) {
-            return;
-        }
-        ev.preventDefault();
-        const action = btn.getAttribute('data-action');
-        handleAction(action);
+    Notification.addNotification({
+      message: "Done: setup",
+      type: "success",
     });
-};
+  } catch (e) {
+    Notification.exception(e);
+    log("Error: " + (e.message || e), "error");
+  }
+}
 
-export default {init};
+/**
+ * Retry the webservice setup for Datacurso.
+ */
+async function retry() {
+    try {
+        const message = await getString('ws_step_token_retry', 'aiprovider_datacurso');
+        log(message);
+        const res = await webserviceSetup();
+        res.messages.forEach((m) => log(m));
+        Notification.addNotification({
+          message: "Done: retry",
+          type: "success",
+        });
+      } catch (e) {
+        Notification.exception(e);
+        log("Error: " + (e.message || e), "error");
+      }
+}
+
+/**
+ * Regenerate the webservice token for Datacurso.
+ */
+async function regenerate() {
+  try {
+    const message = await getString('ws_step_token_regenerating', 'aiprovider_datacurso');
+    log(message);
+    const res = await webserviceRegenerateToken();
+    res.messages.forEach((m) => log(m));
+    Notification.addNotification({
+      message: "Done: regenerate",
+      type: "success",
+    });
+  } catch (e) {
+    Notification.exception(e);
+    log("Error: " + (e.message || e), "error");
+  }
+}
+
+/**
+ * Log a message to the webservice log.
+ *
+ * @param {string} msg The message to log.
+ * @param {string} type The type of the message.
+ */
+function log(msg, type = "info") {
+  const list = document.querySelector(
+    '[data-region="aiprovider_datacurso/webservice-log"]'
+  );
+  if (!list) {
+    return;
+  }
+  const li = document.createElement("li");
+  li.textContent = msg;
+  li.classList.add("mb-1");
+  if (type === "success") {
+    li.classList.add("text-success");
+  } else if (type === "error") {
+    li.classList.add("text-danger");
+  } else {
+    li.classList.add("text-muted");
+  }
+  list.appendChild(li);
+}
