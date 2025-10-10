@@ -27,7 +27,6 @@ import { get_string as getString } from 'core/str';
 
 export const init = () => {
 
-    // 🔒 Evita doble inicialización del módulo
     if (window._consumptionInitialized) {
         console.warn("⚠️ Módulo de consumo ya inicializado — se omite nueva carga.");
         return;
@@ -46,12 +45,16 @@ export const init = () => {
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
 
+    // 🆕 Nuevo: Select y input para límite y página
+    const limitSelect = document.getElementById('filter-limit');
+    const pageInput = document.getElementById('filter-page');
+
     // 📄 Estado inicial
     let currentPage = parseInt(sessionStorage.getItem('consumptionPage')) || 1;
+    let currentLimit = parseInt(sessionStorage.getItem('consumptionLimit')) || 10;
 
-    const savePage = (page) => {
-        sessionStorage.setItem('consumptionPage', page);
-    };
+    const savePage = (page) => sessionStorage.setItem('consumptionPage', page);
+    const saveLimit = (limit) => sessionStorage.setItem('consumptionLimit', limit);
 
     /**
      * 🧩 Cargar lista de servicios desde el WS
@@ -63,18 +66,15 @@ export const init = () => {
                 args: {}
             }])[0];
 
-            // Limpiar y agregar opción "todos"
             filterService.innerHTML = '<option value="all">Todos los servicios</option>';
 
             if (response?.services?.length) {
                 response.services.forEach(s => {
                     const opt = document.createElement('option');
-                    opt.value = s.id;
+                    opt.value = s.name;
                     opt.textContent = s.name;
                     filterService.appendChild(opt);
                 });
-            } else {
-                console.warn("⚠️ No se encontraron servicios para mostrar.");
             }
         } catch (error) {
             console.error("❌ Error al cargar servicios:", error);
@@ -91,7 +91,6 @@ export const init = () => {
                 args: {}
             }])[0];
 
-            // Limpiar y agregar opción "todas"
             filterAction.innerHTML = '<option value="all">Todas las acciones</option>';
 
             if (response?.actions?.length) {
@@ -101,8 +100,6 @@ export const init = () => {
                     opt.textContent = a.name;
                     filterAction.appendChild(opt);
                 });
-            } else {
-                console.warn("⚠️ No se encontraron acciones para mostrar.");
             }
         } catch (error) {
             console.error("❌ Error al cargar acciones:", error);
@@ -150,7 +147,7 @@ export const init = () => {
 
         const args = {
             page: currentPage,
-            limit: 10,
+            limit: currentLimit,
             servicio: serviceValue !== 'all' ? serviceValue : '',
             accion: actionValue !== 'all' ? actionValue : '',
             fechadesde: fromValue || '',
@@ -173,6 +170,10 @@ export const init = () => {
             if (pagination) {
                 const { current_page, total_pages, total } = pagination;
                 pageInfo.textContent = `Página ${current_page} de ${total_pages} (${total} registros)`;
+
+                // Sincronizar input de página
+                if (pageInput) pageInput.value = current_page;
+
                 prevPageBtn.disabled = current_page <= 1;
                 nextPageBtn.disabled = current_page >= total_pages;
             } else {
@@ -212,12 +213,32 @@ export const init = () => {
         fetchData();
     });
 
-    // 🚀 Carga inicial (servicios + acciones + datos)
-    Promise.all([loadServices(), loadActions()])
-        .then(() => {
+    // 🆕 Cambio manual del límite
+    if (limitSelect) {
+        limitSelect.value = currentLimit;
+        limitSelect.addEventListener('change', () => {
+            currentLimit = parseInt(limitSelect.value);
+            saveLimit(currentLimit);
+            currentPage = 1;
+            savePage(currentPage);
             fetchData();
-        })
-        .catch(e => {
-            console.error("❌ Error durante carga inicial:", e);
         });
+    }
+
+    // 🆕 Cambio manual de número de página
+    if (pageInput) {
+        pageInput.addEventListener('change', () => {
+            const newPage = parseInt(pageInput.value);
+            if (newPage && newPage > 0) {
+                currentPage = newPage;
+                savePage(currentPage);
+                fetchData();
+            }
+        });
+    }
+
+    // 🚀 Carga inicial
+    Promise.all([loadServices(), loadActions()])
+        .then(() => fetchData())
+        .catch(e => console.error("❌ Error durante carga inicial:", e));
 };

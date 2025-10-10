@@ -43,7 +43,6 @@ class get_all_consumption extends external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
-            'userid' => new external_value(PARAM_INT, 'User ID filter', VALUE_OPTIONAL),
             'servicio' => new external_value(PARAM_TEXT, 'Service filter', VALUE_OPTIONAL),
             'accion' => new external_value(PARAM_TEXT, 'Action filter', VALUE_OPTIONAL),
             'fechadesde' => new external_value(PARAM_RAW, 'Start date (YYYY-MM-DD)', VALUE_OPTIONAL),
@@ -54,25 +53,20 @@ class get_all_consumption extends external_api {
     /**
      * Execute the WS to fetch all consumptions.
      *
-     * @param int|null $userid User ID.
      * @param string|null $servicio Service filter.
      * @param string|null $accion Action filter.
      * @param string|null $fechadesde Start date (YYYY-MM-DD).
      * @param string|null $fechahasta End date (YYYY-MM-DD).
      * @return array The result including total and consumptions list.
      */
-    public static function execute($userid = null, $servicio = null, $accion = null, $fechadesde = null, $fechahasta = null) {
+    public static function execute($servicio = null, $accion = null, $fechadesde = null, $fechahasta = null) {
         $client = new datacurso_api();
 
-        // Step 1. First call: page = 1, limit = 0 just to get total records.
         $params = [
             'page' => 1,
             'limit' => 0,
         ];
 
-        if (!empty($userid)) {
-            $params['userid'] = $userid;
-        }
         if (!empty($servicio) && $servicio !== 'all') {
             $params['servicio'] = $servicio;
         }
@@ -96,7 +90,7 @@ class get_all_consumption extends external_api {
         }
 
         // Step 2. Get total records and setup pagination.
-        $pagination = $firstresponse['pagination'] ?? [];
+        $pagination = $firstresponse['paginacion'] ?? [];
         $totalrecords = (int)($pagination['total'] ?? 0);
         $limitperpage = 50; // Tamaño por página.
         $totalpages = ceil($totalrecords / $limitperpage);
@@ -119,13 +113,13 @@ class get_all_consumption extends external_api {
 
             foreach ($consumptions as $item) {
                 $allconsumptions[] = [
-                    'id_consumo' => (int)($item['id_consumo'] ?? 0),
-                    'accion' => (string)($item['accion'] ?? ''),
-                    'id_servicio' => (string)($item['id_servicio'] ?? ''),
+                    'id_consumption' => (int)($item['id_consumo'] ?? 0),
+                    'action' => (string)($item['accion'] ?? ''),
+                    'id_service' => (string)($item['id_servicio'] ?? ''),
                     'userid' => isset($item['userid']) ? (int)$item['userid'] : null,
-                    'cantidad_tokens' => (int)($item['cantidad_tokens'] ?? 0),
-                    'saldo_restante' => (int)($item['saldo_restante'] ?? 0),
-                    'fecha' => (string)($item['fecha'] ?? ''),
+                    'cant_tokens' => (int)($item['cantidad_tokens'] ?? 0),
+                    'balance' => (int)($item['saldo_restante'] ?? 0),
+                    'date' => (string)($item['fecha'] ?? ''),
                     'created_at' => (string)($item['created_at'] ?? ''),
                 ];
             }
@@ -134,7 +128,7 @@ class get_all_consumption extends external_api {
         return [
             'status' => 'success',
             'total' => count($allconsumptions),
-            'consumos' => $allconsumptions,
+            'consumption' => $allconsumptions,
         ];
     }
 
@@ -147,15 +141,15 @@ class get_all_consumption extends external_api {
         return new external_single_structure([
             'status' => new external_value(PARAM_TEXT, 'Estado de la petición (success/error)'),
             'total' => new external_value(PARAM_INT, 'Total de consumos encontrados'),
-            'consumos' => new external_multiple_structure(
+            'consumption' => new external_multiple_structure(
                 new external_single_structure([
-                    'id_consumo' => new external_value(PARAM_INT, 'ID del consumo'),
-                    'accion' => new external_value(PARAM_TEXT, 'Acción realizada'),
-                    'id_servicio' => new external_value(PARAM_TEXT, 'Servicio usado'),
+                    'id_consumption' => new external_value(PARAM_INT, 'ID del consumo'),
+                    'action' => new external_value(PARAM_TEXT, 'Acción realizada'),
+                    'id_service' => new external_value(PARAM_TEXT, 'Servicio usado'),
                     'userid' => new external_value(PARAM_INT, 'ID del usuario en Moodle', VALUE_OPTIONAL),
-                    'cantidad_tokens' => new external_value(PARAM_INT, 'Cantidad de tokens consumidos'),
-                    'saldo_restante' => new external_value(PARAM_INT, 'Saldo restante del usuario'),
-                    'fecha' => new external_value(PARAM_RAW, 'Fecha del consumo (YYYY-MM-DD)'),
+                    'cant_tokens' => new external_value(PARAM_INT, 'Cantidad de tokens consumidos'),
+                    'balance' => new external_value(PARAM_INT, 'Saldo restante del usuario'),
+                    'date' => new external_value(PARAM_RAW, 'Fecha del consumo (YYYY-MM-DD)'),
                     'created_at' => new external_value(PARAM_RAW, 'Fecha de creación del registro en la API'),
                 ])
             ),
