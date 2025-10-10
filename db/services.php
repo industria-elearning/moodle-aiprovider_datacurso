@@ -70,6 +70,15 @@ $functions = [
         'ajax'        => true,
         'capabilities' => 'moodle/site:config',
     ],
+    'aiprovider_datacurso_webservice_get_status' => [
+        'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
+        'methodname'  => 'get_status',
+        'classpath'   => '',
+        'description' => 'Get current Datacurso webservice configuration status',
+        'type'        => 'read',
+        'ajax'        => true,
+        'capabilities' => 'moodle/site:config',
+    ],
     'aiprovider_datacurso_get_services' => [
         'classname'   => 'aiprovider_datacurso\external\get_services',
         'methodname'  => 'execute',
