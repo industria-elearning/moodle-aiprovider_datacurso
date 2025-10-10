@@ -44,7 +44,7 @@ class ai_course_api extends datacurso_api_base {
     public function get_streaming_url_for_session(string $sessionid): string {
         // Build streaming URL with session ID.
         $baseurl = rtrim($this->baseurl, '/');
-        return $baseurl . '/planning/plan-course/stream?session_id=' . urlencode($sessionid);
+        return $baseurl . '/course/stream?session_id=' . urlencode($sessionid);
     }
 
     /**
