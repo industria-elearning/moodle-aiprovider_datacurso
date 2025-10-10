@@ -47,7 +47,7 @@
     }
 }}
 
-<div class="aiprovider-datacurso-webservice">
+<div data-region="aiprovider_datacurso/webservice-root">
     <div class="mb-4">
         <h3>{{#str}} webserviceconfig_heading, aiprovider_datacurso {{/str}}</h3>
         <p class="text-muted">{{#str}} webserviceconfig_desc, aiprovider_datacurso {{/str}}</p>
@@ -61,12 +61,22 @@
                 <span class="badge badge-success">{{#str}} configured, aiprovider_datacurso{{/str}}</span>
             {{/isconfigured}}
             {{^isconfigured}}
-                {{#needsrepair}}
+                {{#retryonly}}
                     <span class="badge badge-warning">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
-                {{/needsrepair}}
-                {{^needsrepair}}
-                    <span class="badge badge-danger">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
-                {{/needsrepair}}
+                {{/retryonly}}
+                {{^retryonly}}
+                    {{#registration.lastsent}}
+                        {{#needsrepair}}
+                            <span class="badge badge-warning">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
+                        {{/needsrepair}}
+                        {{^needsrepair}}
+                            <span class="badge badge-danger">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
+                        {{/needsrepair}}
+                    {{/registration.lastsent}}
+                    {{^registration.lastsent}}
+                        <span class="badge badge-danger">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
+                    {{/registration.lastsent}}
+                {{/retryonly}}
             {{/isconfigured}}
         </div>
         <div class="card-body">
@@ -165,7 +175,7 @@
                         <strong>{{#str}} registration_status, aiprovider_datacurso {{/str}}</strong>
                     </div>
                     {{#registration.lastsent}}
-                        <small class="text-muted">{{#str}} last_sent, aiprovider_datacurso{{/str}}: {{registration.lastsent}}</small>
+                        <small class="text-muted">{{#str}} last_sent, aiprovider_datacurso{{/str}}: {{registration.lastsent}}{{#registration.laststatus}} — {{registration.laststatus}}{{/registration.laststatus}}</small>
                     {{/registration.lastsent}}
                 </div>
             </div>
@@ -186,31 +196,41 @@
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 mb-4" style="gap: 1rem;">
-        {{^isconfigured}}
-            <button class="btn btn-primary" data-action="setup">
-                <i class="fa fa-cogs mr-2"></i>{{#str}} ws_btn_setup, aiprovider_datacurso {{/str}}
-            </button>
-        {{/isconfigured}}
-        {{#isconfigured}}
-            <button class="btn btn-warning" data-action="regenerate">
-                <i class="fa fa-refresh mr-2"></i>{{#str}} ws_btn_regenerate, aiprovider_datacurso {{/str}}
-            </button>
-        {{/isconfigured}}
-        {{#needsrepair}}
-            <button class="btn btn-secondary" data-action="retry">
+        {{#retryonly}}
+            <button class="btn btn-secondary" data-action="retry" data-region="aiprovider_datacurso/webservice-btn-retry">
                 <i class="fa fa-wrench mr-2"></i>{{#str}} ws_btn_retry, aiprovider_datacurso {{/str}}
             </button>
-        {{/needsrepair}}
+        {{/retryonly}}
+        {{^retryonly}}
+            {{#registration.lastsent}}
+                {{#isconfigured}}
+                    <button class="btn btn-warning" data-action="regenerate" data-region="aiprovider_datacurso/webservice-btn-regenerate">
+                        <i class="fa fa-refresh mr-2"></i>{{#str}} ws_btn_regenerate, aiprovider_datacurso {{/str}}
+                    </button>
+                {{/isconfigured}}
+                {{#needsrepair}}
+                    <button class="btn btn-secondary" data-action="retry" data-region="aiprovider_datacurso/webservice-btn-retry">
+                        <i class="fa fa-wrench mr-2"></i>{{#str}} ws_btn_retry, aiprovider_datacurso {{/str}}
+                    </button>
+                {{/needsrepair}}
+            {{/registration.lastsent}}
+            {{^registration.lastsent}}
+                {{^isconfigured}}
+                    <button class="btn btn-primary" data-action="setup" data-region="aiprovider_datacurso/webservice-btn-setup">
+                        <i class="fa fa-cogs mr-2"></i>{{#str}} ws_btn_setup, aiprovider_datacurso {{/str}}
+                    </button>
+                {{/isconfigured}}
+            {{/registration.lastsent}}
+        {{/retryonly}}
     </div>
 
     <!-- Activity Log -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{#str}} ws_activity, aiprovider_datacurso {{/str}}</h5>
             <small class="text-muted">{{#str}} live_log, aiprovider_datacurso{{/str}}</small>
         </div>
         <div class="card-body">
-            <ul class="list-unstyled mb-0" id="dc-ws-log">
+            <ul class="list-unstyled mb-0" data-region="aiprovider_datacurso/webservice-log">
                 <!-- Activity log entries will be populated here -->
             </ul>
         </div>
