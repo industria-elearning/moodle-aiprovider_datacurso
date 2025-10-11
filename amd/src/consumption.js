@@ -45,6 +45,10 @@ export const init = () => {
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
 
+    // 🧭 Control de ordenamiento
+    let currentSortField = '';
+    let currentSortDir = 'asc';
+
     // 🆕 Nuevo: Select y input para límite y página
     const limitSelect = document.getElementById('filter-limit');
     const pageInput = document.getElementById('filter-page');
@@ -145,6 +149,7 @@ export const init = () => {
         const fromValue = filterFrom.value;
         const toValue = filterTo.value;
 
+        // 🧠 Parámetros base obligatorios
         const args = {
             page: currentPage,
             limit: currentLimit,
@@ -153,6 +158,12 @@ export const init = () => {
             fechadesde: fromValue || '',
             fechahasta: toValue || ''
         };
+
+        // 🆕 Solo agrega el orden si existe campo seleccionado
+        if (currentSortField) {
+            args.short = currentSortField;
+            args.shortdir = currentSortDir;
+        }
 
         console.log("📤 Enviando petición al WS con args:", JSON.stringify(args));
 
@@ -236,6 +247,38 @@ export const init = () => {
             }
         });
     }
+
+    // 🆕 Ordenamiento general por columnas
+    document.querySelectorAll('.sortable').forEach(header => {
+        header.addEventListener('click', () => {
+            const field = header.dataset.sort;
+            const icon = header.querySelector('.sort-icon');
+
+            // Si se hace clic en la misma columna, alterna el orden
+            if (currentSortField === field) {
+                currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+            } else {
+                // Si es una nueva columna, empieza en asc
+                currentSortField = field;
+                currentSortDir = 'asc';
+            }
+
+            // Resetear íconos
+            document.querySelectorAll('.sort-icon').forEach(i => {
+                i.className = 'fa fa-sort sort-icon';
+            });
+
+            // Actualizar ícono activo
+            icon.className = currentSortDir === 'asc'
+                ? 'fa fa-sort-up sort-icon'
+                : 'fa fa-sort-down sort-icon';
+
+            // Reiniciar a página 1 y recargar
+            currentPage = 1;
+            savePage(currentPage);
+            fetchData();
+        });
+    });
 
     // 🚀 Carga inicial
     Promise.all([loadServices(), loadActions()])

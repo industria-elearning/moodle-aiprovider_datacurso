@@ -30,20 +30,24 @@ export const init = () => {
     const tokensConsumed = document.getElementById('tokens-consumed');
 
     let chartBar, chartPie, chartDay;
+    let cachedData = []; // 🔹 Aquí guardaremos la data del WS para uso compartido
 
     // ============================================================
-    // 🔹 1. CARGA INICIAL: SALDO Y SERVICIOS
+    // 🔹 1. CARGA INICIAL: SALDO, SERVICIOS Y CONSUMOS
     // ============================================================
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
-    ]).then(([saldoResponse, servicesResponse]) => {
+        Ajax.call([{ methodname: 'aiprovider_datacurso_get_all_consumption', args: {} }])[0] // 🔹 una sola llamada inicial
+    ]).then(([saldoResponse, servicesResponse, consumptionResponse]) => {
 
         const saldo = saldoResponse?.saldo_actual || 0;
         tokensAvailable.textContent = saldo;
 
         const servicios = servicesResponse?.services || [];
-        initCharts(servicios);
+        cachedData = consumptionResponse?.consumption || []; // Guardamos la data global
+
+        initCharts(servicios); // Inicializamos las gráficas con cachedData
 
     }).catch(err => console.error("❌ Error inicial:", err));
 
@@ -72,72 +76,61 @@ export const init = () => {
         fillSelect(filterBar);
         fillSelect(filterPie);
 
-        // Render inicial
-        updateBarChart();
-        updatePieChart();
-        updateDayChart();
+        // Render inicial usando cachedData
+        renderBarChart(cachedData);
+        renderPieChart(cachedData);
+        renderDayChart(cachedData);
 
         // Listeners de filtros
-        filterBar.addEventListener('change', updateBarChart);
-        filterPie.addEventListener('change', updatePieChart);
-        filterStart.addEventListener('change', updateDayChart);
-        filterEnd.addEventListener('change', updateDayChart);
+        filterBar.addEventListener('change', () => updateBarChart());
+        filterPie.addEventListener('change', () => updatePieChart());
+        filterStart.addEventListener('change', () => updateDayChart());
+        filterEnd.addEventListener('change', () => updateDayChart());
     };
 
     // ============================================================
-    // 🔹 FUNCIONES DE WS
+    // 🔹 FUNCIONES DE WS (solo se usa si hay filtros activos)
     // ============================================================
-const fetchConsumptionData = async (params = {}) => {
-    const defaults = {
-        servicio: "",
-        accion: "",
-        fechadesde: "",
-        fechahasta: ""
-    };
-    const finalParams = { ...defaults, ...params };
+    const fetchConsumptionData = async (params = {}) => {
+        const defaults = {
+            servicio: "",
+            accion: "",
+            fechadesde: "",
+            fechahasta: ""
+        };
+        const finalParams = { ...defaults, ...params };
 
-    try {
-        const response = await Ajax.call([{
-            methodname: 'aiprovider_datacurso_get_all_consumption',
-            args: finalParams
-        }])[0];
+        try {
+            const response = await Ajax.call([{
+                methodname: 'aiprovider_datacurso_get_all_consumption',
+                args: finalParams
+            }])[0];
 
-        if (response.status !== 'success') {
-            console.warn("⚠️ WS devolvió estado:", response.status);
+            if (response.status !== 'success') {
+                console.warn("⚠️ WS devolvió estado:", response.status);
+                return [];
+            }
+            return response.consumption || [];
+
+        } catch (error) {
+            console.error("❌ Error al obtener consumos:", error);
             return [];
         }
-        console.log("response", response);
-        return response.consumption || [];
+    };
 
-    } catch (error) {
-        console.error("❌ Error al obtener consumos:", error);
-        return [];
-    }
-};
     // ============================================================
-    // 📊 GRÁFICA DE BARRAS: Consumo por mes + filtro por servicio
+    // 📊 GRÁFICA DE BARRAS
     // ============================================================
-    const updateBarChart = async () => {
-        const servicio = document.getElementById('filter-service-bar').value;
-
-        const data = await fetchConsumptionData({
-            servicio: servicio !== 'all' ? servicio : ''
-        });
-
-        console.log("respueta barra",  data);
-
-        // Calcular totales por mes
+    const renderBarChart = (data) => {
         const byMonth = {};
         data.forEach(c => {
             const month = c.date.substring(0, 7);
             byMonth[month] = (byMonth[month] || 0) + c.cant_tokens;
         });
 
-        // Actualizar tarjeta de total consumido
         const totalTokens = data.reduce((sum, c) => sum + (c.cant_tokens || 0), 0);
         tokensConsumed.textContent = totalTokens;
 
-        // Renderizar gráfico
         const ctx = document.getElementById('chart-tokens-by-month');
         if (chartBar) chartBar.destroy();
 
@@ -155,18 +148,18 @@ const fetchConsumptionData = async (params = {}) => {
         });
     };
 
+    const updateBarChart = async () => {
+        const servicio = document.getElementById('filter-service-bar').value;
+        if (!servicio) return renderBarChart(cachedData); // usa la cache si no hay filtro
+
+        const data = await fetchConsumptionData({ servicio });
+        renderBarChart(data);
+    };
+
     // ============================================================
-    // 📊 GRÁFICA CIRCULAR: Distribución por acción + filtro servicio
+    // 📊 GRÁFICA CIRCULAR
     // ============================================================
-    const updatePieChart = async () => {
-        const servicio = document.getElementById('filter-service-pie').value;
-
-        const data = await fetchConsumptionData({
-            servicio: servicio !== 'all' ? servicio : null
-        });
-
-        console.log("respueta pai ",  data);
-
+    const renderPieChart = (data) => {
         const byAction = {};
         data.forEach(c => {
             byAction[c.action] = (byAction[c.action] || 0) + c.cant_tokens;
@@ -188,66 +181,64 @@ const fetchConsumptionData = async (params = {}) => {
         });
     };
 
+    const updatePieChart = async () => {
+        const servicio = document.getElementById('filter-service-pie').value;
+        if (!servicio) return renderPieChart(cachedData);
+
+        const data = await fetchConsumptionData({ servicio });
+        renderPieChart(data);
+    };
+
     // ============================================================
-    // 📊 GRÁFICA DE LÍNEA: Consumo diario + filtros de fechas
+    // 📊 GRÁFICA DE LÍNEA
     // ============================================================
-const updateDayChart = async () => {
-    const fechadesde = document.getElementById('filter-start-date').value;
-    const fechahasta = document.getElementById('filter-end-date').value;
+    const renderDayChart = (data) => {
+        const byDay = {};
+        data.forEach(c => {
+            const day = c.date.substring(0, 10);
+            byDay[day] = (byDay[day] || 0) + c.cant_tokens;
+        });
 
-    const data = await fetchConsumptionData({
-        fechadesde: fechadesde || "",
-        fechahasta: fechahasta || ""
-    });
+        const labels = Object.keys(byDay).sort((a, b) => new Date(a) - new Date(b));
+        const values = labels.map(day => byDay[day]);
 
-    console.log("respuesta day", data);
+        const ctx = document.getElementById('chart-tokens-by-day');
+        if (chartDay) chartDay.destroy();
 
-    // Agrupar tokens por día
-    const byDay = {};
-    data.forEach(c => {
-        const day = c.date.substring(0, 10);
-        byDay[day] = (byDay[day] || 0) + c.cant_tokens;
-    });
-
-    // 🔹 Ordenar fechas de lo más antiguo a lo más reciente
-    const labels = Object.keys(byDay).sort((a, b) => new Date(a) - new Date(b));
-    const values = labels.map(day => byDay[day]);
-
-    console.log(values)
-
-    // Renderizar gráfico
-    const ctx = document.getElementById('chart-tokens-by-day');
-    if (chartDay) chartDay.destroy();
-
-    chartDay = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Tokens consumidos por día',
-                data: values,
-                borderColor: '#28a745',
-                backgroundColor: 'rgba(40,167,69,0.2)',
-                fill: true,
-                tension: 0.2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    title: { display: true, text: 'Fecha' }
-                },
-                y: {
-                    title: { display: true, text: 'Tokens consumidos' },
-                    beginAtZero: true
+        chartDay = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Tokens consumidos por día',
+                    data: values,
+                    borderColor: '#28a745',
+                    backgroundColor: 'rgba(40,167,69,0.2)',
+                    fill: true,
+                    tension: 0.2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { title: { display: true, text: 'Fecha' } },
+                    y: { title: { display: true, text: 'Tokens consumidos' }, beginAtZero: true }
                 }
             }
-        }
-    });
-};
+        });
+    };
+
+    const updateDayChart = async () => {
+        const fechadesde = document.getElementById('filter-start-date').value;
+        const fechahasta = document.getElementById('filter-end-date').value;
+
+        if (!fechadesde && !fechahasta) return renderDayChart(cachedData);
+
+        const data = await fetchConsumptionData({ fechadesde, fechahasta });
+        renderDayChart(data);
+    };
 };
