@@ -137,7 +137,7 @@ class datacurso_api_base {
 
         $defaultpayload = [
             'site_id' => md5($CFG->wwwroot),
-            'userid' => $payload['userid'] ?? $USER->id,
+            'user_id' => $payload['user_id'] ?? $USER->id,
             'timezone' => \core_date::get_user_timezone(),
             'lang' => $payload['lang'] ?? current_language(),
         ];
