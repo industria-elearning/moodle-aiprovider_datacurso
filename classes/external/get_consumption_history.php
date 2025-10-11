@@ -50,6 +50,8 @@ class get_consumption_history extends \external_api {
             'accion' => new external_value(PARAM_TEXT, 'Action name', VALUE_DEFAULT, ''),
             'fechadesde' => new external_value(PARAM_TEXT, 'Start date', VALUE_DEFAULT, ''),
             'fechahasta' => new external_value(PARAM_TEXT, 'End date', VALUE_DEFAULT, ''),
+            'short' => new external_value(PARAM_TEXT, 'Field to order', VALUE_DEFAULT, ''),
+            'shortdir' => new external_value(PARAM_TEXT, 'Direction asc or desc', VALUE_DEFAULT, ''),
         ]);
     }
 
@@ -63,10 +65,12 @@ class get_consumption_history extends \external_api {
      * @param string|null $accion
      * @param string|null $fechadesde
      * @param string|null $fechahasta
+     * @param string|null $short
+     * @param string|null $shortdir
      * @return array
      */
     public static function execute($page = 1, $limit = 10, $userid = null, $servicio = null,
-        $accion = null, $fechadesde = null, $fechahasta = null) {
+        $accion = null, $fechadesde = null, $fechahasta = null, $short = null, $shortdir = null) {
 
         global $USER;
 
@@ -100,6 +104,14 @@ class get_consumption_history extends \external_api {
 
         if (!empty($fechahasta)) {
             $params['fecha_hasta'] = $fechahasta;
+        }
+
+        if (!empty($short)) {
+            $params['short'] = $short;
+        }
+
+        if (!empty($shortdir)) {
+            $params['shor_dir'] = $shortdir;
         }
 
         try {

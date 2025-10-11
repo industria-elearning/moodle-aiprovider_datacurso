@@ -53,50 +53,50 @@
         </div>
     </div>
 
-    <!-- Charts Section -->
+ <!-- Charts Section -->
     <div class="report-charts">
         <div class="row">
             <div class="col-lg-6 col-12 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">{{#str}}chart_tokens_by_month, aiprovider_datacurso{{/str}}</h4>
-                        <select id="filter-service-bar" class="form-control form-control-sm w-auto">
+                <div class="card h-100">
+                    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                        <h4 class="card-title mb-2 mb-sm-0">{{#str}}chart_tokens_by_month, aiprovider_datacurso{{/str}}</h4>
+                        <select id="filter-service-bar" class="form-control form-control-sm w-auto mt-2 mt-sm-0">
                             <option value="ALL">Todos</option>
                         </select>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container" style="height: 400px;">
+                        <div class="chart-container" style="position: relative; height: 400px;">
                             <canvas id="chart-tokens-by-month"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-6 col-12 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">{{#str}}chart_actions, aiprovider_datacurso{{/str}}</h4>
-                        <select id="filter-service-pie" class="form-control form-control-sm w-auto">
+                <div class="card h-100">
+                    <div class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                        <h4 class="card-title mb-2 mb-sm-0">{{#str}}chart_actions, aiprovider_datacurso{{/str}}</h4>
+                        <select id="filter-service-pie" class="form-control form-control-sm w-auto mt-2 mt-sm-0">
                             <option value="ALL">Todos</option>
                         </select>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container" style="height: 400px;">
+                        <div class="chart-container" style="position: relative; height: 400px;">
                             <canvas id="chart-actions"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-12 mb-4">
-                <div class="card">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h4 class="card-title mb-0">{{#str}}chart_tokens_by_day, aiprovider_datacurso{{/str}}</h4>
-                        <div class="d-flex gap-2">
+            <div class="col-12 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                        <h4 class="card-title mb-2 mb-md-0">{{#str}}chart_tokens_by_day, aiprovider_datacurso{{/str}}</h4>
+                        <div class="d-flex flex-column flex-sm-row gap-2 w-100 w-md-auto mt-2 mt-md-0">
                             <input type="date" id="filter-start-date" class="form-control form-control-sm">
                             <input type="date" id="filter-end-date" class="form-control form-control-sm">
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="chart-container" style="height: 400px;">
+                        <div class="chart-container" style="position: relative; height: 400px;">
                             <canvas id="chart-tokens-by-day"></canvas>
                         </div>
                     </div>
