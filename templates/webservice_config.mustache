@@ -47,7 +47,7 @@
     }
 }}
 
-<div class="aiprovider-datacurso-webservice">
+<div data-region="aiprovider_datacurso/webservice-root">
     <div class="mb-4">
         <h3>{{#str}} webserviceconfig_heading, aiprovider_datacurso {{/str}}</h3>
         <p class="text-muted">{{#str}} webserviceconfig_desc, aiprovider_datacurso {{/str}}</p>
@@ -58,159 +58,48 @@
         <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="mb-0">{{#str}} webserviceconfig_current, aiprovider_datacurso {{/str}}</h5>
             {{#isconfigured}}
-                <span class="badge badge-success">{{#str}} configured, aiprovider_datacurso{{/str}}</span>
+                <span class="badge badge-success" data-region="aiprovider_datacurso/header-badge">{{#str}} configured, aiprovider_datacurso{{/str}}</span>
             {{/isconfigured}}
             {{^isconfigured}}
-                {{#needsrepair}}
-                    <span class="badge badge-warning">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
-                {{/needsrepair}}
-                {{^needsrepair}}
-                    <span class="badge badge-danger">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
-                {{/needsrepair}}
+                {{#retryonly}}
+                    <span class="badge badge-warning" data-region="aiprovider_datacurso/header-badge">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
+                {{/retryonly}}
+                {{^retryonly}}
+                    {{#registration.lastsent}}
+                        {{#needsrepair}}
+                            <span class="badge badge-warning" data-region="aiprovider_datacurso/header-badge">{{#str}} needs_repair, aiprovider_datacurso{{/str}}</span>
+                        {{/needsrepair}}
+                        {{^needsrepair}}
+                            <span class="badge badge-danger" data-region="aiprovider_datacurso/header-badge">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
+                        {{/needsrepair}}
+                    {{/registration.lastsent}}
+                    {{^registration.lastsent}}
+                        <span class="badge badge-danger" data-region="aiprovider_datacurso/header-badge">{{#str}} not_configured, aiprovider_datacurso{{/str}}</span>
+                    {{/registration.lastsent}}
+                {{/retryonly}}
             {{/isconfigured}}
         </div>
         <div class="card-body">
-            <!-- Web Services Status Row -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#webservicesenabled}}success{{/webservicesenabled}}{{^webservicesenabled}}danger{{/webservicesenabled}} mr-2">
-                            {{#webservicesenabled}}{{#str}} enabled, aiprovider_datacurso{{/str}}{{/webservicesenabled}}{{^webservicesenabled}}{{#str}} disabled, aiprovider_datacurso{{/str}}{{/webservicesenabled}}
-                        </span>
-                        <strong>{{#str}} ws_enabled, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#restenabled}}success{{/restenabled}}{{^restenabled}}danger{{/restenabled}} mr-2">
-                            {{#restenabled}}{{#str}} enabled, aiprovider_datacurso{{/str}}{{/restenabled}}{{^restenabled}}{{#str}} disabled, aiprovider_datacurso{{/str}}{{/restenabled}}
-                        </span>
-                        <strong>{{#str}} rest_enabled, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                </div>
-            </div>
+            {{> aiprovider_datacurso/webservice/status }}
 
-            <!-- User Information Row -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#user}}success{{/user}}{{^user}}danger{{/user}} mr-2">
-                            {{#user}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/user}}{{^user}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/user}}
-                        </span>
-                        <strong>{{#str}} ws_user, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                    {{#user}}
-                        <div>{{user.username}}</div>
-                        <small class="text-muted">{{user.email}}</small>
-                    {{/user}}
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#role}}success{{/role}}{{^role}}danger{{/role}} mr-2">
-                            {{#role}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/role}}{{^role}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/role}}
-                        </span>
-                        <strong>{{#str}} ws_role, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                    {{#role}}
-                        <div>{{role.shortname}}</div>
-                        <small class="text-muted">{{role.name}}</small>
-                    {{/role}}
-                </div>
-            </div>
+            {{> aiprovider_datacurso/webservice/user_role }}
 
-            <!-- Service and Assignment Row -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#service}}success{{/service}}{{^service}}danger{{/service}} mr-2">
-                            {{#service}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/service}}{{^service}}{{#str}} not_created, aiprovider_datacurso{{/str}}{{/service}}
-                        </span>
-                        <strong>{{#str}} ws_service, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                    {{#service}}
-                        <div>{{service.name}}</div>
-                    {{/service}}
-                </div>
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#userassigned}}success{{/userassigned}}{{^userassigned}}danger{{/userassigned}} mr-2">
-                            {{#userassigned}}{{#str}} assigned, aiprovider_datacurso{{/str}}{{/userassigned}}{{^userassigned}}{{#str}} not_assigned, aiprovider_datacurso{{/str}}{{/userassigned}}
-                        </span>
-                        <strong>{{#str}} ws_userassigned, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                </div>
-            </div>
+            {{> aiprovider_datacurso/webservice/service_assignment }}
 
-            <!-- Token Status Row -->
-            <div class="row mb-3">
-                <div class="col-md-6">
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#tokenexists}}success{{/tokenexists}}{{^tokenexists}}danger{{/tokenexists}} mr-2">
-                            {{#tokenexists}}{{#str}} exists, aiprovider_datacurso{{/str}}{{/tokenexists}}{{^tokenexists}}{{#str}} missing, aiprovider_datacurso{{/str}}{{/tokenexists}}
-                        </span>
-                        <strong>{{#str}} ws_tokenexists, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                    {{#tokenexists}}
-                        {{#tokencreated}}
-                            <small class="text-muted">{{#str}} created, aiprovider_datacurso{{/str}}: {{tokencreated}}</small>
-                        {{/tokencreated}}
-                    {{/tokenexists}}
-                </div>
-                <div class="col-md-6">
-                    <!-- Registration Status -->
-                    <div class="d-flex align-items-center mb-2">
-                        <span class="badge badge-{{#registration.verified}}success{{/registration.verified}}{{^registration.verified}}warning{{/registration.verified}} mr-2">
-                            {{#registration.verified}}{{#str}} verified, aiprovider_datacurso{{/str}}{{/registration.verified}}{{^registration.verified}}{{#str}} pending, aiprovider_datacurso{{/str}}{{/registration.verified}}
-                        </span>
-                        <strong>{{#str}} registration_status, aiprovider_datacurso {{/str}}</strong>
-                    </div>
-                    {{#registration.lastsent}}
-                        <small class="text-muted">{{#str}} last_sent, aiprovider_datacurso{{/str}}: {{registration.lastsent}}</small>
-                    {{/registration.lastsent}}
-                </div>
-            </div>
-
-            <!-- Registration Alert -->
-            {{#registration.verified}}
-                <div class="alert alert-success mb-3">
-                    <i class="fa fa-check-circle mr-2"></i>{{#str}} registration_verified, aiprovider_datacurso {{/str}}
-                </div>
-            {{/registration.verified}}
-            {{^registration.verified}}
-                <div class="alert alert-warning mb-3">
-                    <i class="fa fa-exclamation-triangle mr-2"></i>{{#str}} registration_notverified, aiprovider_datacurso {{/str}}
-                </div>
-            {{/registration.verified}}
+            {{> aiprovider_datacurso/webservice/token_registration }}
         </div>
     </div>
 
     <!-- Action Buttons -->
-    <div class="d-flex gap-2 mb-4" style="gap: 1rem;">
-        {{^isconfigured}}
-            <button class="btn btn-primary" data-action="setup">
-                <i class="fa fa-cogs mr-2"></i>{{#str}} ws_btn_setup, aiprovider_datacurso {{/str}}
-            </button>
-        {{/isconfigured}}
-        {{#isconfigured}}
-            <button class="btn btn-warning" data-action="regenerate">
-                <i class="fa fa-refresh mr-2"></i>{{#str}} ws_btn_regenerate, aiprovider_datacurso {{/str}}
-            </button>
-        {{/isconfigured}}
-        {{#needsrepair}}
-            <button class="btn btn-secondary" data-action="retry">
-                <i class="fa fa-wrench mr-2"></i>{{#str}} ws_btn_retry, aiprovider_datacurso {{/str}}
-            </button>
-        {{/needsrepair}}
-    </div>
+    {{> aiprovider_datacurso/webservice/actions }}
 
     <!-- Activity Log -->
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">{{#str}} ws_activity, aiprovider_datacurso {{/str}}</h5>
             <small class="text-muted">{{#str}} live_log, aiprovider_datacurso{{/str}}</small>
         </div>
         <div class="card-body">
-            <ul class="list-unstyled mb-0" id="dc-ws-log">
+            <ul class="list-unstyled mb-0" data-region="aiprovider_datacurso/webservice-log">
                 <!-- Activity log entries will be populated here -->
             </ul>
         </div>
