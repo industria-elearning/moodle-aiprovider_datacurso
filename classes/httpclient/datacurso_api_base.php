@@ -110,8 +110,8 @@ class datacurso_api_base {
     protected function send_request(string $method, string $path, $payload = [], array $headers = []): ?array {
         global $USER, $CFG;
         if (empty($this->licensekey)) {
-            debugging('Cannot make this request: no license key available', DEBUG_DEVELOPER);
-            return null;
+            debugging('Cannot make this request: invalid license key', DEBUG_DEVELOPER);
+            throw new \moodle_exception('invalidlicensekey', 'aiprovider_datacurso');
         }
 
         if (!str_starts_with($path, '/')) {
