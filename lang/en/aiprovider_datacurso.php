@@ -67,6 +67,7 @@ $string['globalratelimit_desc'] = 'Maximum number of requests allowed per hour f
 $string['goto'] = 'Go to Report';
 $string['gotopage'] = 'Go to page';
 $string['id'] = 'ID';
+$string['invalidlicensekey'] = 'Invalid license key';
 $string['last_sent'] = 'Last sent';
 $string['licensekey'] = 'License key';
 $string['licensekey_desc'] = 'Enter the provided license key (example: LICENSE_KEY_CLIENT).';

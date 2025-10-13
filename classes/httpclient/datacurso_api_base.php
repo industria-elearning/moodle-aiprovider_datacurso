@@ -110,8 +110,8 @@ class datacurso_api_base {
     protected function send_request(string $method, string $path, $payload = [], array $headers = []): ?array {
         global $USER, $CFG;
         if (empty($this->licensekey)) {
-            debugging('Cannot make this request: no license key available', DEBUG_DEVELOPER);
-            return null;
+            debugging('Cannot make this request: invalid license key', DEBUG_DEVELOPER);
+            throw new \moodle_exception('invalidlicensekey', 'aiprovider_datacurso');
         }
 
         if (!str_starts_with($path, '/')) {
@@ -137,7 +137,7 @@ class datacurso_api_base {
 
         $defaultpayload = [
             'site_id' => md5($CFG->wwwroot),
-            'userid' => $payload['userid'] ?? $USER->id,
+            'user_id' => $payload['user_id'] ?? $USER->id,
             'timezone' => \core_date::get_user_timezone(),
             'lang' => $payload['lang'] ?? current_language(),
         ];
