@@ -111,10 +111,18 @@ class get_all_consumption extends external_api {
             $userdata = $response['usuarios'][0] ?? null;
             $consumptions = $userdata['consumos'] ?? [];
 
+            $actions = \aiprovider_datacurso\provider::get_actions();
+            $actionmap = [];
+            foreach ($actions as $a) {
+                    $actionmap[$a['id']] = $a['name'];
+            }
+
             foreach ($consumptions as $item) {
+                $rawaction = (string)($item['accion'] ?? '');
+                $translatedaction = $actionmap[$rawaction] ?? $rawaction;
                 $allconsumptions[] = [
                     'id_consumption' => (int)($item['id_consumo'] ?? 0),
-                    'action' => (string)($item['accion'] ?? ''),
+                    'action' => $translatedaction,
                     'id_service' => (string)($item['id_servicio'] ?? ''),
                     'userid' => isset($item['userid']) ? (int)$item['userid'] : null,
                     'cant_tokens' => (int)($item['cantidad_tokens'] ?? 0),

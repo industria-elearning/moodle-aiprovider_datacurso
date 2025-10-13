@@ -29,7 +29,6 @@ $context = context_system::instance();
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/ai/provider/datacurso/admin/report_sections.php'));
 $PAGE->set_pagelayout('report');
-$PAGE->set_heading(get_string('pluginname', 'aiprovider_datacurso'));
 
 $tab = optional_param('tab', 'consumption', PARAM_ALPHA);
 
@@ -54,6 +53,8 @@ $tabs[] = new tabobject(
 
 $output = $PAGE->get_renderer('core');
 echo $output->header();
+$headerlogo = new \aiprovider_datacurso\output\header_logo();
+echo $output->render($headerlogo);
 echo $output->tabtree($tabs, $tab);
 
 // Contenido según pestaña.

@@ -24,16 +24,15 @@
     }
 }}
 
-<h3>{{#str}}link_listplugings, aiprovider_datacurso{{/str}}</h3>
-<p>Aquí encontramos la lista de plugins compatibles con el provider Datacurso</p>
+<p>{{#str}}descriptionpagelistplugins, aiprovider_datacurso{{/str}}</p>
 
 <table class="generaltable">
     <thead>
         <tr>
-            <th>Plugin</th>
-            <th>Descripción</th>
-            <th>Instalado</th>
-            <th>Enlace</th>
+            <th>{{#str}}plugin, aiprovider_datacurso{{/str}}</th>
+            <th>{{#str}}description, aiprovider_datacurso{{/str}}</th>
+            <th>{{#str}}installed, aiprovider_datacurso{{/str}}</th>
+            <th>{{#str}}link_plugin, aiprovider_datacurso{{/str}}</th>
         </tr>
     </thead>
     <tbody>
@@ -41,14 +40,14 @@
         <tr>
             <td>{{name}}</td>
             <td>{{description}}</td>
-            <td>{{#installed}}Sí{{/installed}}{{^installed}}No{{/installed}}</td>
+            <td>{{#installed}}{{#str}}yes, core{{/str}}{{/installed}}{{^installed}}{{#str}}no, core{{/str}}{{/installed}}</td>
             <td><a href="{{url}}" target="_blank">{{url}}</a></td>
         </tr>
         {{/plugins}}
 
         {{^plugins}}
         <tr>
-            <td colspan="4">No hay plugins disponibles</td>
+            <td colspan="4">{{#str}}message_no_there_plugins, aiprovider_datacurso{{/str}}</td>
         </tr>
         {{/plugins}}
     </tbody>

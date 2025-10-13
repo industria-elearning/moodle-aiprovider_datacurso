@@ -107,7 +107,7 @@ class get_consumption_history extends \external_api {
         }
 
         if (!empty($short)) {
-            $params['short'] = $short;
+            $params['shor'] = $short;
         }
 
         if (!empty($shortdir)) {
@@ -122,13 +122,22 @@ class get_consumption_history extends \external_api {
                 $usuarios = $response['usuarios'] ?? [];
                 $consumos = [];
 
+                // Obtener las acciones disponibles del provider para traducir sus IDs.
+                $actions = \aiprovider_datacurso\provider::get_actions();
+                $actionmap = [];
+                foreach ($actions as $a) {
+                    $actionmap[$a['id']] = $a['name'];
+                }
+
                 foreach ($usuarios as $usuario) {
                     if (!empty($usuario['consumos'])) {
                         foreach ($usuario['consumos'] as $consumo) {
+                            $accionid = $consumo['accion'] ?? '';
+                            $accioname = $actionmap[$accionid] ?? $accionid;
                             $consumos[] = [
                                 'id_consumption' => $consumo['id_consumo'] ?? 0,
                                 'userid' => $consumo['userid'] ?? 0,
-                                'action' => $consumo['accion'] ?? '',
+                                'action' => $accioname,
                                 'id_service' => $consumo['id_servicio'] ?? '',
                                 'cant_tokens' => $consumo['cantidad_tokens'] ?? 0,
                                 'balance' => $consumo['saldo_restante'] ?? 0,
