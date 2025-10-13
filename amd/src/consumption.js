@@ -110,9 +110,6 @@ export const init = () => {
         }
     };
 
-    /**
-     * 🧾 Renderizar tabla de consumos
-     */
     const renderTable = (consumos) => {
         tableBody.innerHTML = '';
         if (!consumos || consumos.length === 0) {
@@ -140,9 +137,7 @@ export const init = () => {
         });
     };
 
-    /**
-     * 🔍 Obtener historial de consumo con filtros
-     */
+    // get history with filter
     const fetchData = () => {
         const serviceValue = filterService.value;
         const actionValue = filterAction.value;

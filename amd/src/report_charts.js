@@ -30,11 +30,9 @@ export const init = () => {
     const tokensConsumed = document.getElementById('tokens-consumed');
 
     let chartBar, chartPie, chartDay;
-    let cachedData = []; // 🔹 Aquí guardaremos la data del WS para uso compartido
+    let cachedData = []; // data global
 
-    // ============================================================
-    // 🔹 1. CARGA INICIAL: SALDO, SERVICIOS Y CONSUMOS
-    // ============================================================
+    // call init 
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
@@ -45,22 +43,19 @@ export const init = () => {
         tokensAvailable.textContent = saldo;
 
         const servicios = servicesResponse?.services || [];
-        cachedData = consumptionResponse?.consumption || []; // Guardamos la data global
+        cachedData = consumptionResponse?.consumption || []; // data global first
 
-        initCharts(servicios); // Inicializamos las gráficas con cachedData
+        initCharts(servicios);
 
-    }).catch(err => console.error("❌ Error inicial:", err));
+    }).catch(err => console.error("Error:", err));
 
-    // ============================================================
-    // 📊 INICIALIZAR GRÁFICAS CON FILTROS
-    // ============================================================
+    // init grafic
     const initCharts = (servicios) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
         const filterStart = document.getElementById('filter-start-date');
         const filterEnd = document.getElementById('filter-end-date');
 
-        // Llenar selects de servicios
         const fillSelect = (select) => {
             select.innerHTML = '<option value="">Todos</option>';
             if (servicios?.length) {
@@ -88,9 +83,7 @@ export const init = () => {
         filterEnd.addEventListener('change', () => updateDayChart());
     };
 
-    // ============================================================
-    // 🔹 FUNCIONES DE WS (solo se usa si hay filtros activos)
-    // ============================================================
+    // functions ws
     const fetchConsumptionData = async (params = {}) => {
         const defaults = {
             servicio: "",
@@ -118,9 +111,7 @@ export const init = () => {
         }
     };
 
-    // ============================================================
-    // 📊 GRÁFICA DE BARRAS
-    // ============================================================
+    // grafic barra
     const renderBarChart = (data) => {
         const byMonth = {};
         data.forEach(c => {
@@ -156,9 +147,7 @@ export const init = () => {
         renderBarChart(data);
     };
 
-    // ============================================================
-    // 📊 GRÁFICA CIRCULAR
-    // ============================================================
+    // grafic pai
     const renderPieChart = (data) => {
         const byAction = {};
         data.forEach(c => {
@@ -174,7 +163,21 @@ export const init = () => {
                 labels: Object.keys(byAction),
                 datasets: [{
                     data: Object.values(byAction),
-                    backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
+                    backgroundColor: [
+                        '#36A2EB',
+                        '#FF6384',
+                        '#f1d48bff',
+                        '#4BC0C0',
+                        '#0f9c9cff',
+                        '#0b6eb0ff',
+                        '#d10f39ff',
+                        '#c18f12ff',
+                        '#457f7fff',
+                        '#a50562ff',
+                        '#4BC0C0',
+                        '#efef21ff',
+                        '#252f2fff',
+                        '#8f9191ff'],
                 }]
             },
             options: { responsive: true, maintainAspectRatio: false }
@@ -189,9 +192,7 @@ export const init = () => {
         renderPieChart(data);
     };
 
-    // ============================================================
-    // 📊 GRÁFICA DE LÍNEA
-    // ============================================================
+    // grafic day
     const renderDayChart = (data) => {
         const byDay = {};
         data.forEach(c => {

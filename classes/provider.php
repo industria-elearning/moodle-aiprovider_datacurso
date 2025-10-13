@@ -105,6 +105,7 @@ class provider extends \core_ai\provider {
             ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
             ['id' => 'tutor_ai', 'name' => 'Tutor IA'],
             ['id' => 'local_socialcert', 'name' => 'Certificate AI'],
+            ['id' => 'provider_proxy', 'name' => 'Provider Proxy'],
         ];
     }
 
@@ -115,18 +116,21 @@ class provider extends \core_ai\provider {
      */
     public static function get_actions(): array {
         return [
-            ['id' => 'generate_text', 'name' => 'Generar texto con IA'],
-            ['id' => '/assign/answer', 'name' => 'Generar revisión para tarea con IA'],
-            ['id' => '/planning/plan-course/start', 'name' => 'Crear plan de curso con IA'],
-            ['id' => '/planning/plan-course/execute', 'name' => 'Crear un curso completo con IA'],
-            ['id' => '/rating/general', 'name' => 'Generar análisis global de reporte con IA'],
-            ['id' => '/rating/course', 'name' => 'Generar análisis del curso con IA'],
-            ['id' => '/rating/query', 'name' => 'Generar análisis de una actividad con IA'],
-            ['id' => '/resources/create-mod', 'name' => 'Generar una actividad con IA'],
-            ['id' => '/forum/chat', 'name' => 'Generar respuesta foro con IA'],
-            ['id' => '/context/upload', 'name' => 'Proporcionar silabo a la IA para la creación del curso'],
-            ['id' => '/resources/create-mod/stream', 'name' => 'Generar una actividad con IA'],
-            ['id' => '/certificate/answer', 'name' => 'Generar respuesta para certificado'],
+            ['id' => '/provider/chat/completions', 'name' => get_string('generate_text', 'aiprovider_datacurso')],
+            ['id' => '/provider/images/generations', 'name' => get_string('generate_image', 'aiprovider_datacurso')],
+            ['id' => 'generate_summary', 'name' => get_string('generate_summary', 'aiprovider_datacurso')],
+            ['id' => '/course/execute', 'name' => get_string('generate_creation_course', 'aiprovider_datacurso')],
+            ['id' => '/course/start', 'name' => get_string('generate_plan_course', 'aiprovider_datacurso')],
+            ['id' => '/resources/create-mod', 'name' => get_string('generate_activitie', 'aiprovider_datacurso')],
+            ['id' => '/assign/answer', 'name' => get_string('generate_assign_answer', 'aiprovider_datacurso')],
+            ['id' => '/forum/chat', 'name' => get_string('generate_forum_chat', 'aiprovider_datacurso')],
+            ['id' => '/rating/general', 'name' => get_string('generate_analysis_general', 'aiprovider_datacurso')],
+            ['id' => '/rating/course', 'name' => get_string('generate_analysis_course', 'aiprovider_datacurso')],
+            ['id' => '/rating/query', 'name' => get_string('generate_analysis_comments', 'aiprovider_datacurso')],
+            ['id' => '/context/upload', 'name' => get_string('read_context_course', 'aiprovider_datacurso')],
+            ['id' => '/context/upload-model-context', 'name' => get_string('read_context_course_model', 'aiprovider_datacurso')],
+            ['id' => '/resources/create-mod/stream', 'name' => get_string('generate_activitie', 'aiprovider_datacurso')],
+            ['id' => '/certificate/answer', 'name' => get_string('generate_certificate_answer', 'aiprovider_datacurso')],
         ];
     }
 }
