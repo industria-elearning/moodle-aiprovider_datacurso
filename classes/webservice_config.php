@@ -541,6 +541,8 @@ class webservice_config {
             ]);
             if (!empty($registration['is_registered'])) {
                 $status['registration']['verified'] = true;
+            } else {
+                $status['registration']['verified'] = false;
             }
         } catch (\Exception $e) {
             $status['registration']['verified'] = false;
