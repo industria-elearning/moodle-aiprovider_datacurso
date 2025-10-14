@@ -19,7 +19,7 @@ namespace aiprovider_datacurso;
 use core_ai\aiactions;
 
 /**
- * Provider class for DataCurso.
+ * Provider class for DataCurso AI integration.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
@@ -27,15 +27,19 @@ use core_ai\aiactions;
  */
 class provider extends \core_ai\provider {
 
+    /** @var string License key for Datacurso API. */
+    private string $licensekey;
+
     /**
      * Constructor.
      */
     public function __construct() {
-        // Here you could load configurations in the future (currently empty).
+        // Cargamos el licensekey desde la configuración del plugin.
+        $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
     }
 
     /**
-     * Get the list of actions that this provider supports.
+     * Get the list of AI actions supported by this provider.
      *
      * @return array
      */
@@ -48,38 +52,50 @@ class provider extends \core_ai\provider {
     }
 
     /**
-     * Check if the provider is configured.
+     * Check if the provider is configured properly.
      *
      * @return bool
      */
     public function is_provider_configured(): bool {
-        $licensekey = get_config('aiprovider_datacurso', 'licensekey');
-        // Provider is configured if we have license key.
-        return !empty($licensekey);
+        // El proveedor está configurado si el licensekey no está vacío.
+        return !empty($this->licensekey);
     }
 
     /**
-     * Check if a request is allowed.
+     * Check if a request is allowed for this provider.
      *
      * @param aiactions\base $action
      * @return array|bool
      */
     public function is_request_allowed(aiactions\base $action): array|bool {
         global $USER;
-        // Check basic capability.
+
+        // Solo los usuarios con la capability definida pueden usar el proveedor.
         if (!has_capability('aiprovider/datacurso:use', \context_system::instance(), $USER)) {
             return false;
         }
+
         return true;
     }
 
     /**
-     * Get any action settings for this provider.
+     * Add authentication headers to a request.
+     *
+     * @param \Psr\Http\Message\RequestInterface $request
+     * @return \Psr\Http\Message\RequestInterface
+     */
+    public function add_authentication_headers(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\RequestInterface {
+        // Añade el licensekey al header Authorization.
+        return $request->withAddedHeader('Authorization', "Bearer {$this->licensekey}");
+    }
+
+    /**
+     * Get any admin settings available per AI action.
      *
      * @param string $action The action class name.
      * @param \admin_root $ADMIN The admin root object.
      * @param string $section The section name.
-     * @param bool $hassiteconfig Whether the current user has moodle/site:config capability.
+     * @param bool $hassiteconfig Whether the current user can configure site settings.
      * @return array
      */
     public function get_action_settings(
@@ -88,12 +104,46 @@ class provider extends \core_ai\provider {
         string $section,
         bool $hassiteconfig
     ): array {
-        // No settings added yet.
-        return [];
+        $actionname = substr($action, (strrpos($action, '\\') + 1));
+        $settings = [];
+
+        // 🔹 Configuración para generación de texto o resumen.
+        if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
+            // Endpoint (URL del servicio IA).
+            $settings[] = new \admin_setting_configtext(
+                "aiprovider_datacurso/action_{$actionname}_endpoint",
+                new \lang_string("action:{$actionname}:endpoint", 'aiprovider_datacurso'),
+                new \lang_string("action:{$actionname}:endpoint_desc", 'aiprovider_datacurso'),
+                'https://plugins-ai.datacurso.com/provider/chat/completions',
+                PARAM_URL
+            );
+
+            // Instrucción del sistema.
+            $settings[] = new \admin_setting_configtextarea(
+                "aiprovider_datacurso/action_{$actionname}_instruction",
+                new \lang_string("action:{$actionname}:instruction", 'aiprovider_datacurso'),
+                new \lang_string("action:{$actionname}:instruction_desc", 'aiprovider_datacurso'),
+                '',
+                PARAM_TEXT
+            );
+        }
+
+        // 🔹 Configuración para generación de imágenes.
+        else if ($actionname === 'generate_image') {
+            $settings[] = new \admin_setting_configtext(
+                "aiprovider_datacurso/action_{$actionname}_endpoint",
+                new \lang_string("action:{$actionname}:endpoint", 'aiprovider_datacurso'),
+                new \lang_string("action:{$actionname}:endpoint_desc", 'aiprovider_datacurso'),
+                'https://plugins-ai.datacurso.com/provider/images/generations',
+                PARAM_URL
+            );
+        }
+
+        return $settings;
     }
 
     /**
-     * 🔹 Retorna los servicios disponibles del proveedor IA.
+     * Return all available AI services for this provider.
      *
      * @return array
      */
@@ -103,14 +153,14 @@ class provider extends \core_ai\provider {
             ['id' => 'local_datacurso_ratings', 'name' => 'Rating AI'],
             ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
             ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
-            ['id' => 'tutor_ai', 'name' => 'Tutor IA'],
+            ['id' => 'tutor_ai', 'name' => 'Tutor AI'],
             ['id' => 'local_socialcert', 'name' => 'Certificate AI'],
-            ['id' => 'provider_proxy', 'name' => 'Provider Proxy'],
+            ['id' => 'provider_proxy', 'name' => 'Provider'],
         ];
     }
 
     /**
-     * 🔹 Retorna las acciones disponibles del proveedor IA.
+     * Return all available AI actions for this provider.
      *
      * @return array
      */
