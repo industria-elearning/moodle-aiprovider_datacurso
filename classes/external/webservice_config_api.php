@@ -27,7 +27,6 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/externallib.php');
 
-
 /**
  * AJAX external functions for configuring the Datacurso web service.
  *

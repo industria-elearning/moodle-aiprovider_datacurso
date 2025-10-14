@@ -26,7 +26,7 @@ use Psr\Http\Message\UriInterface;
 
 /**
  * Processor for generating images via Datacurso AI provider.
- *
+ * @copyright  Developer <developer@datacurso.com>
  * @package    aiprovider_datacurso
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

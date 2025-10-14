@@ -20,7 +20,6 @@ use core_ai\aiactions;
 
 /**
  * Provider class for DataCurso AI integration.
- *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -107,7 +106,7 @@ class provider extends \core_ai\provider {
         $actionname = substr($action, (strrpos($action, '\\') + 1));
         $settings = [];
 
-        // 🔹 Configuración para generación de texto o resumen.
+        // Configuración para generación de texto o resumen.
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             // Endpoint (URL del servicio IA).
             $settings[] = new \admin_setting_configtext(
@@ -126,10 +125,7 @@ class provider extends \core_ai\provider {
                 '',
                 PARAM_TEXT
             );
-        }
-
-        // 🔹 Configuración para generación de imágenes.
-        else if ($actionname === 'generate_image') {
+        } else if ($actionname === 'generate_image') {
             $settings[] = new \admin_setting_configtext(
                 "aiprovider_datacurso/action_{$actionname}_endpoint",
                 new \lang_string("action:{$actionname}:endpoint", 'aiprovider_datacurso'),
@@ -168,7 +164,6 @@ class provider extends \core_ai\provider {
         return [
             ['id' => '/provider/chat/completions', 'name' => get_string('generate_text', 'aiprovider_datacurso')],
             ['id' => '/provider/images/generations', 'name' => get_string('generate_image', 'aiprovider_datacurso')],
-            ['id' => 'generate_summary', 'name' => get_string('generate_summary', 'aiprovider_datacurso')],
             ['id' => '/course/execute', 'name' => get_string('generate_creation_course', 'aiprovider_datacurso')],
             ['id' => '/course/start', 'name' => get_string('generate_plan_course', 'aiprovider_datacurso')],
             ['id' => '/resources/create-mod', 'name' => get_string('generate_activitie', 'aiprovider_datacurso')],
@@ -181,6 +176,7 @@ class provider extends \core_ai\provider {
             ['id' => '/context/upload-model-context', 'name' => get_string('read_context_course_model', 'aiprovider_datacurso')],
             ['id' => '/resources/create-mod/stream', 'name' => get_string('generate_activitie', 'aiprovider_datacurso')],
             ['id' => '/certificate/answer', 'name' => get_string('generate_certificate_answer', 'aiprovider_datacurso')],
+            ['id' => '/story/analysis', 'name' => get_string('generate_analysis_story_student', 'aiprovider_datacurso')],
         ];
     }
 }

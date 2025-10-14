@@ -24,7 +24,7 @@ use Psr\Http\Message\UriInterface;
 
 /**
  * Processor for generating text completions.
- *
+ * @copyright  Developer <developer@datacurso.com>
  * @package    aiprovider_datacurso
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -35,7 +35,6 @@ class process_generate_text extends abstract_processor {
      */
     #[\Override]
     protected function get_endpoint(): UriInterface {
-        // Endpoint real del servicio Datacurso.
         return new Uri('https://plugins-ai.datacurso.com/provider/chat/completions');
     }
 
@@ -46,11 +45,9 @@ class process_generate_text extends abstract_processor {
     protected function build_request_body(string $userid): array {
         global $USER;
 
-        // Si no se pasa un userid, usamos el del usuario actual.
         $finaluserid = $userid ?: $USER->id;
 
-        // Instrucciones y prompt principal.
-        $systeminstruction = 'Eres un asistente útil'; // Puedes hacerlo configurable si quieres.
+        $systeminstruction = 'Eres un asistente útil';
         $prompt = $this->action->get_configuration('prompttext');
 
         return [
@@ -70,7 +67,6 @@ class process_generate_text extends abstract_processor {
     protected function create_request_object(string $userid): RequestInterface {
         $body = json_encode($this->build_request_body($userid));
 
-        // License key obtenida desde la configuración del plugin.
         $licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
         return new Request(
