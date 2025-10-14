@@ -26,6 +26,16 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['action'] = 'Action';
+$string['action:generate_image:endpoint'] = 'API endpoint';
+$string['action:generate_image:endpoint_desc'] = 'There endpoint the generate image';
+$string['action:generate_text:endpoint'] = 'API endpoint';
+$string['action:generate_text:endpoint_desc'] = 'There endpoint the generate text';
+$string['action:generate_text:instruction'] = 'System instruction';
+$string['action:generate_text:instruction_desc'] = 'This instruction is sent to the AI model along with the user\'s prompt. Editing this instruction is not recommended unless absolutely required.';
+$string['action:summarise_text:endpoint'] = 'API endpoint';
+$string['action:summarise_text:endpoint_desc'] = 'There endpoint the generate text';
+$string['action:summarise_text:instruction'] = 'System instruction';
+$string['action:summarise_text:instruction_desc'] = 'This instruction is sent to the AI model along with the user\'s prompt. Editing this instruction is not recommended unless absolutely required.';
 $string['all'] = 'All';
 $string['apikey'] = 'API key';
 $string['apikey_desc'] = 'Enter the API key from your Datacurso service to connect the AI.';
@@ -55,6 +65,7 @@ $string['generate_activitie'] = 'Generate activity or resource with AI';
 $string['generate_analysis_comments'] = 'Generate rating analysis of an activity/resource with AI';
 $string['generate_analysis_course'] = 'Generate course rating analysis with AI';
 $string['generate_analysis_general'] = 'Generate general rating analysis with AI';
+$string['generate_analysis_story_student'] = 'Generate analysis story student with AI';
 $string['generate_assign_answer'] = 'Generate assignment review with AI';
 $string['generate_certificate_answer'] = 'Generate certificate message with AI';
 $string['generate_creation_course'] = 'Create complete course with AI';
