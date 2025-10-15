@@ -51,15 +51,6 @@ if ($hassiteconfig) {
         PARAM_TEXT
     ));
 
-    // API base URL.
-    $settings->add(new admin_setting_configtext(
-        'aiprovider_datacurso/apiurl',
-        new lang_string('apiurl', 'aiprovider_datacurso'),
-        new lang_string('apiurl_desc', 'aiprovider_datacurso'),
-        '',
-        PARAM_URL
-    ));
-
     // Token threshold notification.
     $settings->add(new admin_setting_configtext(
         'aiprovider_datacurso/tokenthreshold',
