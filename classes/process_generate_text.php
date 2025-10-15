@@ -38,6 +38,11 @@ class process_generate_text extends abstract_processor {
         return new Uri('https://plugins-ai.datacurso.com/provider/chat/completions');
     }
 
+    #[\Override]
+    protected function get_system_instruction(): string {
+        return get_config('aiprovider_datacurso', 'action_generate_text_systeminstruction');
+    }
+
     /**
      * Build the request body for the API call.
      */
@@ -47,15 +52,17 @@ class process_generate_text extends abstract_processor {
 
         $finaluserid = $userid ?: $USER->id;
 
-        $systeminstruction = 'Eres un asistente útil';
+        $systeminstruction = $this->get_system_instruction();
         $prompt = $this->action->get_configuration('prompttext');
+
+        $messages = ['role' => 'user', 'content' => $prompt];
+        if (!empty($systeminstruction)) {
+            $messages = ['role' => 'system', 'content' => $systeminstruction];
+        }
 
         return [
             'model' => 'gpt-4o-mini',
-            'messages' => [
-                ['role' => 'system', 'content' => $systeminstruction],
-                ['role' => 'user', 'content' => $prompt],
-            ],
+            'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];
     }
@@ -75,7 +82,6 @@ class process_generate_text extends abstract_processor {
             [
                 'Content-Type' => 'application/json',
                 'License-Key' => $licensekey,
-                'User-Agent' => 'moodle-aiprovider-datacurso',
             ],
             $body
         );
