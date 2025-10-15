@@ -34,9 +34,6 @@ class datacurso_api {
     /** @var string */
     private $licensekey;
 
-    /** @var bool */
-    private $workplace;
-
     /**
      * Constructor.
      *
@@ -45,16 +42,10 @@ class datacurso_api {
     public function __construct() {
         global $DB;
 
-        $this->baseurl    = rtrim(get_config('aiprovider_datacurso', 'apiurl'), '/');
+        $this->baseurl    = 'https://shop.datacurso.com/index.php?m=tokens_manager&api=';
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
-        // Detectar si es Moodle Workplace.
-        $this->workplace = $DB->record_exists('config_plugins', [
-            'plugin' => 'tool_wp',
-            'name'   => 'version',
-        ]);
-
-        if (empty($this->baseurl) || empty($this->licensekey)) {
+        if (empty($this->licensekey)) {
             throw new moodle_exception('API baseurl or licensekey not configured');
         }
     }
@@ -109,7 +100,6 @@ class datacurso_api {
     private function default_headers(bool $ispost = false): array {
         $headers = [
             "License-Key: {$this->licensekey}",
-            "X-Workplace: " . ($this->workplace ? 'true' : 'false'),
         ];
 
         if ($ispost) {
