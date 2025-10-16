@@ -61,7 +61,6 @@ class process_generate_text extends abstract_processor {
         }
 
         return [
-            'model' => 'gpt-4o-mini',
             'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];

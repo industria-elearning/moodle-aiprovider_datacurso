@@ -52,7 +52,6 @@ class process_summarise_text extends process_generate_text {
         }
 
         return [
-            'model' => 'gpt-4o-mini',
             'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];
