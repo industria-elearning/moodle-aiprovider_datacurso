@@ -53,6 +53,15 @@ abstract class abstract_processor extends process_base {
     abstract protected function build_request_body(string $userid): array;
 
     /**
+     * Get the system instructions.
+     *
+     * @return string
+     */
+    protected function get_system_instruction(): string {
+        return $this->action::get_system_instruction();
+    }
+
+    /**
      * Create the request object to send to the OpenAI API.
      *
      * This object contains all the required parameters for the request.

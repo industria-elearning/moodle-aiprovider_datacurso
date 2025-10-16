@@ -108,30 +108,12 @@ class provider extends \core_ai\provider {
 
         // Configuración para generación de texto o resumen.
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
-            // Endpoint (URL del servicio IA).
-            $settings[] = new \admin_setting_configtext(
-                "aiprovider_datacurso/action_{$actionname}_endpoint",
-                new \lang_string("action:{$actionname}:endpoint", 'aiprovider_datacurso'),
-                new \lang_string("action:{$actionname}:endpoint_desc", 'aiprovider_datacurso'),
-                'https://plugins-ai.datacurso.com/provider/chat/completions',
-                PARAM_URL
-            );
-
-            // Instrucción del sistema.
             $settings[] = new \admin_setting_configtextarea(
                 "aiprovider_datacurso/action_{$actionname}_instruction",
                 new \lang_string("action:{$actionname}:instruction", 'aiprovider_datacurso'),
                 new \lang_string("action:{$actionname}:instruction_desc", 'aiprovider_datacurso'),
-                '',
+                $action::get_system_instruction(),
                 PARAM_TEXT
-            );
-        } else if ($actionname === 'generate_image') {
-            $settings[] = new \admin_setting_configtext(
-                "aiprovider_datacurso/action_{$actionname}_endpoint",
-                new \lang_string("action:{$actionname}:endpoint", 'aiprovider_datacurso'),
-                new \lang_string("action:{$actionname}:endpoint_desc", 'aiprovider_datacurso'),
-                'https://plugins-ai.datacurso.com/provider/images/generations',
-                PARAM_URL
             );
         }
 

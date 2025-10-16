@@ -128,8 +128,6 @@ class datacurso_api_base {
         $options = [
             'CURLOPT_RETURNTRANSFER' => true,
             'CURLOPT_HTTPHEADER' => $headers,
-            'CURLOPT_TIMEOUT' => 60,
-            'CURLOPT_CONNECTTIMEOUT' => 15,
         ];
 
         $url = $this->baseurl . $path;

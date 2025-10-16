@@ -43,17 +43,16 @@ class process_summarise_text extends process_generate_text {
         global $USER;
 
         $finaluserid = $userid ?: $USER->id;
+        $systeminstruction = $this->get_system_instruction();
         $prompt = $this->action->get_configuration('prompttext');
 
-        // Aquí definimos la instrucción de sistema especial para resúmenes.
-        $systeminstruction = 'Eres un asistente experto en resumir textos de manera clara, breve y coherente.';
+        $messages = ['role' => 'user', 'content' => $prompt];
+        if (!empty($systeminstruction)) {
+            $messages[] = ['role' => 'system', 'content' => $systeminstruction];
+        }
 
         return [
-            'model' => 'gpt-4o-mini',
-            'messages' => [
-                ['role' => 'system', 'content' => $systeminstruction],
-                ['role' => 'user', 'content' => $prompt],
-            ],
+            'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];
     }
