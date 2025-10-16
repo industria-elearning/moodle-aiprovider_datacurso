@@ -114,7 +114,6 @@ to complete the installation from the command line.
    ![Assign IA Credits](./_docs/images/aiprovider_datacurso_assign_ia_credits.png)
 
 9.  In the confirmation window that appears, enter the amount of credits you want to assign to the license key and click the **Confirm Assignment** button
-
    ![Confirm Assign IA Credits](./_docs/images/aiprovider_datacurso_confirm_assign_ia_credits.png)
 
 10. Once the credits are assigned, we can copy the license key to use it in moodle as indicated in the [Plugin Configuration](#plugin-configuration) section
