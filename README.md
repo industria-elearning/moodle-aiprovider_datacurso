@@ -1,303 +1,165 @@
 # Datacurso AI Provider for Moodle
 
-The **Datacurso AI Provider** plugin enables seamless integration of Artificial Intelligence services in Moodle through a centralized token consumption system. It functions as an **AI provider** in the `ai/provider` directory and is designed to allow other compatible plugins to utilize AI services (text processing, image generation, summaries, etc.) without directly connecting to external APIs.
+The **Datacurso AI Provider** is the core engine that connects Moodle with the **Datacurso AI services** — unlocking a full ecosystem of smart, AI-powered plugins designed to revolutionize online learning.
 
-## Requirements
+This provider serves as the central bridge that powers every Datacurso AI extension, enabling a new generation of intelligent features for teachers, students, and administrators.
 
-- **Moodle version**: 4.0+
-- **PHP version**: 8.0 or higher
-- **Moodle AI subsystem**: Must be enabled
-- **External service**: Access to a Datacurso-compatible token management API
-- **Database**: MySQL 5.7+ or PostgreSQL 10+
-- **Network**: Outbound HTTPS connections to AI service endpoints
+In addition, the **Datacurso AI Provider** includes built-in capabilities to display **detailed token usage reports** directly within Moodle.  
+Administrators can easily monitor and manage AI service consumption through visual dashboards showing:
 
-## Key Features
+- **Number of tokens consumed per month**
+- **Available tokens**
+- **Total tokens consumed**
+- **Token distribution by service**
+- **Daily token usage trends**
 
-### Centralized Token Management
-- **License Key Integration**: Secure authentication with external AI services
-- **API Base URL Configuration**: Flexible endpoint configuration for token consumption
-- **Token Limit Monitoring**: Configurable thresholds with administrator alerts
-- **Usage Tracking**: Comprehensive logging of all AI service consumption
+## The Datacurso AI Plugin Suite
 
-### Administrative Dashboard
-The plugin provides a comprehensive admin interface with three main sections:
+Transform Moodle into a **smarter, faster, and more engaging learning platform** with the **Datacurso AI Plugin Suite** — a collection of next-generation tools that bring artificial intelligence directly into your LMS.  
+All plugins in this suite are powered by the **Datacurso AI Provider**.
 
-1. **Token Consumption History**
-   - Detailed logs of all AI service usage
-   - Filtering by plugin and specific actions
-   - Timestamp tracking for audit purposes
+### Explore the Suite
 
-2. **General Reports**
-   - Statistical graphs by service type and date ranges
-   - Usage trends and patterns visualization
-   - Performance metrics and success rates
-   - Cost analysis and budget tracking
+- **[Ranking Activities AI](#)**
+  Empower students to rate course activities while AI analyzes feedback and provides deep insights to educators.
 
-3. **Compatible Plugins Registry**
-   - List of all plugins that can use this AI provider
-   - Installation status indicators
-   - Direct links to plugin repositories
-   - Version compatibility information
+- **[Forum AI](#)**  
+  Introduce an AI assistant into your forums that contributes to discussions and keeps engagement alive.
 
-### AI Action Management
-- **Granular Control**: Enable/disable specific AI actions per service type
-- **Service Categories**: Text processing, image generation, summarization, translation
-- **Permission-based Access**: Role-based AI service availability
-- **Rate Limiting**: Configurable usage limits per user/course
+- **[Assign AI](#)**  
+  Let AI review student submissions, suggest feedback, and support teachers in the grading process.
 
-### Extensible Architecture
-The plugin provides generic base classes for:
-- **Token API Consumption**: Standardized token management interface
-- **General AI Service Connection**: Common AI service communication layer
-- **Plugin-specific AI Services**: Specialized connectors for individual use cases
+- **[Tutor AI](#)**  
+  Offer students a personal AI tutor that answers questions, explains concepts, and guides them through their learning path.
 
-Compatible plugins only need to instantiate the appropriate class and specify the endpoint route with required methods and parameters.
+- **[Share Certificate AI](#)**  
+  Celebrate achievements automatically! AI generates personalized social media posts when students earn certificates.
 
-## Installation
+- **[Student Life Story AI](#)**  
+  Gain a complete view of student performance with AI-generated summaries across all enrolled courses.
 
-### Method 1: Plugin Installer (Recommended)
+- **[Course Creation AI](#)**  
+  Build full Moodle courses in minutes — complete with lessons, activities, and resources — guided by AI.
 
-1. **Login** as site administrator
-2. **Navigate** to Site administration → Plugins → Install plugins
-3. **Upload** the plugin ZIP file
-4. **Review** the validation report
-5. **Complete** the installation process
+- **[Activity Creation AI](#)**  
+  Design engaging, high-quality learning activities instantly using AI-generated suggestions and templates.
 
-### Method 2: Manual Installation
+## Powering Moodle’s Built-In AI Features
 
-1. **Extract** plugin files to:
-   ```
-   {moodleroot}/ai/provider/datacurso/
-   ```
+Beyond the Datacurso suite, the **AI Provider** also enables Moodle’s **native AI features**, enhancing creativity and productivity across your entire platform:
 
-2. **Set permissions** (if needed):
-   ```bash
-   chmod -R 755 ai/provider/datacurso/
-   chown -R www-data:www-data ai/provider/datacurso/
-   ```
+- **Generate Text** – Create meaningful content from any prompt.  
+- **Generate Image** – Produce original images from text descriptions.  
+- **Summarize Text** – Quickly generate concise summaries from course content.
 
-3. **Complete installation**:
-   - **Web interface**: Site administration → Notifications
-   - **Command line**: `php admin/cli/upgrade.php`
+## Pre-requisites
 
-### Post-Installation Verification
+1. Tener minimo la version 4.5 de moodle
+2. Adquirir un paquete de creditos de AI desde el [shop de DataCurso](https://shop.datacurso.com/index.php?m=tokens_manager) y crear una llave de licencia tal como se indica en la seccion [Obtener llaves de licencia](#obtener-llaves-de-licencia)
 
-1. **Verify AI subsystem** is enabled:
-   - Site administration → AI → AI settings
-   
-2. **Check provider registration**:
-   - Site administration → AI → AI providers
-   - Confirm "Datacurso Provider" appears in the list
+## Installing via uploaded ZIP file
 
-3. **Test basic connectivity** through the configuration page
-
-## Configuration
-
-### Initial Setup
-
-Navigate to: **Site administration → Plugins → AI providers → Datacurso Provider**
-
-#### Required Settings
-
-| Setting | Description | Example |
-|---------|-------------|---------|
-| **License Key** | Your Datacurso service license key | `dc_lic_abc123...` |
-| **API Base URL** | Token management API endpoint | `https://api.datacurso.com/v1/` |
-| **Token Limit** | Alert threshold for token consumption | `10000` |
-
-### AI Action Configuration
-
-Enable or disable specific AI capabilities:
-
-- ✅ **Text Generation**: Content creation and completion
-- ✅ **Text Summarization**: Automatic content summarization  
-- ✅ **Image Generation**: AI-powered image creation
-- ✅ **Translation Services**: Multi-language translation
-- ✅ **Sentiment Analysis**: Text emotion detection
-- ⚠️ **Custom Actions**: Plugin-specific AI functions
-
-### Access Management
-
-Configure which user roles can access AI services:
-- **Students**: Basic AI features (if enabled)
-- **Teachers**: Full AI toolkit access
-- **Managers**: Administrative controls + AI services
-- **Site Administrators**: Complete system management
-
-## Administrative Features
-
-### Token Consumption Reports
-
-Access detailed usage analytics through:
-**Site administration → AI → Datacurso Provider → Token History**
-
-Available filters:
-- Date range selection
-- Plugin-specific filtering  
-- User-based reports
-- Action type filtering
-- Success/failure status
-
-### Usage Statistics Dashboard
-
-Visual analytics available through:
-**Site administration → AI → Datacurso Provider → General Reports**
-
-Chart types:
-- **Usage Trends**: Token consumption over time
-- **Plugin Distribution**: Usage by plugin
-- **Action Breakdown**: Most popular AI services
-- **User Activity**: Top consumers
-- **Error Analysis**: Failed request patterns
-
-### Compatible Plugins Management
-
-Monitor ecosystem integration:
-**Site administration → AI → Datacurso Provider → Compatible Plugins**
-
-Features:
-- Installation status tracking
-- Repository link management  
-- Version compatibility checking
-- Bulk enable/disable operations
-
-## Troubleshooting
-
-### Common Issues
-
-#### "AI provider not found" Error
-**Cause**: Provider not properly registered
-**Solution**:
-1. Verify installation in `ai/provider/datacurso/`
-2. Run `php admin/cli/upgrade.php`
-3. Check AI subsystem is enabled
-
-#### Token Limit Exceeded
-**Cause**: Usage exceeded configured limit
-**Solution**:
-1. Check token consumption reports
-2. Increase limit in settings
-3. Purchase additional tokens from Datacurso
-
-#### API Connection Errors
-**Cause**: Network connectivity or authentication issues
-**Solution**:
-1. Verify License Key is correct
-2. Check API Base URL configuration
-3. Test network connectivity: `curl -I https://api.datacurso.com`
-4. Review error logs for detailed information
-
-#### Slow AI Response Times
-**Cause**: High server load or network latency
-**Solution**:
-1. Check server resources
-2. Contact Datacurso support for API status
-3. Verify network connectivity
-4. Review API endpoint performance
-
-### Debug Information
-
-Enable detailed logging through Moodle's debugging system:
-1. **Moodle debugging**: Set to DEVELOPER level
-2. **Log location**: `moodledata/temp/logs/`
-3. **Log format**: Search for "datacurso_aiprovider"
-
-## Security Considerations
-
-### Data Privacy
-- **Token logs**: Retrieved from external API, not stored locally
-- **Request data**: May include sensitive content
-- **GDPR compliance**: Data handling follows external service policies
-- **Data retention**: Managed by Datacurso service
-
-### API Security
-- **License key**: Stored encrypted in Moodle database
-- **HTTPS only**: All API communications use SSL/TLS
-- **Rate limiting**: Prevents abuse and DoS attacks
-- **Request validation**: Input sanitization and validation
-
-### Access Control
-- **Capability-based**: Uses Moodle's permission system
-- **Role restrictions**: Configurable per AI action type
-- **Audit logging**: Usage tracking via external API
-- **IP restrictions**: Optional IP-based access control
-
-## Multilingual Support
-
-### Included Languages
-- **English** (`lang/en/`)
-- **Spanish** (`lang/es/`)
-
-## Version History
-
-### Version 1.0.0 (Current)
-- Initial release
-- Core AI provider functionality
-- Token management system
-- Administrative dashboard
-- Compatible plugin registry
-- HTTP client for AI services
-
-### Planned Features (v1.1.0)
-- Enhanced caching mechanisms
-- Advanced usage analytics
-- Plugin marketplace integration
-- Mobile app compatibility
-- Multi-tenant support
-
-## Developer Documentation
-
-### For Plugin Developers
-
-To use the Datacurso AI Provider in your plugin, follow this simple pattern:
-
-#### Basic Usage Example
-
-```php
-// Import the AI services API class
-use aiprovider_datacurso\httpclient\ai_services_api;
-
-// Prepare your data
-$body = [
-    'course' => $course->fullname,
-    'activity' => $cm->name,
-    'activity_type' => $cm->modname,
-    'approvalpercent' => $approvalpercent,
-    'comments' => $comments,
-];
-
-// Create client instance and make request
-$client = new ai_services_api();
-$response = $client->request('POST', '/rating/query', $body);
+1. Log in to your Moodle site as an admin and go to `Site administration > Plugins > Install plugins`.
+2. Upload the ZIP file with the plugin code. You should only be prompted to add
+   extra details if your plugin type is not automatically detected.
+3. Check the plugin validation report and finish the installation.
+
+## Installing manually
+
+The plugin can be also installed by putting the contents of this directory to
+
+```
+{your/moodle/dirroot}/ai/provider/datacurso
 ```
 
-### Creating Compatible Plugins
+Afterwards, log in to your Moodle site as an admin and go to `Site administration > Notifications` to complete the installation.
 
-To integrate your plugin with the Datacurso AI Provider:
+Alternatively, you can run
 
-1. **Add Plugin Dependency**: Include the provider as a dependency in your `version.php`
-2. **Import the API Class**: Use the `aiprovider_datacurso\httpclient\ai_services_api` class
-3. **Make Requests**: Instantiate the client and call the `request()` method with your endpoint and data
-4. **Handle Responses**: Process the returned data according to your plugin's needs
+```bash
+php admin/cli/upgrade.php
+```
 
-### Best Practices
+to complete the installation from the command line.
 
-1. Always check for success before processing response data
-2. Implement fallbacks when AI services are unavailable
-3. Cache responses when appropriate to reduce token consumption
-4. Validate input data before sending to AI services
-5. Handle rate limits gracefully with user-friendly messages
+## Getting license keys
 
-## Support and Contributing
+1. Sign in or create an account on the [shop DataCurso](https://shop.datacurso.com)
+2. Go to the **Manage AI Credits** section
+   
+   ![Manage IA Credits](./_docs/images/aiprovider_datacurso_manage_ia_credits.png)
 
-- **Author**: Developer <developer@datacurso.com>
-- **Documentation**: [Moodle AI API Docs](https://moodledev.io/docs/apis/ai)
-- **Issues**: Report through Moodle plugins directory
-- **Contributing**: Follow Moodle coding standards
-- **Community**: Join Moodle AI development forums
+3. Click on the **BUY MORE CREDITS** button
+   
+   ![Buy IA Credits](./_docs/images/aiprovider_datacurso_buy_ia_credits.png)
+   
+4. Select the package of credits you want to acquire
+   
+   ![Select IA Credits](./_docs/images/aiprovider_datacurso_select_ia_credits.png)
 
-## License
+5. Once the credits are acquired, the new balance will be displayed
+   
+   ![New IA Credits](./_docs/images/aiprovider_datacurso_new_ia_credits.png)
 
-This program is free software: you can redistribute it and/or modify it under the terms of the **GNU General Public License** as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+6. To create a license key, we enter the **My Licenses** section and click the **Create License** button
+   
+   ![Create License](./_docs/images/aiprovider_datacurso_create_license.png)
 
-This program is distributed in the hope that it will be useful, but **WITHOUT ANY WARRANTY**; without even the implied warranty of **MERCHANTABILITY** or **FITNESS FOR A PARTICULAR PURPOSE**. See the [GNU General Public License v3](https://www.gnu.org/licenses/gpl-3.0.html) for more details.
+7. In the confirmation window that appears, click the **Create** button
+   
+   ![Confirm Create License](./_docs/images/aiprovider_datacurso_confirm_create_license.png)
+   
+8. Once the license key is created, we can assign credits to use it in moodle. Click the **Assign Credits** button
+
+   ![Assign IA Credits](./_docs/images/aiprovider_datacurso_assign_ia_credits.png)
+
+9.  In the confirmation window that appears, enter the amount of credits you want to assign to the license key and click the **Confirm Assignment** button
+   ![Confirm Assign IA Credits](./_docs/images/aiprovider_datacurso_confirm_assign_ia_credits.png)
+
+10. Once the credits are assigned, we can copy the license key to use it in moodle as indicated in the [Plugin Configuration](#plugin-configuration) section
+    
+    ![Copy License Key](./_docs/images/aiprovider_datacurso_copy_license_key.png)
+
+**Note:** We can create several license keys and assign different amounts of credits to use them in different moodle sites.
+
+## Plugin Configuration
+
+1. Log in to your Moodle site as an admin and go to `Site administration > General > AI > AI Providers`.
+   
+   ![AI Providers](./_docs/images/aiprovider_datacurso_ai_providers.png)
+
+2. Enable the **Datacurso AI Provider** and click on **Settings**
+
+   ![Enable Datacurso AI Provider](./_docs/images/aiprovider_datacurso_enable_datacurso_ai_provider.png)
+
+3. Configure the following settings:
+   - **License key**: Enter the license key that we copied in the [Obtain License Keys](#obtain-license-keys) section
+   - **Token threshold**: Enter the token threshold that we want to use to send alert notifications when the tokens are running low.
+
+   ![Config](./_docs/images/aiprovider_datacurso_config.png)
+
+## Actions
+
+From the same configuration page of the **Datacurso AI Provider**, you can enable and customize the following Moodle AI-powered actions, seamlessly integrated with Moodle’s native capabilities:
+
+- **Generate Text** – Create meaningful content from any prompt.  
+- **Generate Image** – Produce original images from text descriptions.  
+- **Summarize Text** – Quickly generate concise summaries from course content.
+
+![Actions](./_docs/images/aiprovider_datacurso_actions.png)
+
+## License ##
+
+2025 Data Curso LLC <https://datacurso.com>
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program.  If not, see <https://www.gnu.org/licenses/>.

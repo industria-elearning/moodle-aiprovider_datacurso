@@ -128,8 +128,6 @@ class datacurso_api_base {
         $options = [
             'CURLOPT_RETURNTRANSFER' => true,
             'CURLOPT_HTTPHEADER' => $headers,
-            'CURLOPT_TIMEOUT' => 60,
-            'CURLOPT_CONNECTTIMEOUT' => 15,
         ];
 
         $url = $this->baseurl . $path;
@@ -137,7 +135,7 @@ class datacurso_api_base {
 
         $defaultpayload = [
             'site_id' => md5($CFG->wwwroot),
-            'user_id' => $payload['user_id'] ?? $USER->id,
+            'userid' => $payload['userid'] ?? $USER->id,
             'timezone' => \core_date::get_user_timezone(),
             'lang' => $payload['lang'] ?? current_language(),
         ];

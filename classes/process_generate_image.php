@@ -53,7 +53,6 @@ class process_generate_image extends abstract_processor {
         $size = $this->calculate_size($aspectratio);
 
         return [
-            'model' => 'gpt-image-1',
             'prompt' => $prompt,
             'n' => $this->numberimages,
             'size' => $size,
