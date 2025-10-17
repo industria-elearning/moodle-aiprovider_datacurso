@@ -36,80 +36,35 @@ use core_privacy\local\request\userlist;
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements \core_privacy\local\metadata\provider, \core_privacy\local\request\core_userlist_provider {
-    /**
-     * Return the fields which contain personal data.
-     *
-     * @param collection $collection a reference to the collection to use to store the metadata.
-     * @return collection the updated collection of metadata items.
-     */
+class provider implements
+    \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\core_userlist_provider,
+    \core_privacy\local\request\plugin\provider {
+    #[\Override]
     public static function get_metadata(collection $collection): collection {
-        $collection->add_external_location_link(
-            'datacurso_ai_services',
-            [
-                'userid' => 'privacy:metadata:datacurso_ai_services:userid',
-                'request_data' => 'privacy:metadata:datacurso_ai_services:request_data',
-                'response_data' => 'privacy:metadata:datacurso_ai_services:response_data',
-                'tokens_consumed' => 'privacy:metadata:datacurso_ai_services:tokens_consumed',
-                'timestamp' => 'privacy:metadata:datacurso_ai_services:timestamp',
-            ],
-            'privacy:metadata:datacurso_ai_services',
-        );
-
+        $collection->add_external_location_link('aiprovider_datacurso', [
+            'prompt' => 'privacy:metadata:aiprovider_datacurso:prompt',
+            'numberimages' => 'privacy:metadata:aiprovider_datacurso:numberimages',
+            'userid' => 'privacy:metadata:aiprovider_datacurso:userid',
+        ], 'privacy:metadata:aiprovider_datacurso:externalpurpose');
         return $collection;
     }
 
-    /**
-     * Get the list of contexts that contain user information for the specified user.
-     *
-     * @param int $userid the userid.
-     * @return contextlist the list of contexts containing user info for the user.
-     */
+    #[\Override]
     public static function get_contexts_for_userid(int $userid): contextlist {
-        // This plugin does not store user data locally in Moodle.
-        // All data is sent to external Datacurso AI services.
         return new contextlist();
     }
 
-    /**
-     * Get the list of users who have data within a context.
-     *
-     * @param userlist $userlist the userlist containing the list of users who have data in this context/plugin combination.
-     */
+    #[\Override]
     public static function get_users_in_context(userlist $userlist) {
-        // This plugin does not store user data locally in Moodle.
-        // All data is sent to external Datacurso AI services.
     }
 
-    /**
-     * Export personal data for the given approved_contextlist.
-     *
-     * @param approved_contextlist $contextlist a list of contexts approved for export.
-     */
+    #[\Override]
     public static function export_user_data(approved_contextlist $contextlist) {
-        // This plugin does not store user data locally in Moodle.
-        // Data is processed by external Datacurso AI services and not stored locally.
-        // Users should contact Datacurso directly for data export requests.
     }
 
-    /**
-     * Delete all data for all users in the specified context.
-     *
-     * @param \context $context the context to delete in.
-     */
+    #[\Override]
     public static function delete_data_for_all_users_in_context(\context $context) {
-        // This plugin does not store user data locally in Moodle.
-        // All data is processed by external Datacurso AI services.
-    }
-
-    /**
-     * Delete all user data for the specified user, in the specified contexts.
-     *
-     * @param approved_contextlist $contextlist a list of contexts approved for deletion.
-     */
-    public static function delete_data_for_user(approved_contextlist $contextlist) {
-        // This plugin does not store user data locally in Moodle.
-        // Users should contact Datacurso directly for data deletion requests.
     }
 
     /**
@@ -118,7 +73,9 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
      * @param approved_userlist $userlist The approved context and user information to delete information for.
      */
     public static function delete_data_for_users(approved_userlist $userlist) {
-        // This plugin does not store user data locally in Moodle.
-        // Users should contact Datacurso directly for data deletion requests.
+    }
+
+    #[\Override]
+    public static function delete_data_for_user(approved_contextlist $contextlist) {
     }
 }
