@@ -185,10 +185,17 @@ class webservice_config {
                 'restrictedusers' => (bool)$service->restrictedusers,
             ];
             if (!empty($status['user']['id'])) {
-                if ($token = $DB->get_record('external_tokens', [
+                $params = [
                     'userid' => $status['user']['id'],
                     'externalserviceid' => $service->id,
-                ], '*', IGNORE_MULTIPLE)) {
+                ];
+                $token = $DB->get_record(
+                    'external_tokens',
+                    $params,
+                    '*',
+                    IGNORE_MULTIPLE,
+                );
+                if ($token) {
                     $status['tokenexists'] = true;
                     $timecreated = !empty($token->timecreated) ? (int)$token->timecreated : 0;
                     $status['tokencreated'] = $timecreated
@@ -252,7 +259,7 @@ class webservice_config {
             $user = self::ensure_service_user();
 
             // 3) Ensure role and caps.
-            list($roleid, $rolecreated) = self::ensure_role();
+            [$roleid, $rolecreated] = self::ensure_role();
             $messages[] = $rolecreated
                 ? get_string('ws_step_role_create', 'aiprovider_datacurso', self::ROLENAME)
                 : get_string('ws_step_role_exists', 'aiprovider_datacurso', $roleid);
@@ -287,14 +294,12 @@ class webservice_config {
             }
             $status['messages'] = $messages;
             return $status;
-
         } catch (\Exception $e) {
             $status = self::get_status();
             $messages[] = get_string('ws_error_setup', 'aiprovider_datacurso');
             $status['messages'] = $messages;
             return $status;
         }
-
     }
 
     /**
@@ -336,12 +341,10 @@ class webservice_config {
             }
             $status['messages'] = $messages;
             return $status;
-
         } catch (\Exception $e) {
             $status['messages'][] = get_string('ws_error_regenerate_token', 'aiprovider_datacurso');
             return $status;
         }
-
     }
 
     /**

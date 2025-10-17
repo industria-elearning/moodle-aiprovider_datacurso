@@ -43,4 +43,3 @@ $PAGE->requires->js_call_amd('aiprovider_datacurso/webservice_config', 'init');
 echo $OUTPUT->render_from_template('aiprovider_datacurso/webservice_config', $status);
 
 echo $OUTPUT->footer();
-

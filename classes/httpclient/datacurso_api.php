@@ -27,7 +27,6 @@ use moodle_url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class datacurso_api {
-
     /** @var string */
     private $baseurl;
 
@@ -58,7 +57,7 @@ class datacurso_api {
      * @return string
      */
     private function build_url(string $endpoint, array $params = []): string {
-        $url = rtrim( $this->baseurl, '/') . '/' . ltrim($endpoint, '/');
+        $url = rtrim($this->baseurl, '/') . '/' . ltrim($endpoint, '/');
         $url = new moodle_url($url, $params);
         return $url->out(false);
     }

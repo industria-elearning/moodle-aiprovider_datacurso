@@ -29,7 +29,6 @@ require_once($CFG->libdir . '/filelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class datacurso_api_base {
-
     /** @var string $baseurl The base URL for Datacurso API requests */
     protected $baseurl;
 
@@ -217,8 +216,13 @@ class datacurso_api_base {
      * @return array|null
      * @throws \Exception
      */
-    public function upload_file(string $path, string $filepath, $mimetype = null,
-            $filename = null, array $extraparams = []): ?array {
+    public function upload_file(
+        string $path,
+        string $filepath,
+        ?string $mimetype = null,
+        ?string $filename = null,
+        array $extraparams = []
+    ): ?array {
         if (!file_exists($filepath)) {
             $filename = basename($filepath);
             throw new \coding_exception("File not found: {$filename}");

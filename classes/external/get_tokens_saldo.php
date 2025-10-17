@@ -33,7 +33,6 @@ use aiprovider_datacurso\httpclient\datacurso_api;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_tokens_saldo extends external_api {
-
     /**
      * Input parameters (none in this case).
      */

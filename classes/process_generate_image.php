@@ -31,7 +31,6 @@ use Psr\Http\Message\UriInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_image extends abstract_processor {
-
     /** @var int Number of images to generate. */
     private int $numberimages = 1;
 
