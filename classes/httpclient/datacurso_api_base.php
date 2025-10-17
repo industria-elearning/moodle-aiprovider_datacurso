@@ -231,4 +231,3 @@ class datacurso_api_base {
         return $this->send_request('UPLOAD', $path, $postdata);
     }
 }
-

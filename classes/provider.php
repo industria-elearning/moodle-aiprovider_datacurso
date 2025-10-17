@@ -127,13 +127,15 @@ class provider extends \core_ai\provider {
      */
     public static function get_services(): array {
         return [
-            ['id' => 'course_ai', 'name' => 'Course AI'],
-            ['id' => 'local_datacurso_ratings', 'name' => 'Rating AI'],
+            ['id' => 'course_ai', 'name' => 'Course Creator AI'],
+            ['id' => 'local_datacurso_ratings', 'name' => 'Ranking Activities AI'],
             ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
             ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
+            ['id' => 'provider_proxy', 'name' => 'Provider AI'],
             ['id' => 'tutor_ai', 'name' => 'Tutor AI'],
-            ['id' => 'local_socialcert', 'name' => 'Certificate AI'],
-            ['id' => 'provider_proxy', 'name' => 'Provider'],
+            ['id' => 'local_socialcert', 'name' => 'Share Certificate AI'],
+            ['id' => 'story_life_student', 'name' => 'Student Life Story AI'],
+            ['id' => 'smart_rules', 'name' => 'SmartRules AI'],
         ];
     }
 
