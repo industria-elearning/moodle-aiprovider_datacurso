@@ -32,6 +32,10 @@ import {
   webserviceGetStatus,
 } from "aiprovider_datacurso/repository";
 
+const LOG_REGION_SELECTOR =
+  '[data-region="aiprovider_datacurso/webservice-log"]';
+const logEntries = [];
+
 /**
  * Initialize the webservice configuration.
  */
@@ -142,23 +146,60 @@ async function regenerate() {
  * @param {string} type The type of the message.
  */
 function log(msg, type = "info") {
-  const list = document.querySelector(
-    '[data-region="aiprovider_datacurso/webservice-log"]'
-  );
+  logEntries.push({msg, type});
+  appendLogEntry({msg, type});
+}
+
+/**
+ * Append a single entry to the rendered log when available.
+ *
+ * @param {{msg: string, type: string}} entry
+ */
+function appendLogEntry(entry) {
+  const list = document.querySelector(LOG_REGION_SELECTOR);
   if (!list) {
     return;
   }
+  list.appendChild(createLogItem(entry));
+}
+
+/**
+ * Render all known log entries inside the provided root.
+ *
+ * @param {HTMLElement} root
+ */
+function renderLogHistory(root) {
+  if (!root) {
+    return;
+  }
+  const list = root.querySelector(LOG_REGION_SELECTOR);
+  if (!list) {
+    return;
+  }
+  list.innerHTML = "";
+  logEntries.forEach((entry) => {
+    list.appendChild(createLogItem(entry));
+  });
+}
+
+/**
+ * Build a log list item element.
+ *
+ * @param {{msg: string, type: string}} entry
+ * @returns {HTMLLIElement}
+ */
+function createLogItem(entry) {
   const li = document.createElement("li");
-  li.textContent = msg;
+  li.textContent = entry.msg;
   li.classList.add("mb-1");
-  if (type === "success") {
+  if (entry.type === "success") {
     li.classList.add("text-success");
-  } else if (type === "error") {
+  } else if (entry.type === "error") {
     li.classList.add("text-danger");
   } else {
     li.classList.add("text-muted");
   }
-  list.appendChild(li);
+  return li;
 }
 
 /**
@@ -187,5 +228,6 @@ async function renderAll(status) {
   const render = await Templates.renderForPromise('aiprovider_datacurso/webservice_config', status);
   await Templates.replaceNodeContents(root, render.html, render.js);
   const newRoot = document.querySelector('[data-region="aiprovider_datacurso/webservice-root"]');
+  renderLogHistory(newRoot);
   bindHandlers(newRoot);
 }

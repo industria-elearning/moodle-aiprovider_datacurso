@@ -35,7 +35,8 @@ class ai_services_api extends datacurso_api_base {
      * @param string|null $licensekey The license key obtained from Datacurso SHOP.
      */
     public function __construct(?string $licensekey = null) {
-        parent::__construct('https://plugins-ai.datacurso.com', $licensekey);
+        // parent::__construct('https://plugins-ai.datacurso.com', $licensekey);
+        parent::__construct('http://plugins-ai-server:8000', $licensekey);
     }
 
     /**
