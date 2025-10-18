@@ -32,7 +32,6 @@ use renderer_base;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class report_page implements renderable, templatable {
-
     /**
      * Export data for the Mustache template.
      *

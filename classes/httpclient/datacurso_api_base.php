@@ -29,7 +29,6 @@ require_once($CFG->libdir . '/filelib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class datacurso_api_base {
-
     /** @var string $baseurl The base URL for Datacurso API requests */
     protected $baseurl;
 
@@ -60,11 +59,11 @@ class datacurso_api_base {
     /**
      * Download a file from Datacurso API.
      *
-     * @param string $endpoint   Relative endpoint (starting with "/").
+     * @param string $endpoint Relative endpoint (starting with "/").
      * @param string $filename The name of the file to download.
-     * @param array $filerecord {@link create_file_from_url()} filerecord if empty file will be stored in the draft user area.
+     * @param array $filerecord File record options as accepted by create_file_from_url(); defaults to storing in draft user area.
      * @return \stored_file|null The downloaded file.
-     * @throws \Exception
+     * @throws \Exception If the file cannot be created.
      */
     public function download_file($endpoint, $filename, $filerecord = []): ?\stored_file {
         global $USER;
@@ -209,16 +208,21 @@ class datacurso_api_base {
     /**
      * Upload a file using multipart/form-data.
      *
-     * @param string $path   Relative endpoint. Example: '/upload-file'.
-     * @param string $filepath Path to the file to upload.
-     * @param string $mimetype MIME type of the file.
-     * @param string $filename Name of the file to upload.
-     * @param array  $extraparams Extra parameters for the request.
-     * @return array|null
-     * @throws \Exception
+     * @param string $path Relative endpoint. Example: '/upload-file'.
+     * @param string $filepath Absolute path to the file to upload.
+     * @param string|null $mimetype MIME type of the file (falls back to PHP detection when null).
+     * @param string|null $filename Name to use for the uploaded file (defaults to basename of $filepath).
+     * @param array $extraparams Extra POST parameters to include in the upload request.
+     * @return array|null Decoded response from the API.
+     * @throws \Exception If the local file does not exist or the request fails.
      */
-    public function upload_file(string $path, string $filepath, $mimetype = null,
-            $filename = null, array $extraparams = []): ?array {
+    public function upload_file(
+        string $path,
+        string $filepath,
+        ?string $mimetype = null,
+        ?string $filename = null,
+        array $extraparams = []
+    ): ?array {
         if (!file_exists($filepath)) {
             $filename = basename($filepath);
             throw new \coding_exception("File not found: {$filename}");
@@ -231,4 +235,3 @@ class datacurso_api_base {
         return $this->send_request('UPLOAD', $path, $postdata);
     }
 }
-
