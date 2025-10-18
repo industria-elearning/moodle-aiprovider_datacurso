@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Privacy Subsystem implementation for aiprovider_datacurso.
- *
- * @package    aiprovider_datacurso
- * @copyright  2025 Industria Elearning
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 namespace aiprovider_datacurso\privacy;
 
 use core_privacy\local\metadata\collection;
@@ -29,17 +21,18 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\metadata\provider as metadata_provider;
+use core_privacy\local\request\core_userlist_provider;
+use core_privacy\local\request\plugin\provider as plugin_provider;
 
 /**
  * Privacy Subsystem for aiprovider_datacurso implementing metadata provider.
  *
- * @copyright  2025 Industria Elearning
+ * @package    aiprovider_datacurso
+ * @copyright  2025 Wilber Narvaez <https://datacurso.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements
-    \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\core_userlist_provider,
-    \core_privacy\local\request\plugin\provider {
+class provider implements metadata_provider, core_userlist_provider, plugin_provider {
     #[\Override]
     public static function get_metadata(collection $collection): collection {
         $collection->add_external_location_link('aiprovider_datacurso', [
