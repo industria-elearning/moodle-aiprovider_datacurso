@@ -32,7 +32,7 @@ use core_privacy\local\request\plugin\provider as plugin_provider;
  * @copyright  2025 Wilber Narvaez <https://datacurso.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements metadata_provider, core_userlist_provider, plugin_provider {
+class provider implements core_userlist_provider, metadata_provider, plugin_provider {
     #[\Override]
     public static function get_metadata(collection $collection): collection {
         $collection->add_external_location_link('aiprovider_datacurso', [
