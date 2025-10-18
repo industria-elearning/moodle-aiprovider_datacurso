@@ -21,10 +21,10 @@
   @template aiprovider_datacurso/webservice/user_role
   Renders the user and role status section.
 
-  Context:
+  Example context (json):
   {
-    "user": {"username": string, "email": string} | null,
-    "role": {"shortname": string, "name": string} | null
+    "user": {"username": "svc_datacurso", "email": "service@datacurso.com"},
+    "role": {"shortname": "wsdatacurso", "name": "Datacurso Web Service"}
   }
 }}
 <div class="row mb-3">
