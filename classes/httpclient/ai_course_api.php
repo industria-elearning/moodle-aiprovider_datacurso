@@ -32,7 +32,7 @@ class ai_course_api extends datacurso_api_base {
      * @param string|null $licensekey The license key obtained from Datacurso SHOP.
      */
     public function __construct(?string $licensekey = null) {
-        parent::__construct('http://course-ai.datacurso.com', $licensekey);
+        parent::__construct('https://course-ai.datacurso.com', $licensekey);
     }
 
     /**
