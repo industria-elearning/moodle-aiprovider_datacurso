@@ -75,30 +75,55 @@ switch ($tab) {
         global $DB;
         $pluginslist = [
             [
-                'name' => 'Forum AI',
-                'description' => 'Extiende los foros con análisis de IA para generar resúmenes automáticos.',
+                'name' => get_string('pluginname_coursegen', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_coursegen', 'aiprovider_datacurso'),
+                'component' => 'local_coursegen',
+                'url' => 'https://moodle.org/plugins/local_coursegen',
+            ],
+            [
+                'name' => get_string('pluginname_forum_ai', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_forum_ai', 'aiprovider_datacurso'),
                 'component' => 'local_forum_ai',
-                'url' => 'https://moodle.org/plugins/forum_ia',
+                'url' => 'https://moodle.org/plugins/local_forum_ai',
             ],
             [
-                'name' => 'Datacurso Ratings',
-                'description' => 'Permite calificar automáticamente cursos con IA y estadísticas.',
+                'name' => get_string('pluginname_datacurso_ratings', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_datacurso_ratings', 'aiprovider_datacurso'),
                 'component' => 'local_datacurso_ratings',
-                'url' => 'https://moodle.org/plugins/datacurso_ratings',
+                'url' => 'https://moodle.org/plugins/local_datacurso_ratings',
             ],
             [
-                'name' => 'Assign AI',
-                'description' => 'Revisa tareas con asistencia de IA.',
+                'name' => get_string('pluginname_assign_ai', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_assign_ai', 'aiprovider_datacurso'),
                 'component' => 'local_assign_ai',
-                'url' => 'https://moodle.org/plugins/assign_ai',
+                'url' => 'https://moodle.org/plugins/local_assign_ai',
             ],
             [
-                'name' => 'Course AI',
-                'description' => 'Crea cursos, actividades y recursos completos con IA.',
-                'component' => 'local_course_ai',
-                'url' => 'https://moodle.org/plugins/course_ai',
+                'name' => get_string('pluginname_dttutor', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_dttutor', 'aiprovider_datacurso'),
+                'component' => 'local_dttutor',
+                'url' => 'https://moodle.org/plugins/local_dttutor',
+            ],
+            [
+                'name' => get_string('pluginname_socialcert', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_socialcert', 'aiprovider_datacurso'),
+                'component' => 'local_socialcert',
+                'url' => 'https://moodle.org/plugins/local_socialcert',
+            ],
+            [
+                'name' => get_string('pluginname_lifestory', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_lifestory', 'aiprovider_datacurso'),
+                'component' => 'report_lifestory',
+                'url' => 'https://moodle.org/plugins/report_lifestory',
+            ],
+            [
+                'name' => get_string('pluginname_smartrules', 'aiprovider_datacurso'),
+                'description' => get_string('plugindesc_smartrules', 'aiprovider_datacurso'),
+                'component' => 'local_smartrules',
+                'url' => 'https://moodle.org/plugins/local_smartrules',
             ],
         ];
+
 
         foreach ($pluginslist as &$plugin) {
             $plugin['installed'] = $DB->record_exists('config_plugins', [

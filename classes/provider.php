@@ -127,7 +127,7 @@ class provider extends \core_ai\provider {
      */
     public static function get_services(): array {
         return [
-            ['id' => 'course_ai', 'name' => 'Course Creator AI'],
+            ['id' => 'local_coursegen', 'name' => 'Course Creator AI'],
             ['id' => 'local_datacurso_ratings', 'name' => 'Ranking Activities AI'],
             ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
             ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
