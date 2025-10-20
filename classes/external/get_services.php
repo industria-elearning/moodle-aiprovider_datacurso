@@ -34,7 +34,6 @@ use external_value;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_services extends \external_api {
-
     /**
      * Describes the parameters for the get_services external function.
      *

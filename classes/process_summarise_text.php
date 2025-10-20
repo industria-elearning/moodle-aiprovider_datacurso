@@ -26,7 +26,6 @@ use Psr\Http\Message\UriInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_summarise_text extends process_generate_text {
-
     /**
      * Endpoint del servicio (igual que el de generación de texto).
      */

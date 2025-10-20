@@ -21,12 +21,12 @@
   @template aiprovider_datacurso/webservice/actions
   Renders the action buttons area. Keeps data-region attributes for JS hooks.
 
-  Context:
+  Example context (json):
   {
-    "retryonly": bool,
-    "registration": {"lastsent": string|null},
-    "isconfigured": bool,
-    "needsrepair": bool
+    "retryonly": false,
+    "registration": {"lastsent": "2025-01-10 09:30"},
+    "isconfigured": true,
+    "needsrepair": false
   }
 }}
 <div class="d-flex gap-2 mb-4" style="gap: 1rem;">

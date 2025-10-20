@@ -31,7 +31,6 @@ use Psr\Http\Message\UriInterface;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_image extends abstract_processor {
-
     /** @var int Number of images to generate. */
     private int $numberimages = 1;
 
@@ -61,7 +60,10 @@ class process_generate_image extends abstract_processor {
     }
 
     /**
-     * Convert aspect ratio to Datacurso-compatible image size.
+     * Convert aspect ratio selector to the Datacurso image size expected by the API.
+     *
+     * @param string $ratio Aspect ratio configuration value.
+     * @return string Datacurso size token (e.g. 1024x1024).
      */
     private function calculate_size(string $ratio): string {
         return match ($ratio) {
@@ -118,7 +120,11 @@ class process_generate_image extends abstract_processor {
     }
 
     /**
-     * Guarda la imagen generada en el área de borradores del usuario.
+     * Store the generated image into the user's draft file area.
+     *
+     * @param int $userid User ID that will own the draft file.
+     * @param string $imagebinary Raw PNG binary string.
+     * @return \stored_file Draft file reference.
      */
     private function save_to_draft_area(int $userid, string $imagebinary): \stored_file {
         global $CFG;

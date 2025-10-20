@@ -21,11 +21,15 @@
   @template aiprovider_datacurso/webservice/token_registration
   Renders token existence/created info and registration status block.
 
-  Context:
+  Example context (json):
   {
-    "tokenexists": bool,
-    "tokencreated": int|string|null,
-    "registration": {"verified": bool, "lastsent": string|null, "laststatus": string|null}
+    "tokenexists": true,
+    "tokencreated": "1 January 2025, 14:00",
+    "registration": {
+      "verified": true,
+      "lastsent": "2025-01-01 14:00",
+      "laststatus": "Registered"
+    }
   }
 }}
 <div class="row mb-3">

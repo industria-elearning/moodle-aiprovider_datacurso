@@ -172,7 +172,9 @@ class webservice_config_api extends external_api {
             ], 'Site info'),
             'messages' => new external_multiple_structure(
                 new external_value(PARAM_TEXT, 'Message'),
-                'Step messages', VALUE_DEFAULT, []
+                'Step messages',
+                VALUE_DEFAULT,
+                []
             ),
         ];
 

@@ -74,5 +74,4 @@ if ($hassiteconfig) {
         new moodle_url('/ai/provider/datacurso/admin/webservice_config.php'),
         'moodle/site:config'
     ));
-
 }

@@ -21,10 +21,11 @@
   @template aiprovider_datacurso/webservice/service_assignment
   Renders the external service existence and user assignment.
 
-  Context:
+  Example context (json):
   {
-    "service": {"name": string} | null,
-    "userassigned": bool
+    "service": {"name": "Datacurso Service"},
+    "userassigned": true,
+    "role": {"shortname": "wsdatacurso", "name": "Datacurso Web Service"}
   }
 }}
 <div class="row mb-3">

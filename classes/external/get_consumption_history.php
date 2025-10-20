@@ -34,7 +34,6 @@ use aiprovider_datacurso\httpclient\datacurso_api;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_consumption_history extends \external_api {
-
     /**
      * Define parameters.
      *
@@ -69,9 +68,17 @@ class get_consumption_history extends \external_api {
      * @param string|null $shortdir
      * @return array
      */
-    public static function execute($page = 1, $limit = 10, $userid = null, $servicio = null,
-        $accion = null, $fechadesde = null, $fechahasta = null, $short = null, $shortdir = null) {
-
+    public static function execute(
+        $page = 1,
+        $limit = 10,
+        $userid = null,
+        $servicio = null,
+        $accion = null,
+        $fechadesde = null,
+        $fechahasta = null,
+        $short = null,
+        $shortdir = null
+    ) {
         global $USER;
 
         // Ensure page and limit have valid values.
@@ -168,7 +175,6 @@ class get_consumption_history extends \external_api {
                 'message' => 'No se encontraron datos de consumo',
                 'consumption' => [],
             ];
-
         } catch (\Exception $e) {
             // Connection or response error.
             return [

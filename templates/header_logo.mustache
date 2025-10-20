@@ -17,16 +17,25 @@
 {{!
     @template aiprovider_datacurso/header_logo
 
-    TODO describe template header_logo
+    Display plugin header with optional Datacurso logo.
 
     Example context (json):
     {
+        "pluginname": "Datacurso AI Provider",
+        "logourl": "https://datacurso.com/logo.png"
     }
 }}
 
 <div class="datacurso-header d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-    <h2 class="m-0">{{pluginname}}</h2>
-    <a href="https://datacurso.com/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center">
-        <img src="{{logourl}}" alt="Logo Datacurso" style="height:35px;">
-    </a>
+    {{#pluginname}}
+        <h2 class="m-0">{{.}}</h2>
+    {{/pluginname}}
+    {{^pluginname}}
+        <h2 class="m-0">Datacurso AI</h2>
+    {{/pluginname}}
+    {{#logourl}}
+        <a href="https://datacurso.com/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center">
+            <img src="{{.}}" alt="Logo Datacurso" style="height:35px;">
+        </a>
+    {{/logourl}}
 </div>
