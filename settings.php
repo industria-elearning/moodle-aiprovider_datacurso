@@ -43,21 +43,11 @@ if ($hassiteconfig) {
     ));
 
     // License key.
-    $settings->add(new admin_setting_configtext(
+    $settings->add(new admin_setting_configpasswordunmask(
         'aiprovider_datacurso/licensekey',
         new lang_string('licensekey', 'aiprovider_datacurso'),
         new lang_string('licensekey_desc', 'aiprovider_datacurso'),
-        '',
-        PARAM_TEXT
-    ));
-
-    // Token threshold notification.
-    $settings->add(new admin_setting_configtext(
-        'aiprovider_datacurso/tokenthreshold',
-        new lang_string('tokenthreshold', 'aiprovider_datacurso'),
-        new lang_string('tokenthreshold_desc', 'aiprovider_datacurso'),
-        50,
-        PARAM_INT
+        ''
     ));
 
     $ADMIN->add('reports', new admin_externalpage(
