@@ -36,18 +36,19 @@ export const init = () => {
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
-        Ajax.call([{ methodname: 'aiprovider_datacurso_get_all_consumption', args: {} }])[0] // 🔹 una sola llamada inicial
-    ]).then(([saldoResponse, servicesResponse, consumptionResponse]) => {
+        Ajax.call([{ methodname: 'aiprovider_datacurso_get_all_consumption', args: {} }])[0],
+    ])
+        .then(([saldoResponse, servicesResponse, consumptionResponse]) => {
 
-        const saldo = saldoResponse?.saldo_actual || 0;
-        tokensAvailable.textContent = saldo;
+            const saldo = saldoResponse?.saldo_actual || 0;
+            tokensAvailable.textContent = saldo;
 
-        const servicios = servicesResponse?.services || [];
-        cachedData = consumptionResponse?.consumption || []; // data global first
+            const servicios = servicesResponse?.services || [];
+            cachedData = consumptionResponse?.consumption || []; // data global first
 
-        initCharts(servicios);
+            initCharts(servicios);
 
-    }).catch(err => console.error("Error:", err));
+        }).catch(err => console.error("Error:", err));
 
     // init grafic
     const initCharts = (servicios) => {

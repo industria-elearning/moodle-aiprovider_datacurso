@@ -63,7 +63,7 @@ class get_all_consumption extends external_api {
 
         $params = [
             'page' => 1,
-            'limit' => 0,
+            'limit' => 1,
         ];
 
         if (!empty($servicio) && $servicio !== 'all') {
