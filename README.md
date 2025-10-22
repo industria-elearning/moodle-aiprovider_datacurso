@@ -4,14 +4,14 @@ The **Datacurso AI Provider** is the core engine that connects Moodle with the *
 
 This provider serves as the central bridge that powers every Datacurso AI extension, enabling a new generation of intelligent features for teachers, students, and administrators.
 
-In addition, the **Datacurso AI Provider** includes built-in capabilities to display **detailed token usage reports** directly within Moodle.  
+In addition, the **Datacurso AI Provider** includes built-in capabilities to display **detailed AI credit usage reports** directly within Moodle.  
 Administrators can easily monitor and manage AI service consumption through visual dashboards showing:
 
-- **Number of tokens consumed per month**
-- **Available tokens**
-- **Total tokens consumed**
-- **Token distribution by service**
-- **Daily token usage trends**
+- **Number of credits consumed per month**
+- **Available credits**
+- **Total credits consumed**
+- **Credit distribution by service**
+- **Daily credit usage trends**
 
 ## The Datacurso AI Plugin Suite
 
@@ -20,29 +20,23 @@ All plugins in this suite are powered by the **Datacurso AI Provider**.
 
 ### Explore the Suite
 
-- **[Ranking Activities AI](#)**
+- **[Ranking Activities AI](https://moodle.org/plugins/local_datacurso_ratings)**
   Empower students to rate course activities while AI analyzes feedback and provides deep insights to educators.
 
-- **[Forum AI](#)**  
+- **[Forum AI](https://moodle.org/plugins/local_forum_ai)**  
   Introduce an AI assistant into your forums that contributes to discussions and keeps engagement alive.
 
-- **[Assign AI](#)**  
+- **[Assign AI](https://moodle.org/plugins/local_assign_ai)**  
   Let AI review student submissions, suggest feedback, and support teachers in the grading process.
 
-- **[Tutor AI](#)**  
-  Offer students a personal AI tutor that answers questions, explains concepts, and guides them through their learning path.
-
-- **[Share Certificate AI](#)**  
+- **[Share Certificate AI](https://moodle.org/plugins/local_socialcert)**  
   Celebrate achievements automatically! AI generates personalized social media posts when students earn certificates.
 
-- **[Student Life Story AI](#)**  
+- **[Student Life Story AI](https://moodle.org/plugins/report_lifestory)**  
   Gain a complete view of student performance with AI-generated summaries across all enrolled courses.
 
-- **[Course Creation AI](#)**  
+- **[Course Creation AI](https://moodle.org/plugins/local_coursegen)**  
   Build full Moodle courses in minutes — complete with lessons, activities, and resources — guided by AI.
-
-- **[Activity Creation AI](#)**  
-  Design engaging, high-quality learning activities instantly using AI-generated suggestions and templates.
 
 ## Powering Moodle’s Built-In AI Features
 
@@ -134,7 +128,6 @@ to complete the installation from the command line.
 
 3. Configure the following settings:
    - **License key**: Enter the license key that we copied in the [Obtain License Keys](#obtain-license-keys) section
-   - **Token threshold**: Enter the token threshold that we want to use to send alert notifications when the tokens are running low.
 
    ![Config](./_docs/images/aiprovider_datacurso_config.png)
 
