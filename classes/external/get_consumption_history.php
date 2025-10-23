@@ -148,7 +148,7 @@ class get_consumption_history extends \external_api {
                                 'id_service' => $consumo['id_servicio'] ?? '',
                                 'cant_tokens' => $consumo['cantidad_tokens'] ?? 0,
                                 'balance' => $consumo['saldo_restante'] ?? 0,
-                                'date' => $consumo['fecha'] ?? '',
+                                'date' => $consumo['created_at'] ?? '',
                             ];
                         }
                     }
