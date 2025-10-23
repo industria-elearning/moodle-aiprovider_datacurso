@@ -131,6 +131,41 @@ to complete the installation from the command line.
 
    ![Config](./_docs/images/aiprovider_datacurso_config.png)
 
+## Datacurso webservice setup
+
+Allows you to automatically configure the Web Service used by Datacurso to fetch contextual information from your platform and improve AI responses.
+
+To configure the webservice, go to `Site administration > Server > Datacurso webservice setup`.
+
+![Datacurso Webservice Setup](./_docs/images/aiprovider_datacurso_datacurso_webservice_setup.png)
+
+### What it does:
+- Enables Web services and the **REST** protocol if they are not already active.
+- Creates or reuses the service user `datacursows`.
+- Creates or reuses the `Datacurso web service` role and assigns it to the user at the site context with the required capabilities.
+- Creates or reuses the external service `Datacurso web service`, enables it, and restricts it to authorized users.
+- Adds default functions to the service (for example, `core_course_get_contents`, `mod_assign_get_submissions`).
+- Authorizes the user to use the external service.
+- Generates (or reuses) a permanent token for the user/service.
+- Registers the site in Datacurso by securely sending the token.
+
+### Interface:
+- Shows the current status (web services/REST, user, role, service, token, registration).
+  
+  ![Webservice Status](./_docs/images/aiprovider_datacurso_webservice_status.png)
+
+- Buttons: **Configure webservice** (configure everything), **Retry** (retry registration/send), **Regenerate token** (regenerate token and resend registration).
+  
+  ![Webservice Buttons](./_docs/images/aiprovider_datacurso_webservice_buttons.png)
+
+- Includes a live activity log with the steps performed.
+
+   ![Webservice Log](./_docs/images/aiprovider_datacurso_webservice_log.png)
+
+- Si el proceso de registro sale bien nos deberia aparecer algo como lo siguiente:
+
+   ![Webservice Success](./_docs/images/aiprovider_datacurso_webservice_success.png)
+
 ## Actions
 
 From the same configuration page of the **Datacurso AI Provider**, you can enable and customize the following Moodle AI-powered actions, seamlessly integrated with Moodle’s native capabilities:
