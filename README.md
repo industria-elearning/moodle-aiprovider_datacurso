@@ -148,6 +148,31 @@ From the same configuration page of the **Datacurso AI Provider**, you can enabl
 
 ![Actions](./_docs/images/aiprovider_datacurso_actions.png)
 
+## Report Datacurso AI Provider
+
+In the Administration site we look for the Reports section and enter the General report Datacurso AI link.
+
+![Report Link](./_docs/images/aiprovider_datacurso_page-general-report.png)
+
+## History Consumption Credits 
+
+Here we can see three sections. The first section shows the credit consumption history for AI usage in plugins that use the Datacurso provider, as well as the predefined AI actions in Moodle.
+
+![History](./_docs/images/aiprovider_datacurso_page-report-history.png)
+
+## Reports grafics
+
+The second section displays information about credit usage through visual graphs.
+
+![Grafics](./_docs/images/aiprovider_datacurso_page-report-grafics-bar-pai.png)
+![Grafics day](./_docs/images/aiprovider_datacurso_page-report-grafics-day.png)
+
+## Datacurso List Plugins 
+
+The third section shows the list of Datacurso plugins that are compatible with the Datacurso AI provider.
+
+![List plugins](./_docs/images/aiprovider_datacurso_page-report-listplugins.png)
+
 ## License ##
 
 2025 Data Curso LLC <https://datacurso.com>
