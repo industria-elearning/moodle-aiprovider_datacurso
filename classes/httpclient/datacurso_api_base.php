@@ -138,54 +138,64 @@ class datacurso_api_base {
             'timezone' => \core_date::get_user_timezone(),
             'lang' => $payload['lang'] ?? current_language(),
         ];
-        try {
-            switch (strtoupper($method)) {
-                case 'GET':
-                    $response = $curl->get($url, $payload, $options);
-                    break;
-                case 'POST':
-                    $payload = array_merge($payload, $defaultpayload);
-                    $response = $curl->post($url, json_encode($payload), $options);
-                    break;
-                case 'PUT':
-                    $payload = array_merge($payload, $defaultpayload);
-                    $response = $curl->put($url, $payload, $options);
-                    break;
-                case 'DELETE':
-                    $response = $curl->delete($url, $payload, $options);
-                    break;
-                case 'UPLOAD':
-                    $payload = array_merge($payload, $defaultpayload);
-                    $response = $curl->post($url, $payload, $options);
-                    break;
-                default:
-                    throw new \coding_exception('Invalid HTTP method: ' . $method);
-            }
-        } catch (\Exception $e) {
-            debugging('HTTP request exception: ' . $e->getMessage(), DEBUG_DEVELOPER);
-            throw $e;
+        switch (strtoupper($method)) {
+            case 'GET':
+                $response = $curl->get($url, $payload, $options);
+                break;
+            case 'POST':
+                $payload = array_merge($payload, $defaultpayload);
+                $response = $curl->post($url, json_encode($payload), $options);
+                break;
+            case 'PUT':
+                $payload = array_merge($payload, $defaultpayload);
+                $response = $curl->put($url, $payload, $options);
+                break;
+            case 'DELETE':
+                $response = $curl->delete($url, $payload, $options);
+                break;
+            case 'UPLOAD':
+                $payload = array_merge($payload, $defaultpayload);
+                $response = $curl->post($url, $payload, $options);
+                break;
+            default:
+                throw new \coding_exception('Invalid HTTP method: ' . $method);
         }
 
         if (!$response) {
             debugging('Empty response from Datacurso API', DEBUG_DEVELOPER);
-            throw new \Exception('Could not get response from Datacurso API');
+            throw new \moodle_exception('emptyresponse', 'aiprovider_datacurso');
         }
 
         if ($curl->error) {
             debugging('cURL error (' . $curl->error . ')', DEBUG_DEVELOPER);
-            throw new \Exception('Error in Datacurso API request: ' . $curl->error);
+            throw new \moodle_exception('curlerror', 'aiprovider_datacurso', '', $curl->error);
         }
 
         $httpcode = $curl->get_info()['http_code'] ?? 0;
+        if ($httpcode == 403) {
+            $decodedresponse = json_decode($response, true);
+            if ($decodedresponse['detail'] == 'tokens_not_sufficient') {
+                debugging('Not enough tokens to make this request', DEBUG_DEVELOPER);
+                throw new \moodle_exception('notenoughtokens', 'aiprovider_datacurso');
+            }
+            if ($decodedresponse['detail'] == 'license_not_allowed') {
+                debugging('License not allowed to make this request', DEBUG_DEVELOPER);
+                throw new \moodle_exception('license_not_allowed', 'aiprovider_datacurso');
+            }
+
+            debugging('Unknown error from Datacurso API', DEBUG_DEVELOPER);
+            throw new \moodle_exception('forbidden', 'aiprovider_datacurso');
+        }
+
         if ($httpcode >= 400) {
             debugging("HTTP error {$httpcode} from Datacurso API: {$response}", DEBUG_DEVELOPER);
-            throw new \Exception("HTTP error {$httpcode}");
+            throw new \moodle_exception('httperror', 'aiprovider_datacurso', '', $httpcode);
         }
 
         $decodedresponse = json_decode($response, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             debugging('JSON decode error: ' . json_last_error_msg() . '. Response: ' . $response, DEBUG_DEVELOPER);
-            throw new \Exception('Error processing response from Datacurso API');
+            throw new \moodle_exception('jsondecodeerror', 'aiprovider_datacurso', '', json_last_error_msg());
         }
 
         return $decodedresponse;

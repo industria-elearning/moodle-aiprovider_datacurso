@@ -131,6 +131,41 @@ to complete the installation from the command line.
 
    ![Config](./_docs/images/aiprovider_datacurso_config.png)
 
+## Datacurso webservice setup
+
+Allows you to automatically configure the Web Service used by Datacurso to fetch contextual information from your platform and improve AI responses.
+
+To configure the webservice, go to `Site administration > Server > Datacurso webservice setup`.
+
+![Datacurso Webservice Setup](./_docs/images/aiprovider_datacurso_datacurso_webservice_setup.png)
+
+### What it does:
+- Enables Web services and the **REST** protocol if they are not already active.
+- Creates or reuses the service user `datacursows`.
+- Creates or reuses the `Datacurso web service` role and assigns it to the user at the site context with the required capabilities.
+- Creates or reuses the external service `Datacurso web service`, enables it, and restricts it to authorized users.
+- Adds default functions to the service (for example, `core_course_get_contents`, `mod_assign_get_submissions`).
+- Authorizes the user to use the external service.
+- Generates (or reuses) a permanent token for the user/service.
+- Registers the site in Datacurso by securely sending the token.
+
+### Interface:
+- Shows the current status (web services/REST, user, role, service, token, registration).
+  
+  ![Webservice Status](./_docs/images/aiprovider_datacurso_webservice_status.png)
+
+- Buttons: **Configure webservice** (configure everything), **Retry** (retry registration/send), **Regenerate token** (regenerate token and resend registration).
+  
+  ![Webservice Buttons](./_docs/images/aiprovider_datacurso_webservice_buttons.png)
+
+- Includes a live activity log with the steps performed.
+
+   ![Webservice Log](./_docs/images/aiprovider_datacurso_webservice_log.png)
+
+- Si el proceso de registro sale bien nos deberia aparecer algo como lo siguiente:
+
+   ![Webservice Success](./_docs/images/aiprovider_datacurso_webservice_success.png)
+
 ## Actions
 
 From the same configuration page of the **Datacurso AI Provider**, you can enable and customize the following Moodle AI-powered actions, seamlessly integrated with Moodle’s native capabilities:
@@ -141,26 +176,28 @@ From the same configuration page of the **Datacurso AI Provider**, you can enabl
 
 ![Actions](./_docs/images/aiprovider_datacurso_actions.png)
 
-## Report Datacurso AI Provider
+## Reports Datacurso AI Provider
 
-In the Administration site we look for the Reports section and enter the General report Datacurso AI link.
+In this section you can monitor credit usage in detail for each action performed in each plugin of the Datacurso suite, including totals, trends, and distribution by service.
+
+To view the reports, go to `Site administration > Reports > General report Datacurso AI`.
 
 ![Report Link](./_docs/images/aiprovider_datacurso_page-general-report.png)
 
-## History Consumption Credits 
+### History Consumption Credits 
 
 Here we can see three sections. The first section shows the credit consumption history for AI usage in plugins that use the Datacurso provider, as well as the predefined AI actions in Moodle.
 
 ![History](./_docs/images/aiprovider_datacurso_page-report-history.png)
 
-## Reports grafics
+### Reports grafics
 
 The second section displays information about credit usage through visual graphs.
 
 ![Grafics](./_docs/images/aiprovider_datacurso_page-report-grafics-bar-pai.png)
 ![Grafics day](./_docs/images/aiprovider_datacurso_page-report-grafics-day.png)
 
-## Datacurso List Plugins 
+### Datacurso List Plugins
 
 The third section shows the list of Datacurso plugins that are compatible with the Datacurso AI provider.
 
