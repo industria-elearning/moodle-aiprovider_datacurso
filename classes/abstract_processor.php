@@ -22,72 +22,65 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
-use moodle_url;
 use Psr\Http\Message\UriInterface;
 use GuzzleHttp\Psr7\Uri;
 
 /**
- * Base abstract processor for Datacurso AI actions.
+ * Clase base abstracta para los procesadores del proveedor Datacurso AI.
+ *
+ * Define la estructura común para procesar peticiones y respuestas
+ * al servicio externo de IA.
  *
  * @package    aiprovider_datacurso
- * @copyright  2025
+ * @copyright  Josue
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class abstract_processor extends process_base {
+
     /**
-     * Get the endpoint URI.
+     * Retorna el endpoint del servicio específico.
      *
      * @return UriInterface
      */
     abstract protected function get_endpoint(): UriInterface;
 
     /**
-     * 🔹 Construye el cuerpo de la solicitud al servicio IA.
+     * Construye el cuerpo de la solicitud JSON que se enviará al servicio IA.
      *
-     * Este método lo implementan las clases hijas según el tipo de acción.
-     *
-     * @param string $userid El ID del usuario.
-     * @return array El cuerpo JSON a enviar.
+     * @param string $userid ID del usuario que solicita la acción.
+     * @return array Estructura de datos que será enviada como JSON.
      */
     abstract protected function build_request_body(string $userid): array;
 
     /**
-     * Get the system instructions.
+     * Crea el objeto HTTP Request listo para enviar al servicio.
      *
-     * @return string
+     * @param string $userid ID del usuario.
+     * @return RequestInterface Objeto de solicitud HTTP.
+     */
+    abstract protected function create_request_object(string $userid): RequestInterface;
+
+    /**
+     * Procesa una respuesta exitosa desde el servicio IA.
+     *
+     * @param ResponseInterface $response Respuesta HTTP.
+     * @return array Datos estructurados con la información procesada.
+     */
+    abstract protected function handle_api_success(ResponseInterface $response): array;
+
+    /**
+     * Obtiene la instrucción del sistema definida para la acción.
+     *
+     * @return string Instrucción del sistema.
      */
     protected function get_system_instruction(): string {
         return $this->action::get_system_instruction();
     }
 
     /**
-     * Create the request object to send to the OpenAI API.
+     * Ejecuta la consulta al servicio externo Datacurso AI.
      *
-     * This object contains all the required parameters for the request.
-     *
-     *
-     *
-     * @param string $userid The user id.
-     * @return RequestInterface The request object to send to the OpenAI API.
-     */
-    abstract protected function create_request_object(
-        string $userid,
-    ): RequestInterface;
-
-    /**
-     * 🔹 Procesa la respuesta exitosa del API.
-     *
-     * Cada implementación concreta interpreta su formato de respuesta.
-     *
-     * @param ResponseInterface $response
-     * @return array
-     */
-    abstract protected function handle_api_success(ResponseInterface $response): array;
-
-    /**
-     * 🔹 Ejecuta la consulta al API de Datacurso.
-     *
-     * @return array
+     * @return array Respuesta procesada con éxito o error.
      */
     #[\Override]
     protected function query_ai_api(): array {
@@ -107,34 +100,34 @@ abstract class abstract_processor extends process_base {
                         'License-Key' => $licensekey,
                     ],
                     RequestOptions::JSON => $this->build_request_body($userid),
-                    RequestOptions::HTTP_ERRORS => false, // No lanzar excepción automática.
+                    RequestOptions::HTTP_ERRORS => false,
                 ]
             );
         } catch (RequestException $e) {
             return [
                 'success' => false,
-                'errorcode' => $e->getCode(),
+                'errorcode' => (int)($e->getCode() ?: 500),
                 'errormessage' => $e->getMessage(),
             ];
         }
 
-        $status = $response->getStatusCode();
+        $status = (int)$response->getStatusCode();
 
         if ($status === 200) {
             return $this->handle_api_success($response);
-        } else {
-            return $this->handle_api_error($response);
         }
+
+        return $this->handle_api_error($response);
     }
 
     /**
-     * 🔹 Maneja respuestas de error del API.
+     * Maneja las respuestas de error devueltas por el servicio IA.
      *
-     * @param ResponseInterface $response
-     * @return array
+     * @param ResponseInterface $response Respuesta HTTP del servicio.
+     * @return array Datos estructurados del error.
      */
     protected function handle_api_error(ResponseInterface $response): array {
-        $status = $response->getStatusCode();
+        $status = (int)$response->getStatusCode();
         $body = $response->getBody()->getContents();
 
         $message = 'Error desconocido';
@@ -149,7 +142,7 @@ abstract class abstract_processor extends process_base {
 
         return [
             'success' => false,
-            'errorcode' => $status,
+            'errorcode' => $status ?: 500,
             'errormessage' => $message,
         ];
     }

@@ -42,15 +42,28 @@ class process_summarise_text extends process_generate_text {
         global $USER;
 
         $finaluserid = $userid ?: $USER->id;
+
         $systeminstruction = $this->get_system_instruction();
         $prompt = $this->action->get_configuration('prompttext');
 
-        $messages = ['role' => 'user', 'content' => $prompt];
+        $messages = [];
+
         if (!empty($systeminstruction)) {
-            $messages[] = ['role' => 'system', 'content' => $systeminstruction];
+            $messages[] = [
+                'role' => 'system',
+                'content' => $systeminstruction,
+            ];
+        }
+
+        if (!empty($prompt)) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => $prompt,
+            ];
         }
 
         return [
+            'model' => 'gpt-4o-mini',
             'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];
