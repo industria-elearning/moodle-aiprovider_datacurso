@@ -181,12 +181,11 @@ class process_generate_image extends abstract_processor {
     }
 
     /**
-     * Download a file from Datacurso API.
+     * Downloads an image file from the Datacurso API and stores it in the user's draft area.
      *
-     * @param string $endpoint Relative endpoint (starting with "/").
-     * @param string $filename The name of the file to download.
-     * @param array $filerecord File record options as accepted by create_file_from_url(); defaults to storing in draft user area.
-     * @return \stored_file|null The downloaded file.
+     * @param string $imageurl The full URL of the image to download.
+     * @param int $userid The ID of the user who owns the draft area.
+     * @return \stored_file|null The downloaded file, or null if it could not be created.
      * @throws \Exception If the file cannot be created.
      */
     public function download_file($imageurl, $userid): ?\stored_file {
