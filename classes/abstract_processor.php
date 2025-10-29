@@ -26,10 +26,10 @@ use Psr\Http\Message\UriInterface;
 use GuzzleHttp\Psr7\Uri;
 
 /**
- * Clase base abstracta para los procesadores del proveedor Datacurso AI.
+ * Abstract base class for Datacurso AI provider processors.
  *
- * Define la estructura común para procesar peticiones y respuestas
- * al servicio externo de IA.
+ * Defines the common structure for sending requests and handling responses
+ * from the external AI service.
  *
  * @package    aiprovider_datacurso
  * @copyright  Josue
@@ -38,49 +38,49 @@ use GuzzleHttp\Psr7\Uri;
 abstract class abstract_processor extends process_base {
 
     /**
-     * Retorna el endpoint del servicio específico.
+     * Returns the endpoint of the specific AI service.
      *
      * @return UriInterface
      */
     abstract protected function get_endpoint(): UriInterface;
 
     /**
-     * Construye el cuerpo de la solicitud JSON que se enviará al servicio IA.
+     * Builds the JSON body to be sent to the AI service.
      *
-     * @param string $userid ID del usuario que solicita la acción.
-     * @return array Estructura de datos que será enviada como JSON.
+     * @param string $userid ID of the user making the request.
+     * @return array Data structure to be sent as JSON.
      */
     abstract protected function build_request_body(string $userid): array;
 
     /**
-     * Crea el objeto HTTP Request listo para enviar al servicio.
+     * Creates the HTTP Request object ready to be sent to the AI service.
      *
-     * @param string $userid ID del usuario.
-     * @return RequestInterface Objeto de solicitud HTTP.
+     * @param string $userid ID of the user.
+     * @return RequestInterface HTTP request object.
      */
     abstract protected function create_request_object(string $userid): RequestInterface;
 
     /**
-     * Procesa una respuesta exitosa desde el servicio IA.
+     * Handles a successful response from the AI service.
      *
-     * @param ResponseInterface $response Respuesta HTTP.
-     * @return array Datos estructurados con la información procesada.
+     * @param ResponseInterface $response HTTP response.
+     * @return array Structured data with the processed information.
      */
     abstract protected function handle_api_success(ResponseInterface $response): array;
 
     /**
-     * Obtiene la instrucción del sistema definida para la acción.
+     * Retrieves the system instruction defined for the current action.
      *
-     * @return string Instrucción del sistema.
+     * @return string System instruction text.
      */
     protected function get_system_instruction(): string {
         return $this->action::get_system_instruction();
     }
 
     /**
-     * Ejecuta la consulta al servicio externo Datacurso AI.
+     * Executes the HTTP request to the external Datacurso AI service.
      *
-     * @return array Respuesta procesada con éxito o error.
+     * @return array Processed response data, either success or error.
      */
     #[\Override]
     protected function query_ai_api(): array {
@@ -121,16 +121,16 @@ abstract class abstract_processor extends process_base {
     }
 
     /**
-     * Maneja las respuestas de error devueltas por el servicio IA.
+     * Handles error responses returned by the AI service.
      *
-     * @param ResponseInterface $response Respuesta HTTP del servicio.
-     * @return array Datos estructurados del error.
+     * @param ResponseInterface $response HTTP response from the service.
+     * @return array Structured error data.
      */
     protected function handle_api_error(ResponseInterface $response): array {
         $status = (int)$response->getStatusCode();
         $body = $response->getBody()->getContents();
 
-        $message = 'Error desconocido';
+        $message = 'Unknown error';
         if (!empty($body)) {
             $decoded = json_decode($body);
             if (isset($decoded->error->message)) {

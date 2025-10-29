@@ -143,7 +143,7 @@ class process_generate_image extends abstract_processor {
             return [
                 'success' => false,
                 'errorcode' => 400,
-                'errormessage' => 'Invalid response from AI service (no image data).',
+                'errormessage' => get_string('responseinvalidaimage', 'aiprovider_datacurso'),
             ];
         }
 
@@ -155,7 +155,7 @@ class process_generate_image extends abstract_processor {
             return [
                 'success' => false,
                 'errorcode' => 400,
-                'errormessage' => 'Invalid response from AI service (no valid image).',
+                'errormessage' => get_string('responseinvalidaimage', 'aiprovider_datacurso'),
             ];
         }
 
@@ -167,7 +167,7 @@ class process_generate_image extends abstract_processor {
             return [
                 'success' => false,
                 'errorcode' => 500,
-                'errormessage' => 'Could not create image file.',
+                'errormessage' => get_string('responseinvalidaimagecreate', 'aiprovider_datacurso'),
             ];
         }
 

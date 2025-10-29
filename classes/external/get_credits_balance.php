@@ -26,13 +26,13 @@ use external_value;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service to get the token balance.
+ * Web service to get the credits balance.
  *
  * @package    aiprovider_datacurso
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class get_tokens_saldo extends external_api {
+class get_credits_balance extends external_api {
     /**
      * Input parameters (none in this case).
      */
@@ -44,6 +44,10 @@ class get_tokens_saldo extends external_api {
      * WS logic: makes the call to the external API and returns the array.
      */
     public static function execute() {
+        $params = self::validate_parameters(self::execute_parameters(), []);
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
         $client = new datacurso_api();
 
         $response = $client->get('/tokens/saldo');
@@ -51,14 +55,14 @@ class get_tokens_saldo extends external_api {
         if (empty($response) || !isset($response['status'])) {
             return [
                 'status' => 'error',
-                'saldo_actual' => 0,
-                'message' => 'Could not retrieve the token balance from the external API',
+                'balance' => 0,
+                'message' => get_string('errorgetbalancecredits', 'aiprovider_datacurso'),
             ];
         }
 
         return [
             'status' => $response['status'] ?? 'error',
-            'saldo_actual' => (int) ($response['saldo_actual'] ?? 0),
+            'balance' => (int) ($response['saldo_actual'] ?? 0),
             'message' => $response['message'] ?? '',
         ];
     }
@@ -69,7 +73,7 @@ class get_tokens_saldo extends external_api {
     public static function execute_returns() {
         return new external_single_structure([
             'status' => new external_value(PARAM_TEXT, 'Request status (success/error)'),
-            'saldo_actual' => new external_value(PARAM_INT, 'Current token balance'),
+            'balance' => new external_value(PARAM_INT, 'Current credits balance'),
             'message' => new external_value(PARAM_RAW, 'Additional API message or error'),
         ]);
     }

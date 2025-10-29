@@ -49,6 +49,10 @@ class get_actions extends \external_api {
      * @return array containing actions with id and name
      */
     public static function execute() {
+        $params = self::validate_parameters(self::execute_parameters(), []);
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
         $actions = \aiprovider_datacurso\provider::get_actions();
         return ['actions' => $actions];
     }

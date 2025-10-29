@@ -132,7 +132,6 @@ class webservice_config_api extends external_api {
             'restenabled' => new external_value(PARAM_BOOL, 'REST protocol enabled'),
             'userassigned' => new external_value(PARAM_BOOL, 'Role assigned to service user'),
             'tokenexists' => new external_value(PARAM_BOOL, 'Token exists'),
-            // Token created is formatted string for UI consistency.
             'tokencreated' => new external_value(PARAM_TEXT, 'Token creation time (formatted)', VALUE_DEFAULT, ''),
             'isconfigured' => new external_value(PARAM_BOOL, 'Everything configured properly'),
             'needsrepair' => new external_value(PARAM_BOOL, 'Needs setup/repair'),

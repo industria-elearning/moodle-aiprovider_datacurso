@@ -98,7 +98,7 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Procesa la respuesta exitosa de la API.
+     * Process response success API.
      */
     #[\Override]
     protected function handle_api_success(ResponseInterface $response): array {
@@ -107,7 +107,7 @@ class process_generate_text extends abstract_processor {
         if (empty($body) || empty($body->choices[0]->message->content)) {
             return [
                 'success' => false,
-                'error' => 'Respuesta inválida del servicio de IA.',
+                'error' => get_string('responseinvalidai', 'aiprovider_datacurso'),
             ];
         }
 

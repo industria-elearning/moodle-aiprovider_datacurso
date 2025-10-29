@@ -74,10 +74,10 @@
             <th>{{#str}}userid, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}action, aiprovider_datacurso{{/str}}</th>
             <th>{{#str}}service, aiprovider_datacurso{{/str}}</th>
-<th class="sortable" data-sort="cantidad_tokens" style="cursor:pointer;">
-    {{#str}}tokensused, aiprovider_datacurso{{/str}}
-    <i class="fa fa-sort sort-icon"></i>
-</th>
+            <th class="sortable" data-sort="cantidad_tokens" style="cursor:pointer;">
+                {{#str}}tokensused, aiprovider_datacurso{{/str}}
+                <i class="fa fa-sort sort-icon"></i>
+            </th>
             <th>{{#str}}remainingtokens, aiprovider_datacurso{{/str}}</th>
             <th class="sortable" data-sort="fecha" style="cursor:pointer;">
             {{#str}}date, core{{/str}} <i class="fa fa-sort sort-icon"></i>
@@ -96,7 +96,7 @@
     <div class="card">
         <div class="card-body">
             <div class="row align-items-end">
-                <!-- Botones de navegación -->
+                <!-- Nav buttons -->
                 <div class="col-lg-auto col-md-4 col-12 mb-2 mb-lg-0">
                     <nav aria-label="Pagination Navigation">
                         <div class="btn-group" role="group">
@@ -112,7 +112,7 @@
                     </nav>
                 </div>
                 
-                <!-- Filtro: Cantidad de filas -->
+                <!-- Filter: Number of rows -->
                 <div class="col-lg-auto col-md-3 col-6 mb-2 mb-lg-0 pl-lg-2">
                     <label for="filter-limit" class="form-label font-weight-bold small mb-1 d-block">
                         {{#str}}showrows, aiprovider_datacurso{{/str}}:
@@ -125,7 +125,7 @@
                     </select>
                 </div>
 
-                <!-- Filtro: Ir a página -->
+                <!-- Filer: Go to page -->
                 <div class="col-lg-auto col-md-3 col-6 mb-2 mb-lg-0 pl-lg-2">
                     <label for="filter-page" class="form-label font-weight-bold small mb-1 d-block">
                         {{#str}}gotopage, aiprovider_datacurso{{/str}}:
@@ -133,7 +133,7 @@
                     <input type="number" id="filter-page" min="1" class="form-control">
                 </div>
 
-                <!-- Información de página -->
+                <!-- Information page -->
                 <div class="col-lg col-md-12 col-12 mb-2 mb-lg-0">
                     <div class="text-lg-right text-md-center text-center">
                         <span id="page-info" class="text-muted font-weight-bold"></span>

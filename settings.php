@@ -51,7 +51,7 @@ if ($hassiteconfig) {
     ));
 
     $ADMIN->add('reports', new admin_externalpage(
-        'aiprovider_datacurso_reports', // Identificador único.
+        'aiprovider_datacurso_reports',
         get_string('link_generalreport_datacurso', 'aiprovider_datacurso'),
         new moodle_url('/ai/provider/datacurso/admin/report_sections.php'),
         'moodle/site:config'

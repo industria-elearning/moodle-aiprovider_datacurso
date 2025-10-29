@@ -15,27 +15,13 @@
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
 {{!
-    @template aiprovider_datacurso/header_logo
+    @template aiprovider_datacurso/consumption_nodata
 
-    Display plugin header with optional Datacurso logo.
+    TODO describe template consumption_nodata
 
     Example context (json):
     {
-        "pluginname": "Datacurso AI Provider",
-        "logourl": "https://datacurso.com/logo.png"
     }
 }}
 
-<div class="datacurso-header d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-    {{#pluginname}}
-        <h2 class="m-0">{{.}}</h2>
-    {{/pluginname}}
-    {{^pluginname}}
-        <h2 class="m-0">Datacurso AI</h2>
-    {{/pluginname}}
-    {{#logourl}}
-        <a href="https://datacurso.com/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center">
-            <img src="{{.}}" alt="Icon Datacurso" style="height:35px;">
-        </a>
-    {{/logourl}}
-</div>
+<tr><td colspan="7" class="text-center text-danger">{{#str}}nodata, aiprovider_datacurso{{/str}}</td></tr>

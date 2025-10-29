@@ -14,6 +14,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Web service for retrieving token consumption history.
+ *
+ * @package    aiprovider_datacurso
+ * @category   external
+ * @copyright  2025 Industria Elearning
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 namespace aiprovider_datacurso\external;
 
 defined('MOODLE_INTERNAL') || die();
@@ -27,9 +36,10 @@ use external_multiple_structure;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service to retrieve token consumption history.
+ * External web service to fetch Datacurso API consumption history.
  *
  * @package    aiprovider_datacurso
+ * @category   external
  * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -41,16 +51,15 @@ class get_consumption_history extends \external_api {
      */
     public static function execute_parameters() {
         return new external_function_parameters([
-            // All optional parameters must be declared with VALUE_DEFAULT to avoid reordering by Moodle.
             'page' => new external_value(PARAM_INT, 'Page number', VALUE_DEFAULT, 1),
             'limit' => new external_value(PARAM_INT, 'Results per page', VALUE_DEFAULT, 10),
             'userid' => new external_value(PARAM_INT, 'User ID', VALUE_DEFAULT, 0),
-            'servicio' => new external_value(PARAM_TEXT, 'Service ID', VALUE_DEFAULT, ''),
-            'accion' => new external_value(PARAM_TEXT, 'Action name', VALUE_DEFAULT, ''),
-            'fechadesde' => new external_value(PARAM_TEXT, 'Start date', VALUE_DEFAULT, ''),
-            'fechahasta' => new external_value(PARAM_TEXT, 'End date', VALUE_DEFAULT, ''),
-            'short' => new external_value(PARAM_TEXT, 'Field to order', VALUE_DEFAULT, ''),
-            'shortdir' => new external_value(PARAM_TEXT, 'Direction asc or desc', VALUE_DEFAULT, ''),
+            'service' => new external_value(PARAM_TEXT, 'Service ID', VALUE_DEFAULT, ''),
+            'action' => new external_value(PARAM_TEXT, 'Action name', VALUE_DEFAULT, ''),
+            'fromdate' => new external_value(PARAM_TEXT, 'Start date', VALUE_DEFAULT, ''),
+            'todate' => new external_value(PARAM_TEXT, 'End date', VALUE_DEFAULT, ''),
+            'shor' => new external_value(PARAM_TEXT, 'Field to order', VALUE_DEFAULT, ''),
+            'shordir' => new external_value(PARAM_TEXT, 'Order direction (asc or desc)', VALUE_DEFAULT, ''),
         ]);
     }
 
@@ -60,123 +69,115 @@ class get_consumption_history extends \external_api {
      * @param int $page
      * @param int $limit
      * @param int|null $userid
-     * @param string|null $servicio
-     * @param string|null $accion
-     * @param string|null $fechadesde
-     * @param string|null $fechahasta
-     * @param string|null $short
-     * @param string|null $shortdir
+     * @param string|null $service
+     * @param string|null $action
+     * @param string|null $fromdate
+     * @param string|null $todate
+     * @param string|null $shor
+     * @param string|null $shordir
      * @return array
      */
     public static function execute(
         $page = 1,
         $limit = 10,
         $userid = null,
-        $servicio = null,
-        $accion = null,
-        $fechadesde = null,
-        $fechahasta = null,
-        $short = null,
-        $shortdir = null
+        $service = null,
+        $action = null,
+        $fromdate = null,
+        $todate = null,
+        $shor = null,
+        $shordir = null
     ) {
-        global $USER;
+        $params = self::validate_parameters(self::execute_parameters(), [
+            'page' => $page,
+            'limit' => $limit,
+            'userid' => $userid,
+            'service' => $service,
+            'action' => $action,
+            'fromdate' => $fromdate,
+            'todate' => $todate,
+            'shor' => $shor,
+            'shordir' => $shordir,
+        ]);
 
-        // Ensure page and limit have valid values.
-        $page = (empty($page) || $page < 1) ? 1 : (int)$page;
-        $limit = (empty($limit) || $limit < 1) ? 10 : (int)$limit;
+        $page = max(1, (int)$params['page']);
+        $limit = max(1, (int)$params['limit']);
+
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
 
         $client = new datacurso_api();
 
-        // Base request parameters.
-        $params = [
+        // Prepare query parameters for API request.
+        $queryparams = [
             'page' => $page,
             'limit' => $limit,
+            'userid' => $params['userid'],
+            'servicio' => $params['service'],
+            'accion' => $params['action'],
+            'fecha_desde' => $params['fromdate'],
+            'fecha_hasta' => $params['todate'],
+            'shor' => $params['shor'],
+            'shordir' => $params['shordir'],
         ];
 
-        if (!empty($userid)) {
-            $params['userid'] = $userid;
-        }
-
-        if (!empty($servicio)) {
-            $params['servicio'] = $servicio;
-        }
-
-        if (!empty($accion) && $accion !== 'all') {
-            $params['accion'] = $accion;
-        }
-
-        if (!empty($fechadesde)) {
-            $params['fecha_desde'] = $fechadesde;
-        }
-
-        if (!empty($fechahasta)) {
-            $params['fecha_hasta'] = $fechahasta;
-        }
-
-        if (!empty($short)) {
-            $params['shor'] = $short;
-        }
-
-        if (!empty($shortdir)) {
-            $params['shor_dir'] = $shortdir;
-        }
-
         try {
-            // Call to external API endpoint.
-            $response = $client->get('/tokens/historial-consumos', $params);
+            // Perform API request.
+            $response = $client->get('/tokens/historial-consumos', $queryparams);
 
             if (isset($response['status']) && $response['status'] === 'success') {
-                $usuarios = $response['usuarios'] ?? [];
-                $consumos = [];
+                $users = $response['usuarios'] ?? [];
+                $consumptions = [];
 
-                // Obtener las acciones disponibles del provider para traducir sus IDs.
+                // Get available actions from provider.
                 $actions = \aiprovider_datacurso\provider::get_actions();
                 $actionmap = [];
+
                 foreach ($actions as $a) {
                     $actionmap[$a['id']] = $a['name'];
                 }
 
-                foreach ($usuarios as $usuario) {
-                    if (!empty($usuario['consumos'])) {
-                        foreach ($usuario['consumos'] as $consumo) {
-                            $accionid = $consumo['accion'] ?? '';
-                            $accioname = $actionmap[$accionid] ?? $accionid;
-                            $consumos[] = [
-                                'id_consumption' => $consumo['id_consumo'] ?? 0,
-                                'userid' => $consumo['userid'] ?? 0,
-                                'action' => $accioname,
-                                'id_service' => $consumo['id_servicio'] ?? '',
-                                'cant_tokens' => $consumo['cantidad_tokens'] ?? 0,
-                                'balance' => $consumo['saldo_restante'] ?? 0,
-                                'date' => $consumo['created_at'] ?? '',
+                foreach ($users as $user) {
+                    if (!empty($user['consumos'])) {
+                        foreach ($user['consumos'] as $consumption) {
+                            $actionid = $consumption['accion'] ?? '';
+                            $actionname = $actionmap[$actionid] ?? $actionid;
+
+                            $consumptions[] = [
+                                'id_consumption' => $consumption['id_consumo'] ?? 0,
+                                'userid' => $consumption['userid'] ?? 0,
+                                'action' => $actionname,
+                                'id_service' => $consumption['id_servicio'] ?? '',
+                                'cant_tokens' => $consumption['cantidad_tokens'] ?? 0,
+                                'balance' => $consumption['saldo_restante'] ?? 0,
+                                'date' => $consumption['created_at'] ?? '',
                             ];
                         }
                     }
                 }
 
-                // Adapt pagination keys according to external API.
+                // Pagination normalization.
                 $pagination = $response['pagination'] ?? $response['paginacion'] ?? [];
 
                 return [
                     'status' => 'success',
-                    'consumption' => $consumos,
+                    'consumption' => $consumptions,
                     'pagination' => [
                         'current_page' => $pagination['current_page'] ?? $pagination['pagina_actual'] ?? $page,
                         'limit' => $pagination['limit'] ?? $pagination['limite'] ?? $limit,
-                        'total' => $pagination['total'] ?? count($consumos),
+                        'total' => $pagination['total'] ?? count($consumptions),
                         'total_pages' => $pagination['total_pages'] ?? $pagination['total_paginas'] ?? 1,
                     ],
                 ];
             }
 
-            // No valid results found.
             return [
                 'status' => 'error',
-                'message' => 'No se encontraron datos de consumo',
+                'message' => get_string('nodata', 'aiprovider_datacurso'),
                 'consumption' => [],
             ];
         } catch (\Exception $e) {
-            // Connection or response error.
             return [
                 'status' => 'error',
                 'message' => $e->getMessage(),

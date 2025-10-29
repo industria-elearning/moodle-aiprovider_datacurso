@@ -24,43 +24,50 @@
 /* eslint-disable */
 import Ajax from 'core/ajax';
 import Chart from 'core/chartjs';
+import { get_string as getString } from 'core/str';
 
-export const init = () => {
+export const init = async() => {
+
+    //strings
+    const date = await getString('date', 'core');
+    const creditsConsumedMonth = await getString('tokensconsumedmonth', 'aiprovider_datacurso');
+    const creditsConsumedDay = await getString('tokensconsumedday', 'aiprovider_datacurso');
+    const creditsConsumed = await getString('tokensconsumed', 'aiprovider_datacurso');
+
     const tokensAvailable = document.getElementById('tokens-available');
     const tokensConsumed = document.getElementById('tokens-consumed');
 
     let chartBar, chartPie, chartDay;
-    let cachedData = []; // data global
+    let cachedData = [];
 
     // call init 
     Promise.all([
-        Ajax.call([{ methodname: 'aiprovider_datacurso_get_tokens_saldo', args: {} }])[0],
+        Ajax.call([{ methodname: 'aiprovider_datacurso_get_credits_balance', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_all_consumption', args: {} }])[0],
     ])
-        .then(([saldoResponse, servicesResponse, consumptionResponse]) => {
+        .then(([balanceResponse, servicesResponse, consumptionResponse]) => {
 
-            const saldo = saldoResponse?.saldo_actual || 0;
-            tokensAvailable.textContent = saldo;
+            const balance = balanceResponse?.balance || 0;
+            tokensAvailable.textContent = balance;
 
-            const servicios = servicesResponse?.services || [];
+            const services = servicesResponse?.services || [];
             cachedData = consumptionResponse?.consumption || []; // data global first
 
-            initCharts(servicios);
+            initCharts(services);
 
         }).catch(err => console.error("Error:", err));
 
     // init grafic
-    const initCharts = (servicios) => {
+    const initCharts = (services) => {
         const filterBar = document.getElementById('filter-service-bar');
         const filterPie = document.getElementById('filter-service-pie');
         const filterStart = document.getElementById('filter-start-date');
         const filterEnd = document.getElementById('filter-end-date');
 
         const fillSelect = (select) => {
-            select.innerHTML = '<option value="">Todos</option>';
-            if (servicios?.length) {
-                servicios.forEach(s => {
+            if (services?.length) {
+                services.forEach(s => {
                     const opt = document.createElement('option');
                     opt.value = s.name;
                     opt.textContent = s.name;
@@ -72,12 +79,12 @@ export const init = () => {
         fillSelect(filterBar);
         fillSelect(filterPie);
 
-        // Render inicial usando cachedData
+        // Render init used cachedData
         renderBarChart(cachedData);
         renderPieChart(cachedData);
         renderDayChart(cachedData);
 
-        // Listeners de filtros
+        // Listeners filters
         filterBar.addEventListener('change', () => updateBarChart());
         filterPie.addEventListener('change', () => updatePieChart());
         filterStart.addEventListener('change', () => updateDayChart());
@@ -87,10 +94,10 @@ export const init = () => {
     // functions ws
     const fetchConsumptionData = async (params = {}) => {
         const defaults = {
-            servicio: "",
-            accion: "",
-            fechadesde: "",
-            fechahasta: ""
+            service: "",
+            action: "",
+            fromdate: "",
+            todate: ""
         };
         const finalParams = { ...defaults, ...params };
 
@@ -101,18 +108,18 @@ export const init = () => {
             }])[0];
 
             if (response.status !== 'success') {
-                console.warn("⚠️ WS devolvió estado:", response.status);
+                console.warn("The WS return status:", response.status);
                 return [];
             }
             return response.consumption || [];
 
         } catch (error) {
-            console.error("❌ Error al obtener consumos:", error);
+            console.error("Error to get data:", error);
             return [];
         }
     };
 
-    // grafic barra
+    // grafic bar
     const renderBarChart = (data) => {
         const byMonth = {};
         data.forEach(c => {
@@ -131,7 +138,7 @@ export const init = () => {
             data: {
                 labels: Object.keys(byMonth),
                 datasets: [{
-                    label: 'Tokens consumidos por mes',
+                    label: creditsConsumedMonth,
                     data: Object.values(byMonth),
                     backgroundColor: '#0073e6',
                 }]
@@ -141,14 +148,13 @@ export const init = () => {
     };
 
     const updateBarChart = async () => {
-        const servicio = document.getElementById('filter-service-bar').value;
-        if (!servicio) return renderBarChart(cachedData); // usa la cache si no hay filtro
-
-        const data = await fetchConsumptionData({ servicio });
+        const service = document.getElementById('filter-service-bar').value;
+        if (!service) return renderBarChart(cachedData);
+        const data = await fetchConsumptionData({ service});
         renderBarChart(data);
     };
 
-    // grafic pai
+    // grafic pie
     const renderPieChart = (data) => {
         const byAction = {};
         data.forEach(c => {
@@ -186,10 +192,10 @@ export const init = () => {
     };
 
     const updatePieChart = async () => {
-        const servicio = document.getElementById('filter-service-pie').value;
-        if (!servicio) return renderPieChart(cachedData);
+        const service = document.getElementById('filter-service-pie').value;
+        if (!service ) return renderPieChart(cachedData);
 
-        const data = await fetchConsumptionData({ servicio });
+        const data = await fetchConsumptionData({ service });
         renderPieChart(data);
     };
 
@@ -212,7 +218,7 @@ export const init = () => {
             data: {
                 labels,
                 datasets: [{
-                    label: 'Tokens consumidos por día',
+                    label: creditsConsumedDay,
                     data: values,
                     borderColor: '#28a745',
                     backgroundColor: 'rgba(40,167,69,0.2)',
@@ -227,20 +233,20 @@ export const init = () => {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { title: { display: true, text: 'Fecha' } },
-                    y: { title: { display: true, text: 'Tokens consumidos' }, beginAtZero: true }
+                    x: { title: { display: true, text: date} },
+                    y: { title: { display: true, text: creditsConsumed }, beginAtZero: true }
                 }
             }
         });
     };
 
     const updateDayChart = async () => {
-        const fechadesde = document.getElementById('filter-start-date').value;
-        const fechahasta = document.getElementById('filter-end-date').value;
+        const fromdate = document.getElementById('filter-start-date').value;
+        const todate = document.getElementById('filter-end-date').value;
 
-        if (!fechadesde && !fechahasta) return renderDayChart(cachedData);
+        if (!fromdate && !todate) return renderDayChart(cachedData);
 
-        const data = await fetchConsumptionData({ fechadesde, fechahasta });
+        const data = await fetchConsumptionData({ fromdate, todate });
         renderDayChart(data);
     };
 };

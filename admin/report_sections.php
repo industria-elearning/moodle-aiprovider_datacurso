@@ -15,23 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe file report_sections
+ * Admin report sections for Datacurso AI Provider plugin.
+ *
+ * This file manages the main administrative report sections of the
+ * Datacurso AI Provider plugin. It renders tabs for:
+ * - AI consumption history
+ * - General usage report
+ * - Installed plugins list
  *
  * @package    aiprovider_datacurso
- * @copyright  2025 Industria Elearning <info@industriaelearning.com>
+ * @category   admin
+ * @copyright  2025 Industria Elearning
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../../../config.php');
-require_login();
 
+// Ensure the user is logged in and has permission to access this page.
 $context = context_system::instance();
+require_login();
+require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
+
+// Set up page context and layout.
 $PAGE->set_context($context);
 $PAGE->set_url(new moodle_url('/ai/provider/datacurso/admin/report_sections.php'));
 $PAGE->set_pagelayout('report');
 
-$tab = optional_param('tab', 'consumption', PARAM_ALPHA);
+// Get the current tab parameter.
+$tab = optional_param('tab', 'consumption', PARAM_ALPHAEXT);
 
+// Define tabs for navigation.
 $tabs = [];
 $tabs[] = new tabobject(
     'consumption',
@@ -51,28 +64,36 @@ $tabs[] = new tabobject(
     get_string('link_listplugings', 'aiprovider_datacurso')
 );
 
-$output = $PAGE->get_renderer('core');
-echo $output->header();
-$headerlogo = new \aiprovider_datacurso\output\header_logo();
-echo $output->render($headerlogo);
-echo $output->tabtree($tabs, $tab);
+// Render page header and navigation.
+echo $OUTPUT->header();
 
-// Contenido según pestaña.
+// Render custom header logo output.
+$headerlogo = new \aiprovider_datacurso\output\header_logo();
+echo $OUTPUT->render($headerlogo);
+
+// Render tab navigation.
+echo $OUTPUT->tabtree($tabs, $tab);
+
+// Load tab content.
 switch ($tab) {
     case 'consumption':
+        // Render AI consumption history page.
         $page = new \aiprovider_datacurso\output\consumption_page();
-        echo $output->render($page);
+        echo $OUTPUT->render($page);
         $PAGE->requires->js_call_amd('aiprovider_datacurso/consumption', 'init');
         break;
 
     case 'generalreport':
+        // Render general statistics and charts.
         $page = new \aiprovider_datacurso\output\report_page();
-        echo $output->render($page);
+        echo $OUTPUT->render($page);
         $PAGE->requires->js_call_amd('aiprovider_datacurso/report_charts', 'init');
         break;
 
     case 'pluginslist':
+        // List of compatible AI-related plugins.
         global $DB;
+
         $pluginslist = [
             [
                 'name' => get_string('pluginname_coursegen', 'aiprovider_datacurso'),
@@ -124,7 +145,7 @@ switch ($tab) {
             ],
         ];
 
-
+        // Check installed status of each plugin.
         foreach ($pluginslist as &$plugin) {
             $plugin['installed'] = $DB->record_exists('config_plugins', [
                 'plugin' => $plugin['component'],
@@ -134,8 +155,9 @@ switch ($tab) {
         unset($plugin);
 
         $page = new \aiprovider_datacurso\output\plugin_list_page($pluginslist);
-        echo $output->render($page);
+        echo $OUTPUT->render($page);
         break;
 }
 
-echo $output->footer();
+// Render page footer.
+echo $OUTPUT->footer();

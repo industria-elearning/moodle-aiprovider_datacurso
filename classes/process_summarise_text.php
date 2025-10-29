@@ -27,7 +27,7 @@ use Psr\Http\Message\UriInterface;
  */
 class process_summarise_text extends process_generate_text {
     /**
-     * Endpoint del servicio (igual que el de generación de texto).
+     * Endpoint of service(its like of generate text).
      */
     #[\Override]
     protected function get_endpoint(): UriInterface {
@@ -35,7 +35,7 @@ class process_summarise_text extends process_generate_text {
     }
 
     /**
-     * Instrucción del sistema específica para resúmenes.
+     * System instructions specific for summarys.
      */
     #[\Override]
     protected function build_request_body(string $userid): array {

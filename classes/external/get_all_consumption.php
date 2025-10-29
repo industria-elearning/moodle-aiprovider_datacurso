@@ -27,7 +27,7 @@ use external_value;
 use aiprovider_datacurso\httpclient\datacurso_api;
 
 /**
- * Web service to get all consumption history from the Datacurso API.
+ * External web service to fetch all Datacurso API consumption history.
  *
  * @package    aiprovider_datacurso
  * @category   external
@@ -35,73 +35,92 @@ use aiprovider_datacurso\httpclient\datacurso_api;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class get_all_consumption extends external_api {
+
     /**
-     * Parameters definition.
+     * Defines input parameters.
      *
      * @return external_function_parameters
      */
-    public static function execute_parameters() {
+    public static function execute_parameters(): external_function_parameters {
         return new external_function_parameters([
-            'servicio' => new external_value(PARAM_TEXT, 'Service filter', VALUE_OPTIONAL),
-            'accion' => new external_value(PARAM_TEXT, 'Action filter', VALUE_OPTIONAL),
-            'fechadesde' => new external_value(PARAM_RAW, 'Start date (YYYY-MM-DD)', VALUE_OPTIONAL),
-            'fechahasta' => new external_value(PARAM_RAW, 'End date (YYYY-MM-DD)', VALUE_OPTIONAL),
+            'service' => new external_value(PARAM_TEXT, 'Service filter', VALUE_OPTIONAL),
+            'action' => new external_value(PARAM_TEXT, 'Action filter', VALUE_OPTIONAL),
+            'fromdate' => new external_value(PARAM_RAW, 'Start date (YYYY-MM-DD)', VALUE_OPTIONAL),
+            'todate' => new external_value(PARAM_RAW, 'End date (YYYY-MM-DD)', VALUE_OPTIONAL),
         ]);
     }
 
     /**
-     * Execute the WS to fetch all consumptions.
+     * Executes the web service to retrieve all consumption records.
      *
-     * @param string|null $servicio Service filter.
-     * @param string|null $accion Action filter.
-     * @param string|null $fechadesde Start date (YYYY-MM-DD).
-     * @param string|null $fechahasta End date (YYYY-MM-DD).
-     * @return array The result including total and consumptions list.
+     * @param string|null $service Service filter.
+     * @param string|null $action Action filter.
+     * @param string|null $fromdate Start date (YYYY-MM-DD).
+     * @param string|null $todate End date (YYYY-MM-DD).
+     * @return array Returns the status, total, and list of consumption records.
      */
-    public static function execute($servicio = null, $accion = null, $fechadesde = null, $fechahasta = null) {
+    public static function execute(
+        ?string $service = null,
+        ?string $action = null,
+        ?string $fromdate = null,
+        ?string $todate = null
+    ): array {
+        $params = self::validate_parameters(self::execute_parameters(), [
+            'service' => $service,
+            'action' => $action,
+            'fromdate' => $fromdate,
+            'todate' => $todate,
+        ]);
+
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
+
         $client = new datacurso_api();
 
-        $params = [
+        // Step 1. Lightweight request to get pagination info only.
+        $queryparams = [
             'page' => 1,
-            'limit' => 1,
+            'limit' => 1, // Only to retrieve total count, not full dataset.
         ];
 
-        if (!empty($servicio) && $servicio !== 'all') {
-            $params['servicio'] = $servicio;
+        // Apply filters only if needed.
+        if (!empty($params['service']) && $params['service'] !== 'all') {
+            $queryparams['servicio'] = $params['service'];
         }
-        if (!empty($accion) && $accion !== 'all') {
-            $params['accion'] = $accion;
+        if (!empty($params['action']) && $params['action'] !== 'all') {
+            $queryparams['accion'] = $params['action'];
         }
-        if (!empty($fechadesde)) {
-            $params['fecha_desde'] = $fechadesde;
+        if (!empty($params['fromdate'])) {
+            $queryparams['fecha_desde'] = $params['fromdate'];
         }
-        if (!empty($fechahasta)) {
-            $params['fecha_hasta'] = $fechahasta;
+        if (!empty($params['todate'])) {
+            $queryparams['fecha_hasta'] = $params['todate'];
         }
 
-        $firstresponse = $client->get('/tokens/historial-consumos', $params);
+        $firstresponse = $client->get('/tokens/historial-consumos', $queryparams);
 
         if (empty($firstresponse) || $firstresponse['status'] !== 'success') {
             return [
                 'status' => 'error',
-                'message' => 'No se pudo obtener la información inicial.',
+                'message' => get_string('errorinitinformation', 'aiprovider_datacurso'),
             ];
         }
 
-        // Step 2. Get total records and setup pagination.
+        // Step 2. Get total records and calculate total pages.
         $pagination = $firstresponse['paginacion'] ?? [];
         $totalrecords = (int)($pagination['total'] ?? 0);
-        $limitperpage = 50; // Tamaño por página.
+        $limitperpage = 50;
         $totalpages = ceil($totalrecords / $limitperpage);
 
         $allconsumptions = [];
 
-        // Step 3. Fetch all pages.
+        // Step 3. Fetch all pages sequentially.
         for ($page = 1; $page <= $totalpages; $page++) {
-            $params['page'] = $page;
-            $params['limit'] = $limitperpage;
+            $queryparams['page'] = $page;
+            $queryparams['limit'] = $limitperpage;
 
-            $response = $client->get('/tokens/historial-consumos', $params);
+            $response = $client->get('/tokens/historial-consumos', $queryparams);
 
             if (empty($response) || $response['status'] !== 'success') {
                 continue;
@@ -110,12 +129,14 @@ class get_all_consumption extends external_api {
             $userdata = $response['usuarios'][0] ?? null;
             $consumptions = $userdata['consumos'] ?? [];
 
+            // Build a map of action names for translation.
             $actions = \aiprovider_datacurso\provider::get_actions();
             $actionmap = [];
             foreach ($actions as $a) {
-                    $actionmap[$a['id']] = $a['name'];
+                $actionmap[$a['id']] = $a['name'];
             }
 
+            // Collect and normalize consumption data.
             foreach ($consumptions as $item) {
                 $rawaction = (string)($item['accion'] ?? '');
                 $translatedaction = $actionmap[$rawaction] ?? $rawaction;
@@ -140,24 +161,24 @@ class get_all_consumption extends external_api {
     }
 
     /**
-     * Returns structure.
+     * Defines the return structure.
      *
      * @return external_single_structure
      */
-    public static function execute_returns() {
+    public static function execute_returns(): external_single_structure {
         return new external_single_structure([
-            'status' => new external_value(PARAM_TEXT, 'Estado de la petición (success/error)'),
-            'total' => new external_value(PARAM_INT, 'Total de consumos encontrados'),
+            'status' => new external_value(PARAM_TEXT, 'Request status (success/error)'),
+            'total' => new external_value(PARAM_INT, 'Total number of consumption records found'),
             'consumption' => new external_multiple_structure(
                 new external_single_structure([
-                    'id_consumption' => new external_value(PARAM_INT, 'ID del consumo'),
-                    'action' => new external_value(PARAM_TEXT, 'Acción realizada'),
-                    'id_service' => new external_value(PARAM_TEXT, 'Servicio usado'),
-                    'userid' => new external_value(PARAM_INT, 'ID del usuario en Moodle', VALUE_OPTIONAL),
-                    'cant_tokens' => new external_value(PARAM_INT, 'Cantidad de tokens consumidos'),
-                    'balance' => new external_value(PARAM_INT, 'Saldo restante del usuario'),
-                    'date' => new external_value(PARAM_RAW, 'Fecha del consumo (YYYY-MM-DD)'),
-                    'created_at' => new external_value(PARAM_RAW, 'Fecha de creación del registro en la API'),
+                    'id_consumption' => new external_value(PARAM_INT, 'Consumption record ID'),
+                    'action' => new external_value(PARAM_TEXT, 'Performed action'),
+                    'id_service' => new external_value(PARAM_TEXT, 'Used service'),
+                    'userid' => new external_value(PARAM_INT, 'Moodle user ID', VALUE_OPTIONAL),
+                    'cant_tokens' => new external_value(PARAM_INT, 'Number of tokens consumed'),
+                    'balance' => new external_value(PARAM_INT, 'Remaining token balance'),
+                    'date' => new external_value(PARAM_RAW, 'Consumption date (YYYY-MM-DD)'),
+                    'created_at' => new external_value(PARAM_RAW, 'Record creation date in the API'),
                 ])
             ),
         ]);
