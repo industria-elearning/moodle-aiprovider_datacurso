@@ -24,24 +24,21 @@
     }
 }}
 
-<tbody>
-    {{#consumptions}}
+{{#consumptions}}
+<tr>
+    <td>{{id_consumption}}</td>
+    <td>{{#userid}}{{userid}}{{/userid}}{{^userid}}-{{/userid}}</td>
+    <td>{{action}}</td>
+    <td>{{id_service}}</td>
+    <td>{{cant_tokens}}</td>
+    <td>{{balance}}</td>
+    <td>{{date}}</td>
+</tr>
+{{/consumptions}}
+{{^consumptions}}
     <tr>
-        <td>{{id_consumption}}</td>
-        <td>{{#userid}}{{userid}}{{/userid}}{{^userid}}-{{/userid}}</td>
-        <td>{{action}}</td>
-        <td>{{id_service}}</td>
-        <td>{{cant_tokens}}</td>
-        <td>{{balance}}</td>
-        <td>{{date}}</td>
+        <td colspan="7" class="text-center text-danger">
+            {{#str}}nodata, aiprovider_datacurso{{/str}}
+        </td>
     </tr>
-    {{/consumptions}}
-    {{^consumptions}}
-        <tr>
-            <td colspan="7" class="text-center text-danger">
-                {{#str}}nodata, aiprovider_datacurso{{/str}}
-            </td>
-        </tr>
-    {{/consumptions}}
-</tbody>
-
+{{/consumptions}}
