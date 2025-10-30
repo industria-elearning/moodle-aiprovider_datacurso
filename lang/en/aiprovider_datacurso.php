@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Insufficient AI credits. Please visit <a href="htt
 $string['of'] = 'of';
 $string['orgid'] = 'Organization ID';
 $string['orgid_desc'] = 'Enter the identifier of your organization in the Datacurso service.';
+$string['pageinfo'] = 'Page {$a->current} of {$a->totalpages} ({$a->total} records)';
 $string['pending'] = 'Pending';
 $string['plugin'] = 'Plugin';
 $string['plugindesc_assign_ai'] = 'Review assignments with AI assistance.';

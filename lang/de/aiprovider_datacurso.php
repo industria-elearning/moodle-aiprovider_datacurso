@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Unzureichende KI-Kredite. Bitte besuchen Sie <a hr
 $string['of'] = 'von';
 $string['orgid'] = 'Organisations-ID';
 $string['orgid_desc'] = 'Geben Sie die Kennung Ihrer Organisation im Datacurso-Dienst ein.';
+$string['pageinfo'] = 'Seite {$a->current} von {$a->totalpages} ({$a->total} Einträge)';
 $string['pending'] = 'Ausstehend';
 $string['plugin'] = 'Plugin';
 $string['plugindesc_assign_ai'] = 'Aufgaben mit KI-Unterstützung bewerten.';

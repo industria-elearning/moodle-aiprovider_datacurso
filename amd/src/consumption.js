@@ -21,20 +21,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/* eslint-disable */
 import Ajax from 'core/ajax';
 import { get_string as getString } from 'core/str';
 import Templates from 'core/templates';
+import Notification from 'core/notification';
 
 export const init = async () => {
 
-    // Strings
-    const page = await getString('page', 'core');
-    const of = await getString('of', 'aiprovider_datacurso');
-    const registers = await getString('registers', 'aiprovider_datacurso');
-
     // Elements DOM
-    const tableBody = document.getElementById('consumption-table-body');
     const filterService = document.getElementById('filter-service');
     const filterAction = document.getElementById('filter-action');
     const filterFrom = document.getElementById('filter-date-from');
@@ -74,7 +68,8 @@ export const init = async () => {
                 });
             }
         } catch (error) {
-            console.error("Error loading services:", error);
+            Notification.exception(error);
+            return [];
         }
     };
 
@@ -94,28 +89,28 @@ export const init = async () => {
                 });
             }
         } catch (error) {
-            console.error("Error loading actions:", error);
+            Notification.exception(error);
+            return [];
         }
     };
 
     const renderTable = async (listconsumptions) => {
         const tableBody = document.getElementById('consumption-table-body');
-
+        const context = { consumptions: listconsumptions };
         try {
             if (!listconsumptions || listconsumptions.length === 0) {
-                const nodata = await Templates.render('aiprovider_datacurso/consumption_nodata', {});
+                const nodata = await Templates.render('aiprovider_datacurso/consumption_row', context);
                 tableBody.innerHTML = nodata;
                 return;
             }
 
-            const context = { consumptions: listconsumptions };
             const html = await Templates.render('aiprovider_datacurso/consumption_row', context);
 
             tableBody.innerHTML = html;
 
         } catch (error) {
-            console.error('Error rendering table:', error, error.stack);
-            const nodata = await Templates.render('aiprovider_datacurso/consumption_nodata', {});
+            Notification.exception(error);
+            const nodata = await Templates.render('aiprovider_datacurso/consumption_row', context);
             tableBody.innerHTML = nodata;
         }
     };
@@ -144,7 +139,7 @@ export const init = async () => {
         Ajax.call([{
             methodname: 'aiprovider_datacurso_get_consumption_history',
             args: args
-        }])[0].then(response => {
+        }])[0].then(async (response) => {
 
             const consumptions = response?.consumption || [];
             renderTable(consumptions);
@@ -152,10 +147,15 @@ export const init = async () => {
             const pagination = response?.pagination;
             if (pagination) {
                 const { current_page, total_pages, total } = pagination;
-                pageInfo.textContent = `${page} ${current_page} ${of} ${total_pages} (${total} ${registers})`;
-
-                if (pageInput) pageInput.value = current_page;
-
+                const pageInfoText = await getString('pageinfo', 'aiprovider_datacurso', {
+                    current: current_page,
+                    totalpages: total_pages,
+                    total: total
+                });
+                pageInfo.textContent = pageInfoText;
+                if (pageInput) {
+                    pageInput.value = current_page;
+                }
                 prevPageBtn.disabled = current_page <= 1;
                 nextPageBtn.disabled = current_page >= total_pages;
             } else {
@@ -164,10 +164,9 @@ export const init = async () => {
                 nextPageBtn.disabled = true;
             }
         })
-            .catch(async (e) => {
-                const nodata = await Templates.render('aiprovider_datacurso/consumption_nodata', {});
-                tableBody.innerHTML = nodata;
-                console.error("Error fetching data:", e);
+            .catch((error) => {
+                Notification.exception(error);
+                return [];
             });
     };
 
@@ -246,5 +245,5 @@ export const init = async () => {
     // Initial load
     Promise.all([loadServices(), loadActions()])
         .then(() => fetchData())
-        .catch(e => console.error("Error in initial load:", e));
+        .catch(Notification.exception);
 };

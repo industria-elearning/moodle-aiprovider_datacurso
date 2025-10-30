@@ -121,11 +121,11 @@ class provider extends \core_ai\provider {
             ['id' => 'local_datacurso_ratings', 'name' => 'Ranking Activities AI'],
             ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
             ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
-            ['id' => 'provider_proxy', 'name' => 'Provider IA'],
-            ['id' => 'tutor_ai', 'name' => 'Tutor AI'],
+            ['id' => 'aiprovider_datacurso', 'name' => 'Provider IA'],
+            ['id' => 'local_dttutor', 'name' => 'Tutor AI'],
             ['id' => 'local_socialcert', 'name' => 'Share Certificate AI'],
-            ['id' => 'story_life_student', 'name' => 'Student Life Story AI'],
-            ['id' => 'smart_rules', 'name' => 'SmartRules AI'],
+            ['id' => 'report_lifestory', 'name' => 'Student Life Story AI'],
+            ['id' => 'local_coursedynamicrules', 'name' => 'SmartRules AI'],
         ];
     }
 

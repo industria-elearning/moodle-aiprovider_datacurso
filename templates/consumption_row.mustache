@@ -35,3 +35,10 @@
     <td>{{date}}</td>
 </tr>
 {{/consumptions}}
+{{^consumptions}}
+    <tr>
+        <td colspan="7" class="text-center text-danger">
+            {{#str}}nodata, aiprovider_datacurso{{/str}}
+        </td>
+    </tr>
+{{/consumptions}}

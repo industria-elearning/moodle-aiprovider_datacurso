@@ -21,14 +21,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/* eslint-disable */
 import Ajax from 'core/ajax';
 import Chart from 'core/chartjs';
 import { get_string as getString } from 'core/str';
+import Notification from 'core/notification';
 
-export const init = async() => {
+export const init = async () => {
 
-    //strings
     const date = await getString('date', 'core');
     const creditsConsumedMonth = await getString('tokensconsumedmonth', 'aiprovider_datacurso');
     const creditsConsumedDay = await getString('tokensconsumedday', 'aiprovider_datacurso');
@@ -40,23 +39,19 @@ export const init = async() => {
     let chartBar, chartPie, chartDay;
     let cachedData = [];
 
-    // call init 
     Promise.all([
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_credits_balance', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_services', args: {} }])[0],
         Ajax.call([{ methodname: 'aiprovider_datacurso_get_all_consumption', args: {} }])[0],
     ])
         .then(([balanceResponse, servicesResponse, consumptionResponse]) => {
-
             const balance = balanceResponse?.balance || 0;
             tokensAvailable.textContent = balance;
-
             const services = servicesResponse?.services || [];
-            cachedData = consumptionResponse?.consumption || []; // data global first
-
+            cachedData = consumptionResponse?.consumption || [];
             initCharts(services);
-
-        }).catch(err => console.error("Error:", err));
+        })
+        .catch(Notification.exception);
 
     // init grafic
     const initCharts = (services) => {
@@ -108,13 +103,12 @@ export const init = async() => {
             }])[0];
 
             if (response.status !== 'success') {
-                console.warn("The WS return status:", response.status);
                 return [];
             }
             return response.consumption || [];
 
         } catch (error) {
-            console.error("Error to get data:", error);
+            Notification.exception(error);
             return [];
         }
     };
@@ -131,7 +125,9 @@ export const init = async() => {
         tokensConsumed.textContent = totalTokens;
 
         const ctx = document.getElementById('chart-tokens-by-month');
-        if (chartBar) chartBar.destroy();
+        if (chartBar) {
+            chartBar.destroy();
+        }
 
         chartBar = new Chart(ctx, {
             type: 'bar',
@@ -149,8 +145,10 @@ export const init = async() => {
 
     const updateBarChart = async () => {
         const service = document.getElementById('filter-service-bar').value;
-        if (!service) return renderBarChart(cachedData);
-        const data = await fetchConsumptionData({ service});
+        if (!service) {
+            return renderBarChart(cachedData);
+        }
+        const data = await fetchConsumptionData({ service });
         renderBarChart(data);
     };
 
@@ -162,7 +160,9 @@ export const init = async() => {
         });
 
         const ctx = document.getElementById('chart-actions');
-        if (chartPie) chartPie.destroy();
+        if (chartPie) {
+            chartPie.destroy();
+        }
 
         chartPie = new Chart(ctx, {
             type: 'pie',
@@ -196,7 +196,9 @@ export const init = async() => {
 
     const updatePieChart = async () => {
         const service = document.getElementById('filter-service-pie').value;
-        if (!service ) return renderPieChart(cachedData);
+        if (!service) {
+            return renderPieChart(cachedData);
+        }
 
         const data = await fetchConsumptionData({ service });
         renderPieChart(data);
@@ -214,7 +216,9 @@ export const init = async() => {
         const values = labels.map(day => byDay[day]);
 
         const ctx = document.getElementById('chart-tokens-by-day');
-        if (chartDay) chartDay.destroy();
+        if (chartDay) {
+            chartDay.destroy();
+        }
 
         chartDay = new Chart(ctx, {
             type: 'line',
@@ -236,7 +240,7 @@ export const init = async() => {
                 responsive: true,
                 maintainAspectRatio: false,
                 scales: {
-                    x: { title: { display: true, text: date} },
+                    x: { title: { display: true, text: date } },
                     y: { title: { display: true, text: creditsConsumed }, beginAtZero: true }
                 }
             }
@@ -247,7 +251,9 @@ export const init = async() => {
         const fromdate = document.getElementById('filter-start-date').value;
         const todate = document.getElementById('filter-end-date').value;
 
-        if (!fromdate && !todate) return renderDayChart(cachedData);
+        if (!fromdate && !todate) {
+            return renderDayChart(cachedData);
+        }
 
         const data = await fetchConsumptionData({ fromdate, todate });
         renderDayChart(data);

@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Créditos de IA insuficientes. Por favor, visite <
 $string['of'] = 'de';
 $string['orgid'] = 'ID da organização';
 $string['orgid_desc'] = 'Insira o identificador da sua organização no serviço Datacurso.';
+$string['pageinfo'] = 'Página {$a->current} de {$a->totalpages} ({$a->total} registros)';
 $string['pending'] = 'Pendente';
 $string['plugin'] = 'Plugin';
 $string['plugindesc_assign_ai'] = 'Revisar tarefas com assistência de IA.';

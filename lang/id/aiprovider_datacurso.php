@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Kredit AI tidak cukup. Silakan kunjungi <a href="h
 $string['of'] = 'dari';
 $string['orgid'] = 'ID organisasi';
 $string['orgid_desc'] = 'Masukkan pengenal organisasi Anda dalam layanan Datacurso.';
+$string['pageinfo'] = 'Halaman {$a->current} dari {$a->totalpages} ({$a->total} data)';
 $string['pending'] = 'Tertunda';
 $string['plugin'] = 'Plugin';
 $string['plugindesc_assign_ai'] = 'Tinjau tugas dengan bantuan AI.';

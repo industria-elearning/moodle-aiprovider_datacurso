@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Недостаточно кредитов ИИ. П
 $string['of'] = 'из';
 $string['orgid'] = 'ID организации';
 $string['orgid_desc'] = 'Введите идентификатор вашей организации в сервисе Datacurso.';
+$string['pageinfo'] = 'Страница {$a->current} из {$a->totalpages} ({$a->total} записей)';
 $string['pending'] = 'В ожидании';
 $string['plugin'] = 'Плагин';
 $string['plugindesc_assign_ai'] = 'Проверка заданий с помощью ИИ.';

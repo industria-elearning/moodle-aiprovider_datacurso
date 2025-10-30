@@ -114,6 +114,7 @@ $string['notenoughtokens'] = 'Crédits IA insuffisants. Veuillez visiter <a href
 $string['of'] = 'de';
 $string['orgid'] = 'ID d\'organisation';
 $string['orgid_desc'] = 'Entrez l\'identifiant de votre organisation dans le service Datacurso.';
+$string['pageinfo'] = 'Page {$a->current} sur {$a->totalpages} ({$a->total} enregistrements)';
 $string['pending'] = 'En attente';
 $string['plugin'] = 'Plugin';
 $string['plugindesc_assign_ai'] = 'Réviser les devoirs avec l\'assistance de l\'IA.';
