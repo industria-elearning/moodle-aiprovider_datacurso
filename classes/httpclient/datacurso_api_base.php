@@ -117,6 +117,16 @@ class datacurso_api_base {
             $path = '/' . $path;
         }
 
+        // Enforce per-user, per-service rate limit if a mapped service is resolved.
+        $serviceid = \aiprovider_datacurso\local\ratelimiter::resolve_service_for_path($path);
+        if (!empty($serviceid)) {
+            $userid = (int)($payload['userid'] ?? $USER->id);
+            $ratelimiter = new \aiprovider_datacurso\local\ratelimiter();
+            if (!$ratelimiter->check($serviceid, $userid)) {
+                throw new \moodle_exception('error_ratelimit_exceeded', 'aiprovider_datacurso');
+            }
+        }
+
         $curl = new \curl();
         $baseheaders = [
             'License-Key: ' . $this->licensekey,
