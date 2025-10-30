@@ -93,6 +93,13 @@ if ($hassiteconfig) {
             json_encode(['value' => 1, 'unit' => 'hours'])
         ));
         $settings->hide_if("aiprovider_datacurso/ratelimit_{$sid}_window", "aiprovider_datacurso/ratelimit_{$sid}_enable", 'eq', 0);
+
+        $classname = "\\aiprovider_datacurso\\local\\ratelimit\\{$sid}";
+        $iface = \aiprovider_datacurso\local\ratelimit\ratelimit_settings::class;
+        if (class_exists($classname) && is_subclass_of($classname, $iface)) {
+            $provider = new $classname();
+            $provider->add_settings($settings, $sid);
+        }
     }
 
     $ADMIN->add('reports', new admin_externalpage(
