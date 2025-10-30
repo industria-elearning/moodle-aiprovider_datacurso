@@ -16,8 +16,6 @@
 
 namespace aiprovider_datacurso\local;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Plugin-level rate limiter for Datacurso provider.
  *

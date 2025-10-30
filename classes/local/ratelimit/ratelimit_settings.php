@@ -25,8 +25,6 @@
 
 namespace aiprovider_datacurso\local\ratelimit;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Contract to contribute ratelimit settings for a given service id.
  */
