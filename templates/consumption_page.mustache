@@ -67,29 +67,9 @@
     </div>
 </div>
 
-<table class="generaltable">
-    <thead>
-        <tr>
-            <th>{{#str}}id, aiprovider_datacurso{{/str}}</th>
-            <th>{{#str}}userid, aiprovider_datacurso{{/str}}</th>
-            <th>{{#str}}action, aiprovider_datacurso{{/str}}</th>
-            <th>{{#str}}service, aiprovider_datacurso{{/str}}</th>
-            <th class="sortable" data-sort="cantidad_tokens" style="cursor:pointer;">
-                {{#str}}tokensused, aiprovider_datacurso{{/str}}
-                <i class="fa fa-sort sort-icon"></i>
-            </th>
-            <th>{{#str}}remainingtokens, aiprovider_datacurso{{/str}}</th>
-            <th class="sortable" data-sort="fecha" style="cursor:pointer;">
-            {{#str}}date, core{{/str}} <i class="fa fa-sort sort-icon"></i>
-            </th>
-        </tr>
-    </thead>
-    <tbody id="consumption-table-body">
-        <tr>
-            <td colspan="7">{{#str}}loading, core{{/str}}</td>
-        </tr>
-    </tbody>
-</table>
+<div data-region="aiprovider_datacurso/consumption-table">
+    {{> aiprovider_datacurso/consumption_row}}
+</div>
 
 <!-- Pagination Section -->
 <div class="pagination-section">

@@ -36,6 +36,7 @@ export const init = async () => {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const tableRegionSelector = '[data-region="aiprovider_datacurso/consumption-table"]';
 
     // Order
     let currentSortField = '';
@@ -51,6 +52,48 @@ export const init = async () => {
 
     const savePage = (page) => sessionStorage.setItem('consumptionPage', page);
     const saveLimit = (limit) => sessionStorage.setItem('consumptionLimit', limit);
+
+    const updateSortIndicators = () => {
+        document.querySelectorAll(`${tableRegionSelector} .sort-icon`).forEach(icon => {
+            icon.className = 'fa fa-sort sort-icon';
+        });
+
+        if (!currentSortField) {
+            return;
+        }
+
+        const activeHeader = document.querySelector(`${tableRegionSelector} [data-sort="${currentSortField}"] .sort-icon`);
+        if (activeHeader) {
+            activeHeader.className = currentSortDir === 'asc'
+                ? 'fa fa-sort-up sort-icon'
+                : 'fa fa-sort-down sort-icon';
+        }
+    };
+
+    const bindSortingHandlers = () => {
+        document.querySelectorAll(`${tableRegionSelector} .sortable`).forEach(header => {
+            header.addEventListener('click', () => {
+                const field = header.dataset.sort;
+                if (!field) {
+                    return;
+                }
+
+                if (currentSortField === field) {
+                    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortField = field;
+                    currentSortDir = 'asc';
+                }
+
+                updateSortIndicators();
+                currentPage = 1;
+                savePage(currentPage);
+                fetchData();
+            });
+        });
+
+        updateSortIndicators();
+    };
 
     const loadServices = async () => {
         try {
@@ -94,24 +137,30 @@ export const init = async () => {
         }
     };
 
-    const renderTable = async (listconsumptions) => {
-        const tableBody = document.getElementById('consumption-table-body');
-        const context = { consumptions: listconsumptions };
+    const renderTable = async (listconsumptions, {loading = false} = {}) => {
+        const container = document.querySelector(tableRegionSelector);
+        if (!container) {
+            return;
+        }
+
+        const consumptions = Array.isArray(listconsumptions) ? listconsumptions : [];
+        const context = {
+            initialized: !loading,
+            consumptions: consumptions
+        };
+
         try {
-            if (!listconsumptions || listconsumptions.length === 0) {
-                const nodata = await Templates.render('aiprovider_datacurso/consumption_row', context);
-                tableBody.innerHTML = nodata;
-                return;
-            }
-
-            const html = await Templates.render('aiprovider_datacurso/consumption_row', context);
-
-            tableBody.innerHTML = html;
-
+            const render = await Templates.renderForPromise('aiprovider_datacurso/consumption_row', context);
+            await Templates.replaceNodeContents(container, render.html, render.js);
+            bindSortingHandlers();
         } catch (error) {
             Notification.exception(error);
-            const nodata = await Templates.render('aiprovider_datacurso/consumption_row', context);
-            tableBody.innerHTML = nodata;
+            const fallback = await Templates.renderForPromise('aiprovider_datacurso/consumption_row', {
+                initialized: true,
+                consumptions: []
+            });
+            await Templates.replaceNodeContents(container, fallback.html, fallback.js);
+            bindSortingHandlers();
         }
     };
 
@@ -136,13 +185,15 @@ export const init = async () => {
             args.shordir = currentSortDir;
         }
 
+        renderTable([], {loading: true});
+
         Ajax.call([{
             methodname: 'aiprovider_datacurso_get_consumption_history',
             args: args
         }])[0].then(async (response) => {
 
             const consumptions = response?.consumption || [];
-            renderTable(consumptions);
+            await renderTable(consumptions);
 
             const pagination = response?.pagination;
             if (pagination) {
@@ -215,35 +266,10 @@ export const init = async () => {
         });
     }
 
-    // Sortable columns
-    document.querySelectorAll('.sortable').forEach(header => {
-        header.addEventListener('click', () => {
-            const field = header.dataset.sort;
-            const icon = header.querySelector('.sort-icon');
-
-            if (currentSortField === field) {
-                currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
-            } else {
-                currentSortField = field;
-                currentSortDir = 'asc';
-            }
-
-            document.querySelectorAll('.sort-icon').forEach(i => {
-                i.className = 'fa fa-sort sort-icon';
-            });
-
-            icon.className = currentSortDir === 'asc'
-                ? 'fa fa-sort-up sort-icon'
-                : 'fa fa-sort-down sort-icon';
-
-            currentPage = 1;
-            savePage(currentPage);
-            fetchData();
-        });
-    });
-
     // Initial load
     Promise.all([loadServices(), loadActions()])
         .then(() => fetchData())
         .catch(Notification.exception);
+
+    bindSortingHandlers();
 };
