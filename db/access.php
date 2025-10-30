@@ -32,7 +32,6 @@ $capabilities = [
         'archetypes' => [
             'manager' => CAP_ALLOW,
         ],
-        'clonepermissionsfrom' => 'moodle/site:config',
     ],
     // Capability to manage AI provider settings and configuration.
     'aiprovider_datacurso/datacurso:manage' => [
@@ -41,6 +40,5 @@ $capabilities = [
         'archetypes' => [
             'manager' => CAP_ALLOW,
         ],
-        'clonepermissionsfrom' => 'moodle/site:config',
     ],
 ];
