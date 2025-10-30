@@ -90,6 +90,7 @@ $functions = [
         'description' => 'Get the list of available AI services for filtering.',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
     ],
     'aiprovider_datacurso_get_actions' => [
         'classname'   => 'aiprovider_datacurso\external\get_actions',
@@ -98,5 +99,7 @@ $functions = [
         'description' => 'Get the list of available AI actions.',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
+
     ],
 ];
