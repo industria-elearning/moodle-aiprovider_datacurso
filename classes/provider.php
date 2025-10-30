@@ -117,15 +117,15 @@ class provider extends \core_ai\provider {
      */
     public static function get_services(): array {
         return [
-            ['id' => 'local_coursegen', 'name' => 'Course Creator AI'],
-            ['id' => 'local_datacurso_ratings', 'name' => 'Ranking Activities AI'],
-            ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
-            ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
-            ['id' => 'aiprovider_datacurso', 'name' => 'Provider IA'],
-            ['id' => 'local_dttutor', 'name' => 'Tutor AI'],
-            ['id' => 'local_socialcert', 'name' => 'Share Certificate AI'],
-            ['id' => 'report_lifestory', 'name' => 'Student Life Story AI'],
-            ['id' => 'local_coursedynamicrules', 'name' => 'SmartRules AI'],
+            ['id' => 'local_coursegen', 'name' => get_string('pluginname_coursegen', 'aiprovider_datacurso')],
+            ['id' => 'local_datacurso_ratings', 'name' => get_string('pluginname_datacurso_ratings', 'aiprovider_datacurso')],
+            ['id' => 'local_forum_ai', 'name' => get_string('pluginname_forum_ai', 'aiprovider_datacurso')],
+            ['id' => 'local_assign_ai', 'name' => get_string('pluginname_assign_ai', 'aiprovider_datacurso')],
+            ['id' => 'aiprovider_datacurso', 'name' => get_string('pluginname', 'aiprovider_datacurso')],
+            ['id' => 'local_dttutor', 'name' => get_string('pluginname_dttutor', 'aiprovider_datacurso')],
+            ['id' => 'local_socialcert', 'name' => get_string('pluginname_socialcert', 'aiprovider_datacurso')],
+            ['id' => 'report_lifestory', 'name' => get_string('pluginname_lifestory', 'aiprovider_datacurso')],
+            ['id' => 'local_coursedynamicrules', 'name' => get_string('pluginname_smartrules', 'aiprovider_datacurso')],
         ];
     }
 
