@@ -339,6 +339,47 @@ class ratelimiter {
     }
 
     /**
+     * Get remaining seconds until the current rate limit window resets for a user/service.
+     * Returns 0 when no record exists or when the window has already reset.
+     *
+     * @param string $serviceid
+     * @param int $userid
+     * @return int
+     */
+    public function get_time_until_next_window(string $serviceid, int $userid): int {
+        if (!$this->is_rate_limit_enabled($serviceid)) {
+            return 0;
+        }
+
+        $limit = $this->get_service_limit($serviceid);
+        if ($limit <= 0) {
+            return 0;
+        }
+
+        $windowseconds = $this->get_window_length_in_seconds($serviceid);
+        $currenttime = time();
+
+        global $DB;
+        $record = $DB->get_record('aiprovider_datacurso_rl', [
+            'userid' => $userid,
+            'serviceid' => $serviceid,
+        ]);
+
+        if (!$record) {
+            return 0;
+        }
+
+        $activewindowstart = (int)($record->windowstart ?? 0);
+        if ($activewindowstart <= 0) {
+            return 0;
+        }
+
+        $windowend = $activewindowstart + $windowseconds;
+        $remaining = $windowend - $currenttime;
+        return $remaining > 0 ? $remaining : 0;
+    }
+
+    /**
      * Compute tokens consumed within the active window.
      *
      * @param int $userid
@@ -372,13 +413,14 @@ class ratelimiter {
     /**
      * Fetch tokens for the service within the requested window.
      *
-     * @param \aiprovider_datacurso\httpclient\datacurso_api $client
-     * @param int $userid
-     * @param string $serviceid
-     * @param string|null $servicename
-     * @param int $windowstart
-     * @param int $windowend
-     * @return int
+     * @param \aiprovider_datacurso\httpclient\datacurso_api $client HTTP client used for the request.
+     * @param int $userid User identifier to filter by.
+     * @param string $serviceid Service identifier to filter consumptions.
+     * @param string|null $servicename Optional human-readable service name.
+     * @param int $windowstart Start timestamp of the rate limit window.
+     * @param int $windowend End timestamp of the rate limit window.
+     * @param string|null $actionfilter Action path to restrict consumptions, null for all.
+     * @return int Total tokens consumed within the window.
      */
     private function fetch_tokens_for_service(
         \aiprovider_datacurso\httpclient\datacurso_api $client,
@@ -417,13 +459,13 @@ class ratelimiter {
             $user = $users[0];
             $consumptions = $this->extract_consumptions_from_user($user);
             if (!empty($consumptions)) {
-                        $summary = $this->sum_tokens_from_consumptions(
-                            $consumptions,
-                            $serviceid,
-                            $servicename,
-                            $windowstart,
-                            $windowend
-                        );
+                $summary = $this->sum_tokens_from_consumptions(
+                    $consumptions,
+                    $serviceid,
+                    $servicename,
+                    $windowstart,
+                    $windowend
+                );
                 $tokens += $summary['tokens'];
                 if ($summary['stop']) {
                     break;
@@ -443,13 +485,15 @@ class ratelimiter {
     /**
      * Invoke the remote API with the selected filters.
      *
-     * @param \aiprovider_datacurso\httpclient\datacurso_api $client
-     * @param int $userid
-     * @param string|null $servicename
-     * @param string|null $actionfilter
-     * @param int $page
-     * @param int $limit
-     * @return array|null
+     * @param \aiprovider_datacurso\httpclient\datacurso_api $client HTTP client used for the call.
+     * @param int $userid User identifier to query.
+     * @param string $serviceid Service identifier to query.
+     * @param string|null $actionfilter Optional action path filter.
+     * @param int $windowstart Window start timestamp.
+     * @param int $windowend Window end timestamp.
+     * @param int $page Page number to request.
+     * @param int $limit Page size to request.
+     * @return array|null API response payload or null on failure.
      */
     private function request_consumption_page(
         \aiprovider_datacurso\httpclient\datacurso_api $client,

@@ -122,7 +122,10 @@ class datacurso_api_base {
         $userid = (int)($payload['userid'] ?? $USER->id);
         $ratelimiter = new \aiprovider_datacurso\local\ratelimiter();
         if (!$ratelimiter->precheck($serviceid, $userid)) {
-            throw new \moodle_exception('error_ratelimit_exceeded', 'aiprovider_datacurso');
+            $remaining = $ratelimiter->get_time_until_next_window((string)$serviceid, (int)$userid);
+            $retrytimestamp = time() + max(0, (int)$remaining);
+            $retryat = userdate($retrytimestamp, get_string('strftimedatetime', 'langconfig'));
+            throw new \moodle_exception('error_ratelimit_exceeded', 'aiprovider_datacurso', '', $retryat);
         }
 
         $curl = new \curl();
