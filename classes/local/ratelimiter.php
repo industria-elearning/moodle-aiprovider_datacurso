@@ -25,6 +25,57 @@ namespace aiprovider_datacurso\local;
  */
 class ratelimiter {
     /**
+     * Cached pre-check using only DB data. No remote calls. No writes.
+     *
+     * @param string|null $serviceid Service identifier such as 'local_coursegen'.
+     * @param int $userid Moodle user id.
+     * @return bool True when the request is allowed, false when the limit is exceeded.
+     */
+    public function precheck(?string $serviceid, int $userid): bool {
+        if (empty($serviceid)) {
+            return true;
+        }
+
+        if (!$this->is_rate_limit_enabled($serviceid)) {
+            return true;
+        }
+
+        $limit = $this->get_service_limit($serviceid);
+        if ($limit <= 0) {
+            return true;
+        }
+
+        $windowseconds = $this->get_window_length_in_seconds($serviceid);
+        $currenttime = time();
+
+        // Read-only fetch of existing record. Do not create on precheck.
+        global $DB;
+        $record = $DB->get_record('aiprovider_datacurso_rl', [
+            'userid' => $userid,
+            'serviceid' => $serviceid,
+        ]);
+
+        // If no record exists yet, allow the request; it will be created on first successful sync.
+        if (!$record) {
+            return true;
+        }
+
+        $activewindowstart = (int)($record->windowstart ?? 0);
+        if ($activewindowstart <= 0) {
+            return true; // Treat as not started; allowed.
+        }
+
+        // If current time is beyond the end of stored window, tokens reset for precheck purposes.
+        $windowend = $activewindowstart + $windowseconds;
+        if ($currenttime >= $windowend) {
+            return true;
+        }
+
+        $effectivetokens = (int)($record->tokensused ?? 0);
+        return $effectivetokens < $limit;
+    }
+
+    /**
      * Evaluate the limit for a user/service pair and refresh cached usage.
      *
      * @param string $serviceid Service identifier such as 'local_coursegen'.
@@ -44,14 +95,85 @@ class ratelimiter {
 
         $windowseconds = $this->get_window_length_in_seconds($serviceid);
         $currenttime = time();
-        $windowstart = $this->calculate_window_start($currenttime, $windowseconds);
-        $windowend = $windowstart + $windowseconds;
 
-        $record = $this->load_usage_record($userid, $serviceid, $windowstart);
-        $tokensused = $this->get_tokens_used_during_window($userid, $serviceid, $windowstart, $windowend, $actionpath);
-        $this->update_usage_record($record, $tokensused, $windowstart, $currenttime);
+        // Load or create the usage record. On first creation, start the window now.
+        $record = $this->load_usage_record($userid, $serviceid, $currenttime);
+
+        // Determine the active window start. Keep it fixed within the current window.
+        $activewindowstart = (int)($record->windowstart ?? 0);
+        if ($activewindowstart <= 0) {
+            $activewindowstart = $currenttime;
+        }
+
+        // If current time is beyond the end of the stored window, advance by whole windows.
+        $windowend = $activewindowstart + $windowseconds;
+        if ($currenttime >= $windowend) {
+            $elapsed = $currenttime - $activewindowstart;
+            $windowsadvance = intdiv($elapsed, $windowseconds);
+            if ($windowsadvance > 0) {
+                $activewindowstart = $activewindowstart + ($windowsadvance * $windowseconds);
+                $windowend = $activewindowstart + $windowseconds;
+            }
+        }
+
+        $tokensused = $this->get_tokens_used_during_window(
+            $userid,
+            $serviceid,
+            $activewindowstart,
+            $windowend,
+            $actionpath
+        );
+        $this->update_usage_record($record, $tokensused, $activewindowstart, $currenttime);
 
         return $tokensused < $limit;
+    }
+
+    /**
+     * After a successful request, refresh the cached usage by fetching remote consumption and persisting it.
+     *
+     * @param string $serviceid
+     * @param int $userid
+     * @param string|null $actionpath
+     * @return void
+     */
+    public function sync_after_success(string $serviceid, int $userid, ?string $actionpath = null): void {
+        if (!$this->is_rate_limit_enabled($serviceid)) {
+            return;
+        }
+
+        $limit = $this->get_service_limit($serviceid);
+        if ($limit <= 0) {
+            return;
+        }
+
+        $windowseconds = $this->get_window_length_in_seconds($serviceid);
+        $currenttime = time();
+
+        $record = $this->load_usage_record($userid, $serviceid, $currenttime);
+
+        $activewindowstart = (int)($record->windowstart ?? 0);
+        if ($activewindowstart <= 0) {
+            $activewindowstart = $currenttime;
+        }
+
+        $windowend = $activewindowstart + $windowseconds;
+        if ($currenttime >= $windowend) {
+            $elapsed = $currenttime - $activewindowstart;
+            $windowsadvance = intdiv($elapsed, $windowseconds);
+            if ($windowsadvance > 0) {
+                $activewindowstart = $activewindowstart + ($windowsadvance * $windowseconds);
+                $windowend = $activewindowstart + $windowseconds;
+            }
+        }
+
+        $tokensused = $this->get_tokens_used_during_window(
+            $userid,
+            $serviceid,
+            $activewindowstart,
+            $windowend,
+            $actionpath
+        );
+        $this->update_usage_record($record, $tokensused, $activewindowstart, $currenttime);
     }
 
     /**
@@ -88,8 +210,8 @@ class ratelimiter {
     /**
      * Determine whether the rate limit is enabled for the service.
      *
-     * @param string $serviceid
-     * @return bool
+     * @param string $serviceid Service identifier such as 'local_coursegen'.
+     * @return bool True when the rate limit is enabled, false otherwise.
      */
     private function is_rate_limit_enabled(string $serviceid): bool {
         $value = get_config('aiprovider_datacurso', "ratelimit_{$serviceid}_enable");
@@ -234,67 +356,54 @@ class ratelimiter {
         ?string $actionpath
     ): int {
         $servicename = $this->get_service_display_name($serviceid);
-        $serviceactions = $this->get_actions_for_service($serviceid);
-
-        $normalisedactions = [];
-        foreach ($serviceactions as $serviceaction) {
-            $normalisedaction = $this->normalise_action_path($serviceaction);
-            if ($normalisedaction !== '') {
-                $normalisedactions[] = $normalisedaction;
-            }
-        }
-
-        if (!empty($actionpath)) {
-            $currentaction = $this->normalise_action_path($actionpath);
-            if ($currentaction !== '') {
-                $normalisedactions[] = $currentaction;
-            }
-        }
-
-        $uniqueactions = array_unique($normalisedactions);
-        $actionfilters = array_values($uniqueactions);
         $client = new \aiprovider_datacurso\httpclient\datacurso_api();
 
-        if (empty($actionfilters)) {
-            return $this->fetch_tokens_for_action($client, $userid, $serviceid, $servicename, null, $windowstart, $windowend);
-        }
-
-        $total = 0;
-        foreach ($actionfilters as $actionfilter) {
-            $tokens = $this->fetch_tokens_for_action($client, $userid, $serviceid, $servicename, $actionfilter, $windowstart, $windowend);
-            $total += $tokens;
-        }
-
-        return $total;
+        return $this->fetch_tokens_for_service(
+            $client,
+            $userid,
+            $serviceid,
+            $servicename,
+            $windowstart,
+            $windowend,
+            $actionpath
+        );
     }
 
     /**
-     * Fetch tokens for a specific action filter.
+     * Fetch tokens for the service within the requested window.
      *
      * @param \aiprovider_datacurso\httpclient\datacurso_api $client
      * @param int $userid
      * @param string $serviceid
      * @param string|null $servicename
-     * @param string|null $actionfilter
      * @param int $windowstart
      * @param int $windowend
      * @return int
      */
-    private function fetch_tokens_for_action(
+    private function fetch_tokens_for_service(
         \aiprovider_datacurso\httpclient\datacurso_api $client,
         int $userid,
         string $serviceid,
         ?string $servicename,
-        ?string $actionfilter,
         int $windowstart,
-        int $windowend
+        int $windowend,
+        ?string $actionfilter
     ): int {
         $page = 1;
         $limit = 100;
         $tokens = 0;
 
         while (true) {
-            $response = $this->request_consumption_page($client, $userid, $servicename, $actionfilter, $page, $limit);
+            $response = $this->request_consumption_page(
+                $client,
+                $userid,
+                $serviceid,
+                $actionfilter,
+                $windowstart,
+                $windowend,
+                $page,
+                $limit
+            );
             if (!$this->is_success_response($response)) {
                 break;
             }
@@ -304,11 +413,21 @@ class ratelimiter {
                 break;
             }
 
-            $summary = $this->sum_tokens_from_users($users, $userid, $serviceid, $servicename, $windowstart, $windowend);
-            $tokens += $summary['tokens'];
-
-            if ($summary['stop']) {
-                break;
+            // The API is already filtered by userid; take the first user entry.
+            $user = $users[0];
+            $consumptions = $this->extract_consumptions_from_user($user);
+            if (!empty($consumptions)) {
+                        $summary = $this->sum_tokens_from_consumptions(
+                            $consumptions,
+                            $serviceid,
+                            $servicename,
+                            $windowstart,
+                            $windowend
+                        );
+                $tokens += $summary['tokens'];
+                if ($summary['stop']) {
+                    break;
+                }
             }
 
             if (!$this->response_has_more_pages($response, $page)) {
@@ -335,8 +454,10 @@ class ratelimiter {
     private function request_consumption_page(
         \aiprovider_datacurso\httpclient\datacurso_api $client,
         int $userid,
-        ?string $servicename,
+        string $serviceid,
         ?string $actionfilter,
+        int $windowstart,
+        int $windowend,
         int $page,
         int $limit
     ): ?array {
@@ -344,13 +465,22 @@ class ratelimiter {
             'page' => $page,
             'limit' => $limit,
             'userid' => $userid,
+            // Sort newest first to allow early stop when crossing the window start.
+            'shor' => 'created_at',
+            'shor_dir' => 'desc',
         ];
 
-        if (!empty($servicename)) {
-            $params['servicio'] = $servicename;
+        if (!empty($serviceid)) {
+            $params['servicio'] = $serviceid;
         }
-        if (!empty($actionfilter)) {
-            $params['accion'] = $actionfilter;
+
+        // Constrain by date window if available (YYYY-MM-DD).
+        if ($windowstart > 0) {
+            $params['fecha_desde'] = userdate($windowstart, '%Y-%m-%d');
+        }
+        if ($windowend > 0) {
+            // Use the day of window end; API is expected to handle inclusive bounds.
+            $params['fecha_hasta'] = userdate($windowend, '%Y-%m-%d');
         }
 
         return $client->get('/tokens/historial-consumos', $params);
@@ -484,7 +614,7 @@ class ratelimiter {
 
             if ($timestamp < $windowstart) {
                 $shouldstop = true;
-                break;
+                continue;
             }
 
             if ($timestamp >= $windowend) {
@@ -578,15 +708,23 @@ class ratelimiter {
      * @return bool
      */
     private function consumption_matches_service(string $serviceid, ?string $servicename, array $consumption): bool {
-        $apiservicename = $consumption['id_servicio'] ?? ($consumption['servicio'] ?? '');
-        if (is_string($servicename) && $servicename !== '' && is_string($apiservicename)) {
-            $normalizedremote = $this->normalise_string($apiservicename);
+        if (isset($consumption['id_servicio']) && is_string($consumption['id_servicio'])) {
+            if ($consumption['id_servicio'] === $serviceid) {
+                return true;
+            }
+        }
+
+        // Fallback: compare using the human-readable name if available in payload.
+        $apiname = $consumption['servicio'] ?? '';
+        if (is_string($servicename) && $servicename !== '' && is_string($apiname) && $apiname !== '') {
+            $normalizedremote = $this->normalise_string($apiname);
             $normalizedlocal = $this->normalise_string($servicename);
             if ($normalizedremote === $normalizedlocal) {
                 return true;
             }
         }
 
+        // 3) Last resort: map action path to a service.
         $action = $consumption['accion'] ?? ($consumption['action'] ?? '');
         if (!is_string($action) || $action === '') {
             return false;
@@ -594,34 +732,6 @@ class ratelimiter {
 
         $resolvedservice = self::resolve_service_for_path($action);
         return $resolvedservice === $serviceid;
-    }
-
-    /**
-     * Get the list of known action endpoints associated with a service.
-     *
-     * @param string $serviceid
-     * @return array
-     */
-    private function get_actions_for_service(string $serviceid): array {
-        $map = [
-            'local_coursegen' => [
-                '/course/execute',
-                '/course/start',
-                '/resources/create-mod',
-                '/resources/create-mod/stream',
-                '/context/upload',
-                '/context/upload-model-context',
-            ],
-            'local_assign_ai' => ['/assign/answer'],
-            'local_forum_ai' => ['/forum/chat'],
-            'local_datacurso_ratings' => ['/rating/general', '/rating/course', '/rating/query'],
-            'local_socialcert' => ['/certificate/answer'],
-            'report_lifestory' => ['/story/analysis'],
-            'local_coursedynamicrules' => ['/smartrules/create-mod'],
-            'aiprovider_datacurso' => ['/provider/chat/completions', '/provider/images/generations'],
-        ];
-
-        return $map[$serviceid] ?? [];
     }
 
     /**
@@ -633,21 +743,5 @@ class ratelimiter {
     private function normalise_string(string $value): string {
         $lowercase = \core_text::strtolower($value);
         return trim($lowercase);
-    }
-
-    /**
-     * Ensure an action path starts with a leading slash.
-     *
-     * @param string $value
-     * @return string
-     */
-    private function normalise_action_path(string $value): string {
-        $trimmed = trim($value);
-        if ($trimmed === '') {
-            return '';
-        }
-
-        $withoutleading = ltrim($trimmed, '/');
-        return '/' . $withoutleading;
     }
 }
