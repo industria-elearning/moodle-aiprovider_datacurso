@@ -116,7 +116,7 @@ export const init = async () => {
       if (response?.services?.length) {
         response.services.forEach((s) => {
           const opt = document.createElement("option");
-          opt.value = s.name;
+          opt.value = s.id;
           opt.textContent = s.name;
           filterService.appendChild(opt);
         });
