@@ -30,6 +30,8 @@ use admin_setting;
 class admin_setting_duration_unit extends admin_setting {
     /** @var array Allowed units and their language string ids. */
     protected array $units = [
+        'seconds' => 'seconds',
+        'minutes' => 'minutes',
         'hours' => 'hours',
         'days' => 'days',
         'weeks' => 'weeks',
