@@ -34,7 +34,10 @@ class local_coursegen implements ratelimit_settings {
     private const PLUGIN = 'aiprovider_datacurso';
 
     /**
-     * {@inheritDoc}
+     * Add the rate limit settings related to course generation.
+     *
+     * @param admin_settingpage $settings Settings page to append controls to.
+     * @param string $component Component name used to namespace config keys.
      */
     public function add_settings(admin_settingpage $settings, string $component): void {
         $configprefix = self::PLUGIN . "/ratelimit_{$component}";
