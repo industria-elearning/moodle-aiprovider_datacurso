@@ -28,7 +28,7 @@ namespace aiprovider_datacurso\local\ratelimit;
 /**
  * Contract to contribute ratelimit settings for a given service id.
  */
-interface ratelimit_settings {
+abstract class ratelimit_settings {
     /**
      * Add ratelimit admin settings to the provider settings page.
      *
@@ -36,5 +36,51 @@ interface ratelimit_settings {
      * @param string $component Frankenstyle service/component id (e.g. 'local_coursegen').
      * @return void
      */
-    public function add_settings(\admin_settingpage $settings, string $component): void;
+    abstract public function add_settings(\admin_settingpage $settings, string $component): void;
+
+    /**
+     * Retrieve the list of selectable users for the autocomplete control.
+     *
+     * @return array<string,string>
+     */
+    protected static function get_user_choices(array $capabilities): array {
+        global $DB;
+
+        list($insql, $params) = $DB->get_in_or_equal($capabilities, SQL_PARAMS_NAMED);
+
+        $params['deleted'] = 0;
+        $params['suspended'] = 0;
+        $params['permission'] = CAP_ALLOW;
+        $params['capabilitiescount'] = count($capabilities);
+
+        $records = $DB->get_records_sql(
+            "SELECT u.id, u.firstname, u.lastname
+            FROM
+                {user} u
+                JOIN {role_assignments} ra ON ra.userid = u.id
+                JOIN {role_capabilities} rc ON rc.roleid = ra.roleid
+            WHERE
+                rc.permission = :permission
+                AND u.deleted = :deleted
+                AND u.suspended = :suspended
+                AND rc.capability {$insql}
+            GROUP BY
+                u.id
+            HAVING
+                COUNT(DISTINCT rc.capability) = :capabilitiescount
+            ORDER BY u.lastname, u.firstname, u.id",
+            $params
+        );
+
+        $choices = [];
+        foreach ($records as $user) {
+            $choices[(string)$user->id] = fullname($user);
+        }
+
+        if (empty($choices)) {
+            return ['' => get_string('noselection', 'form')];
+        }
+
+        return $choices;
+    }
 }
