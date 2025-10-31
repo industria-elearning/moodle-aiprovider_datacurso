@@ -64,7 +64,7 @@ export const init = async () => {
             if (services?.length) {
                 services.forEach(s => {
                     const opt = document.createElement('option');
-                    opt.value = s.name;
+                    opt.value = s.id;
                     opt.textContent = s.name;
                     select.appendChild(opt);
                 });

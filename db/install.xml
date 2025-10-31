@@ -8,7 +8,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" COMMENT="Primary key"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="User id"/>
-        <FIELD NAME="serviceid" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" DEFAULT="" COMMENT="Service identifier (e.g. local_coursegen)"/>
+        <FIELD NAME="serviceid" TYPE="char" LENGTH="100" NOTNULL="true" SEQUENCE="false" COMMENT="Service identifier (e.g. local_coursegen)"/>
         <FIELD NAME="windowstart" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="Window start timestamp"/>
         <FIELD NAME="tokensused" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="Tokens used within window"/>
         <FIELD NAME="lastsync" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="Last sync timestamp with remote history"/>

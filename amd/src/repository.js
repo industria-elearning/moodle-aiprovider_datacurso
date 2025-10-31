@@ -51,3 +51,14 @@ export function webserviceGetStatus() {
         args: {}
     }])[0];
 }
+
+/**
+ * Get consumption history for Datacurso.
+ * @param {Object} args - The arguments for the consumption history.
+ */
+export function getConsumptionHistory(args) {
+    return Ajax.call([{
+        methodname: 'aiprovider_datacurso_get_consumption_history',
+        args: args
+    }])[0];
+}

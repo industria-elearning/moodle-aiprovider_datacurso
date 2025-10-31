@@ -117,14 +117,15 @@ class datacurso_api_base {
             $path = '/' . $path;
         }
 
-        // Enforce per-user, per-service rate limit if a mapped service is resolved.
+        // Enforce per-user, per-service rate limit using cached DB pre-check.
         $serviceid = \aiprovider_datacurso\local\ratelimiter::resolve_service_for_path($path);
-        if (!empty($serviceid)) {
-            $userid = (int)($payload['userid'] ?? $USER->id);
-            $ratelimiter = new \aiprovider_datacurso\local\ratelimiter();
-            if (!$ratelimiter->check($serviceid, $userid)) {
-                throw new \moodle_exception('error_ratelimit_exceeded', 'aiprovider_datacurso');
-            }
+        $userid = (int)($payload['userid'] ?? $USER->id);
+        $ratelimiter = new \aiprovider_datacurso\local\ratelimiter();
+        if (!$ratelimiter->precheck($serviceid, $userid)) {
+            $remaining = $ratelimiter->get_time_until_next_window((string)$serviceid, (int)$userid);
+            $retrytimestamp = time() + max(0, (int)$remaining);
+            $retryat = userdate($retrytimestamp, get_string('strftimedatetime', 'langconfig'));
+            throw new \moodle_exception('error_ratelimit_exceeded', 'aiprovider_datacurso', '', $retryat);
         }
 
         $curl = new \curl();
@@ -207,6 +208,9 @@ class datacurso_api_base {
             debugging('JSON decode error: ' . json_last_error_msg() . '. Response: ' . $response, DEBUG_DEVELOPER);
             throw new \moodle_exception('jsondecodeerror', 'aiprovider_datacurso', '', json_last_error_msg());
         }
+
+        // Post-success sync: only after a valid, non-error response.
+        $ratelimiter->sync_after_success($serviceid, $userid, $path);
 
         return $decodedresponse;
     }
