@@ -76,59 +76,6 @@ class ratelimiter {
     }
 
     /**
-     * Evaluate the limit for a user/service pair and refresh cached usage.
-     *
-     * @param string $serviceid Service identifier such as 'local_coursegen'.
-     * @param int $userid Moodle user id.
-     * @param string|null $actionpath Current request path (e.g. '/course/execute').
-     * @return bool True when the request is allowed, false when the limit is exceeded.
-     */
-    public function check(string $serviceid, int $userid, ?string $actionpath = null): bool {
-        if (!$this->is_rate_limit_enabled($serviceid)) {
-            return true;
-        }
-
-        $limit = $this->get_service_limit($serviceid);
-        if ($limit <= 0) {
-            return true;
-        }
-
-        $windowseconds = $this->get_window_length_in_seconds($serviceid);
-        $currenttime = time();
-
-        // Load or create the usage record. On first creation, start the window now.
-        $record = $this->load_usage_record($userid, $serviceid, $currenttime);
-
-        // Determine the active window start. Keep it fixed within the current window.
-        $activewindowstart = (int)($record->windowstart ?? 0);
-        if ($activewindowstart <= 0) {
-            $activewindowstart = $currenttime;
-        }
-
-        // If current time is beyond the end of the stored window, advance by whole windows.
-        $windowend = $activewindowstart + $windowseconds;
-        if ($currenttime >= $windowend) {
-            $elapsed = $currenttime - $activewindowstart;
-            $windowsadvance = intdiv($elapsed, $windowseconds);
-            if ($windowsadvance > 0) {
-                $activewindowstart = $activewindowstart + ($windowsadvance * $windowseconds);
-                $windowend = $activewindowstart + $windowseconds;
-            }
-        }
-
-        $tokensused = $this->get_tokens_used_during_window(
-            $userid,
-            $serviceid,
-            $activewindowstart,
-            $windowend,
-            $actionpath
-        );
-        $this->update_usage_record($record, $tokensused, $activewindowstart, $currenttime);
-
-        return $tokensused < $limit;
-    }
-
-    /**
      * After a successful request, refresh the cached usage by fetching remote consumption and persisting it.
      *
      * @param string $serviceid
