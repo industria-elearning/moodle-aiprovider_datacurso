@@ -40,7 +40,6 @@ function xmldb_aiprovider_datacurso_upgrade($oldversion) {
     // Documentation for the XMLDB Editor can be found at {@link https://docs.moodle.org/dev/XMLDB_editor}.
 
     if ($oldversion < 2025103002) {
-
         // Define table aiprovider_datacurso_rl to be created.
         $table = new xmldb_table('aiprovider_datacurso_rl');
 

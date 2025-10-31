@@ -215,7 +215,7 @@ class admin_setting_duration_unit extends admin_setting {
             return '';
         }
         // Use language string for unit with basic singular/plural.
-        $unitkey = $value === 1 ? rtrim($unit, 's') : $unit; // expects 'hour'/'hours', etc.
+        $unitkey = $value === 1 ? rtrim($unit, 's') : $unit; // Expects 'hour'/'hours', etc.
         $unitstr = get_string($unitkey, 'aiprovider_datacurso');
         return trim($value . ' ' . $unitstr);
     }
