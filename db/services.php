@@ -28,29 +28,33 @@
 defined('MOODLE_INTERNAL') || die();
 
 $functions = [
-    'aiprovider_datacurso_get_tokens_saldo' => [
-        'classname'   => 'aiprovider_datacurso\external\get_tokens_saldo',
+    'aiprovider_datacurso_get_credits_balance' => [
+        'classname'   => 'aiprovider_datacurso\external\get_credits_balance',
         'methodname'  => 'execute',
         'classpath'   => '',
-        'description' => 'Obtiene el saldo actual de tokens desde el API externo',
+        'description' => 'Gets the current credit balance from the external API',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
+
     ],
     'aiprovider_datacurso_get_consumption_history' => [
         'classname'   => 'aiprovider_datacurso\external\get_consumption_history',
         'methodname'  => 'execute',
         'classpath'   => '',
-        'description' => 'Obtiene el historial de consumos de tokens desde la API externa',
+        'description' => 'Gets the token consumption history from the external API',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
     ],
     'aiprovider_datacurso_get_all_consumption' => [
         'classname'   => 'aiprovider_datacurso\external\get_all_consumption',
         'methodname'  => 'execute',
         'classpath'   => '',
-        'description' => 'Obtiene el historial completo de consumos de tokens desde la API externa',
+        'description' => 'Gets the complete history of token consumption from the external API',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
     ],
     'aiprovider_datacurso_webservice_setup' => [
         'classname'   => 'aiprovider_datacurso\\external\\webservice_config_api',
@@ -86,6 +90,7 @@ $functions = [
         'description' => 'Get the list of available AI services for filtering.',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
     ],
     'aiprovider_datacurso_get_actions' => [
         'classname'   => 'aiprovider_datacurso\external\get_actions',
@@ -94,5 +99,7 @@ $functions = [
         'description' => 'Get the list of available AI actions.',
         'type'        => 'read',
         'ajax'        => true,
+        'capabilities' => 'aiprovider_datacurso/datacurso:viewreports',
+
     ],
 ];

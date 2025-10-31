@@ -27,7 +27,7 @@ use Psr\Http\Message\UriInterface;
  */
 class process_summarise_text extends process_generate_text {
     /**
-     * Endpoint del servicio (igual que el de generación de texto).
+     * Endpoint of service(its like of generate text).
      */
     #[\Override]
     protected function get_endpoint(): UriInterface {
@@ -35,22 +35,35 @@ class process_summarise_text extends process_generate_text {
     }
 
     /**
-     * Instrucción del sistema específica para resúmenes.
+     * System instructions specific for summarys.
      */
     #[\Override]
     protected function build_request_body(string $userid): array {
         global $USER;
 
         $finaluserid = $userid ?: $USER->id;
+
         $systeminstruction = $this->get_system_instruction();
         $prompt = $this->action->get_configuration('prompttext');
 
-        $messages = ['role' => 'user', 'content' => $prompt];
+        $messages = [];
+
         if (!empty($systeminstruction)) {
-            $messages[] = ['role' => 'system', 'content' => $systeminstruction];
+            $messages[] = [
+                'role' => 'system',
+                'content' => $systeminstruction,
+            ];
+        }
+
+        if (!empty($prompt)) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => $prompt,
+            ];
         }
 
         return [
+            'model' => 'gpt-4o-mini',
             'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];

@@ -30,12 +30,9 @@
     {{#pluginname}}
         <h2 class="m-0">{{.}}</h2>
     {{/pluginname}}
-    {{^pluginname}}
-        <h2 class="m-0">Datacurso AI</h2>
-    {{/pluginname}}
     {{#logourl}}
         <a href="https://datacurso.com/" target="_blank" rel="noopener noreferrer" class="d-flex align-items-center">
-            <img src="{{.}}" alt="Logo Datacurso" style="height:35px;">
+            <img src="{{.}}" alt="{{#str}}alt_datacurso_icon, aiprovider_datacurso{{/str}}" style="height:35px;">
         </a>
     {{/logourl}}
 </div>

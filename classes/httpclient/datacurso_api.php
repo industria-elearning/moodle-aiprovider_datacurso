@@ -19,6 +19,9 @@ namespace aiprovider_datacurso\httpclient;
 use moodle_exception;
 use moodle_url;
 
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * HTTP client for Tokens Manager API.
  *
@@ -34,13 +37,11 @@ class datacurso_api {
     private $licensekey;
 
     /**
-     * Constructor.
+     * Builder.
      *
      * @throws moodle_exception
      */
     public function __construct() {
-        global $DB;
-
         $this->baseurl    = 'https://shop.datacurso.com/index.php?m=tokens_manager&api=';
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
@@ -109,7 +110,7 @@ class datacurso_api {
     }
 
     /**
-     * Execute the cURL request.
+     * Execute the HTTP request using Moodle's \curl wrapper.
      *
      * @param string $url The request URL.
      * @param string $method The request method (GET/POST).
@@ -119,35 +120,36 @@ class datacurso_api {
      * @throws moodle_exception
      */
     private function curl_request(string $url, string $method, ?array $data, array $headers): array {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        global $CFG;
+        require_once($CFG->libdir . '/filelib.php');
+
+        $curl = new \curl();
+        $options = [
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_HTTPHEADER' => $headers,
+        ];
 
         if ($method === 'POST') {
-            curl_setopt($ch, CURLOPT_POST, true);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            $response = $curl->post($url, json_encode($data), $options);
+        } else {
+            $response = $curl->get($url, [], $options);
         }
 
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        // Get code HTTP y handle errors.
+        $info = $curl->get_info();
+        $httpcode = $info['http_code'] ?? 0;
 
-        $response = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        if (curl_errno($ch)) {
-            $error = curl_error($ch);
-            curl_close($ch);
-            throw new moodle_exception("cURL error: $error");
+        if ($curl->error) {
+            throw new moodle_exception("cURL error: {$curl->error}");
         }
-
-        curl_close($ch);
 
         if ($httpcode >= 400) {
-            throw new moodle_exception("HTTP error $httpcode from $url");
+            throw new moodle_exception("HTTP error {$httpcode} from {$url}");
         }
 
         $decoded = json_decode($response, true);
         if ($decoded === null) {
-            throw new moodle_exception("Invalid JSON response from $url: $response");
+            throw new moodle_exception("Invalid JSON response from {$url}: {$response}");
         }
 
         return $decoded;

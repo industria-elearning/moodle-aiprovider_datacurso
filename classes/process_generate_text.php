@@ -54,19 +54,31 @@ class process_generate_text extends abstract_processor {
         $systeminstruction = $this->get_system_instruction();
         $prompt = $this->action->get_configuration('prompttext');
 
-        $messages = ['role' => 'user', 'content' => $prompt];
+        $messages = [];
+
         if (!empty($systeminstruction)) {
-            $messages = ['role' => 'system', 'content' => $systeminstruction];
+            $messages[] = [
+                'role' => 'system',
+                'content' => $systeminstruction,
+            ];
+        }
+
+        if (!empty($prompt)) {
+            $messages[] = [
+                'role' => 'user',
+                'content' => $prompt,
+            ];
         }
 
         return [
+            'model' => 'gpt-4o-mini',
             'messages' => $messages,
             'userid' => (string)$finaluserid,
         ];
     }
 
     /**
-     * Crea la solicitud HTTP lista para enviar.
+     * Create HTTP request for send.
      */
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
@@ -86,7 +98,7 @@ class process_generate_text extends abstract_processor {
     }
 
     /**
-     * Procesa la respuesta exitosa de la API.
+     * Process response success API.
      */
     #[\Override]
     protected function handle_api_success(ResponseInterface $response): array {
@@ -95,7 +107,7 @@ class process_generate_text extends abstract_processor {
         if (empty($body) || empty($body->choices[0]->message->content)) {
             return [
                 'success' => false,
-                'error' => 'Respuesta inválida del servicio de IA.',
+                'error' => get_string('responseinvalidai', 'aiprovider_datacurso'),
             ];
         }
 

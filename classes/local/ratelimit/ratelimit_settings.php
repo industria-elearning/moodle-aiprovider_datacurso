@@ -15,17 +15,26 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
- * Plugin version and other meta-data are defined here.
+ * Interface for adding per-service ratelimit admin settings.
  *
  * @package     aiprovider_datacurso
- * @copyright   Josue <josue@datacurso.com>
+ * @category    admin
+ * @copyright   2025 Wilber Narvaez <https://datacurso.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace aiprovider_datacurso\local\ratelimit;
 
-$plugin->component = 'aiprovider_datacurso';
-$plugin->release = '1.0.1';
-$plugin->version = 2025103000;
-$plugin->requires = 2022112800;
-$plugin->maturity = MATURITY_STABLE;
+/**
+ * Contract to contribute ratelimit settings for a given service id.
+ */
+interface ratelimit_settings {
+    /**
+     * Add ratelimit admin settings to the provider settings page.
+     *
+     * @param \admin_settingpage $settings Settings page to add controls to.
+     * @param string $component Frankenstyle service/component id (e.g. 'local_coursegen').
+     * @return void
+     */
+    public function add_settings(\admin_settingpage $settings, string $component): void;
+}

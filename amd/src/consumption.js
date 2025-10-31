@@ -21,22 +21,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/* eslint-disable */
 import Ajax from 'core/ajax';
 import { get_string as getString } from 'core/str';
+import Templates from 'core/templates';
+import Notification from 'core/notification';
 
-export const init = () => {
+export const init = async () => {
 
-    if (window._consumptionInitialized) {
-        console.warn("⚠️ Módulo de consumo ya inicializado — se omite nueva carga.");
-        return;
-    }
-    window._consumptionInitialized = true;
-
-    console.log("Historial de consumo inicializado ✅");
-
-    // Elementos del DOM
-    const tableBody = document.getElementById('consumption-table-body');
+    // Elements DOM
     const filterService = document.getElementById('filter-service');
     const filterAction = document.getElementById('filter-action');
     const filterFrom = document.getElementById('filter-date-from');
@@ -44,33 +36,71 @@ export const init = () => {
     const prevPageBtn = document.getElementById('prev-page');
     const nextPageBtn = document.getElementById('next-page');
     const pageInfo = document.getElementById('page-info');
+    const tableRegionSelector = '[data-region="aiprovider_datacurso/consumption-table"]';
 
-    // 🧭 Control de ordenamiento
+    // Order
     let currentSortField = '';
     let currentSortDir = 'asc';
 
-    // 🆕 Nuevo: Select y input para límite y página
+    // Select and input for limit and page
     const limitSelect = document.getElementById('filter-limit');
     const pageInput = document.getElementById('filter-page');
 
-    // 📄 Estado inicial
+    // Init status
     let currentPage = parseInt(sessionStorage.getItem('consumptionPage')) || 1;
     let currentLimit = parseInt(sessionStorage.getItem('consumptionLimit')) || 10;
 
     const savePage = (page) => sessionStorage.setItem('consumptionPage', page);
     const saveLimit = (limit) => sessionStorage.setItem('consumptionLimit', limit);
 
-    /**
-     * 🧩 Cargar lista de servicios desde el WS
-     */
+    const updateSortIndicators = () => {
+        document.querySelectorAll(`${tableRegionSelector} .sort-icon`).forEach(icon => {
+            icon.className = 'fa fa-sort sort-icon';
+        });
+
+        if (!currentSortField) {
+            return;
+        }
+
+        const activeHeader = document.querySelector(`${tableRegionSelector} [data-sort="${currentSortField}"] .sort-icon`);
+        if (activeHeader) {
+            activeHeader.className = currentSortDir === 'asc'
+                ? 'fa fa-sort-up sort-icon'
+                : 'fa fa-sort-down sort-icon';
+        }
+    };
+
+    const bindSortingHandlers = () => {
+        document.querySelectorAll(`${tableRegionSelector} .sortable`).forEach(header => {
+            header.addEventListener('click', () => {
+                const field = header.dataset.sort;
+                if (!field) {
+                    return;
+                }
+
+                if (currentSortField === field) {
+                    currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortField = field;
+                    currentSortDir = 'asc';
+                }
+
+                updateSortIndicators();
+                currentPage = 1;
+                savePage(currentPage);
+                fetchData();
+            });
+        });
+
+        updateSortIndicators();
+    };
+
     const loadServices = async () => {
         try {
             const response = await Ajax.call([{
                 methodname: 'aiprovider_datacurso_get_services',
                 args: {}
             }])[0];
-
-            filterService.innerHTML = '<option value="all">Todos los servicios</option>';
 
             if (response?.services?.length) {
                 response.services.forEach(s => {
@@ -81,21 +111,17 @@ export const init = () => {
                 });
             }
         } catch (error) {
-            console.error("❌ Error al cargar servicios:", error);
+            Notification.exception(error);
+            return [];
         }
     };
 
-    /**
-     * 🧩 Cargar lista de acciones desde el WS
-     */
     const loadActions = async () => {
         try {
             const response = await Ajax.call([{
                 methodname: 'aiprovider_datacurso_get_actions',
                 args: {}
             }])[0];
-
-            filterAction.innerHTML = '<option value="all">Todas las acciones</option>';
 
             if (response?.actions?.length) {
                 response.actions.forEach(a => {
@@ -106,80 +132,81 @@ export const init = () => {
                 });
             }
         } catch (error) {
-            console.error("❌ Error al cargar acciones:", error);
+            Notification.exception(error);
+            return [];
         }
     };
 
-    const renderTable = (consumos) => {
-        tableBody.innerHTML = '';
-        if (!consumos || consumos.length === 0) {
-            getString('nodata', 'aiprovider_datacurso').then(nodata => {
-                tableBody.innerHTML = `<tr><td colspan="7">${nodata}</td></tr>`;
-            });
-            pageInfo.textContent = '';
-            prevPageBtn.disabled = true;
-            nextPageBtn.disabled = true;
+    const renderTable = async (listconsumptions, {loading = false} = {}) => {
+        const container = document.querySelector(tableRegionSelector);
+        if (!container) {
             return;
         }
 
-        consumos.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${item.id_consumption}</td>
-                <td>${item.userid || '-'}</td>
-                <td>${item.action}</td>
-                <td>${item.id_service}</td>
-                <td>${item.cant_tokens}</td>
-                <td>${item.balance}</td>
-                <td>${item.date}</td>
-            `;
-            tableBody.appendChild(row);
-        });
+        const consumptions = Array.isArray(listconsumptions) ? listconsumptions : [];
+        const context = {
+            initialized: !loading,
+            consumptions: consumptions
+        };
+
+        try {
+            const render = await Templates.renderForPromise('aiprovider_datacurso/consumption_row', context);
+            await Templates.replaceNodeContents(container, render.html, render.js);
+            bindSortingHandlers();
+        } catch (error) {
+            Notification.exception(error);
+            const fallback = await Templates.renderForPromise('aiprovider_datacurso/consumption_row', {
+                initialized: true,
+                consumptions: []
+            });
+            await Templates.replaceNodeContents(container, fallback.html, fallback.js);
+            bindSortingHandlers();
+        }
     };
 
-    // get history with filter
+    // Get history with filters
     const fetchData = () => {
         const serviceValue = filterService.value;
         const actionValue = filterAction.value;
         const fromValue = filterFrom.value;
         const toValue = filterTo.value;
 
-        // 🧠 Parámetros base obligatorios
         const args = {
             page: currentPage,
             limit: currentLimit,
-            servicio: serviceValue !== 'all' ? serviceValue : '',
-            accion: actionValue !== 'all' ? actionValue : '',
-            fechadesde: fromValue || '',
-            fechahasta: toValue || ''
+            service: serviceValue !== 'all' ? serviceValue : '',
+            action: actionValue !== 'all' ? actionValue : '',
+            fromdate: fromValue || '',
+            todate: toValue || ''
         };
 
-        // 🆕 Solo agrega el orden si existe campo seleccionado
         if (currentSortField) {
-            args.short = currentSortField;
-            args.shortdir = currentSortDir;
+            args.shor = currentSortField;
+            args.shordir = currentSortDir;
         }
 
-        console.log("📤 Enviando petición al WS con args:", JSON.stringify(args));
+        renderTable([], {loading: true});
 
         Ajax.call([{
             methodname: 'aiprovider_datacurso_get_consumption_history',
             args: args
-        }])[0].then(response => {
-            console.log("📥 Respuesta del servidor:", response);
+        }])[0].then(async (response) => {
 
-            const consumos = response?.consumption || [];
-            renderTable(consumos);
+            const consumptions = response?.consumption || [];
+            await renderTable(consumptions);
 
-            // 📑 Paginación
             const pagination = response?.pagination;
             if (pagination) {
                 const { current_page, total_pages, total } = pagination;
-                pageInfo.textContent = `Página ${current_page} de ${total_pages} (${total} registros)`;
-
-                // Sincronizar input de página
-                if (pageInput) pageInput.value = current_page;
-
+                const pageInfoText = await getString('pageinfo', 'aiprovider_datacurso', {
+                    current: current_page,
+                    totalpages: total_pages,
+                    total: total
+                });
+                pageInfo.textContent = pageInfoText;
+                if (pageInput) {
+                    pageInput.value = current_page;
+                }
                 prevPageBtn.disabled = current_page <= 1;
                 nextPageBtn.disabled = current_page >= total_pages;
             } else {
@@ -187,14 +214,14 @@ export const init = () => {
                 prevPageBtn.disabled = true;
                 nextPageBtn.disabled = true;
             }
-        }).catch(async (e) => {
-            const nodata = await getString('nodata', 'aiprovider_datacurso');
-            tableBody.innerHTML = `<tr><td colspan="7">${nodata}</td></tr>`;
-            console.error("❌ Error al obtener historial de consumo:", e);
-        });
+        })
+            .catch((error) => {
+                Notification.exception(error);
+                return [];
+            });
     };
 
-    // 🎯 Filtros (reinician a página 1)
+    // Event listeners for filters
     [filterService, filterAction, filterFrom, filterTo].forEach(el => {
         el.addEventListener('change', () => {
             currentPage = 1;
@@ -203,7 +230,6 @@ export const init = () => {
         });
     });
 
-    // ⏮ Página anterior
     prevPageBtn.addEventListener('click', () => {
         if (currentPage > 1) {
             currentPage--;
@@ -212,14 +238,12 @@ export const init = () => {
         }
     });
 
-    // ⏭ Página siguiente
     nextPageBtn.addEventListener('click', () => {
         currentPage++;
         savePage(currentPage);
         fetchData();
     });
 
-    // 🆕 Cambio manual del límite
     if (limitSelect) {
         limitSelect.value = currentLimit;
         limitSelect.addEventListener('change', () => {
@@ -231,7 +255,6 @@ export const init = () => {
         });
     }
 
-    // 🆕 Cambio manual de número de página
     if (pageInput) {
         pageInput.addEventListener('change', () => {
             const newPage = parseInt(pageInput.value);
@@ -243,40 +266,10 @@ export const init = () => {
         });
     }
 
-    // 🆕 Ordenamiento general por columnas
-    document.querySelectorAll('.sortable').forEach(header => {
-        header.addEventListener('click', () => {
-            const field = header.dataset.sort;
-            const icon = header.querySelector('.sort-icon');
-
-            // Si se hace clic en la misma columna, alterna el orden
-            if (currentSortField === field) {
-                currentSortDir = currentSortDir === 'asc' ? 'desc' : 'asc';
-            } else {
-                // Si es una nueva columna, empieza en asc
-                currentSortField = field;
-                currentSortDir = 'asc';
-            }
-
-            // Resetear íconos
-            document.querySelectorAll('.sort-icon').forEach(i => {
-                i.className = 'fa fa-sort sort-icon';
-            });
-
-            // Actualizar ícono activo
-            icon.className = currentSortDir === 'asc'
-                ? 'fa fa-sort-up sort-icon'
-                : 'fa fa-sort-down sort-icon';
-
-            // Reiniciar a página 1 y recargar
-            currentPage = 1;
-            savePage(currentPage);
-            fetchData();
-        });
-    });
-
-    // 🚀 Carga inicial
+    // Initial load
     Promise.all([loadServices(), loadActions()])
         .then(() => fetchData())
-        .catch(e => console.error("❌ Error durante carga inicial:", e));
+        .catch(Notification.exception);
+
+    bindSortingHandlers();
 };

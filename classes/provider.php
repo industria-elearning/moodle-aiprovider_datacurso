@@ -29,10 +29,9 @@ class provider extends \core_ai\provider {
     private string $licensekey;
 
     /**
-     * Constructor.
+     * Builder.
      */
     public function __construct() {
-        // Cargamos el licensekey desde la configuración del plugin.
         $this->licensekey = get_config('aiprovider_datacurso', 'licensekey');
     }
 
@@ -55,7 +54,6 @@ class provider extends \core_ai\provider {
      * @return bool
      */
     public function is_provider_configured(): bool {
-        // El proveedor está configurado si el licensekey no está vacío.
         return !empty($this->licensekey);
     }
 
@@ -67,12 +65,6 @@ class provider extends \core_ai\provider {
      */
     public function is_request_allowed(aiactions\base $action): array|bool {
         global $USER;
-
-        // Solo los usuarios con la capability definida pueden usar el proveedor.
-        if (!has_capability('aiprovider/datacurso:use', \context_system::instance(), $USER)) {
-            return false;
-        }
-
         return true;
     }
 
@@ -83,7 +75,6 @@ class provider extends \core_ai\provider {
      * @return \Psr\Http\Message\RequestInterface
      */
     public function add_authentication_headers(\Psr\Http\Message\RequestInterface $request): \Psr\Http\Message\RequestInterface {
-        // Añade el licensekey al header Authorization.
         return $request->withAddedHeader('Authorization', "Bearer {$this->licensekey}");
     }
 
@@ -105,7 +96,7 @@ class provider extends \core_ai\provider {
         $actionname = substr($action, (strrpos($action, '\\') + 1));
         $settings = [];
 
-        // Configuración para generación de texto o resumen.
+        // Settings for generate_text and summarise_text actions.
         if ($actionname === 'generate_text' || $actionname === 'summarise_text') {
             $settings[] = new \admin_setting_configtextarea(
                 "aiprovider_datacurso/action_{$actionname}_instruction",
@@ -126,15 +117,15 @@ class provider extends \core_ai\provider {
      */
     public static function get_services(): array {
         return [
-            ['id' => 'local_coursegen', 'name' => 'Course Creator AI'],
-            ['id' => 'local_datacurso_ratings', 'name' => 'Ranking Activities AI'],
-            ['id' => 'local_forum_ai', 'name' => 'Forum AI'],
-            ['id' => 'local_assign_ai', 'name' => 'Assign AI'],
-            ['id' => 'provider_proxy', 'name' => 'Provider AI'],
-            ['id' => 'tutor_ai', 'name' => 'Tutor AI'],
-            ['id' => 'local_socialcert', 'name' => 'Share Certificate AI'],
-            ['id' => 'story_life_student', 'name' => 'Student Life Story AI'],
-            ['id' => 'smart_rules', 'name' => 'SmartRules AI'],
+            ['id' => 'local_coursegen', 'name' => get_string('pluginname_coursegen', 'aiprovider_datacurso')],
+            ['id' => 'local_datacurso_ratings', 'name' => get_string('pluginname_datacurso_ratings', 'aiprovider_datacurso')],
+            ['id' => 'local_forum_ai', 'name' => get_string('pluginname_forum_ai', 'aiprovider_datacurso')],
+            ['id' => 'local_assign_ai', 'name' => get_string('pluginname_assign_ai', 'aiprovider_datacurso')],
+            ['id' => 'aiprovider_datacurso', 'name' => get_string('pluginname', 'aiprovider_datacurso')],
+            ['id' => 'local_dttutor', 'name' => get_string('pluginname_dttutor', 'aiprovider_datacurso')],
+            ['id' => 'local_socialcert', 'name' => get_string('pluginname_socialcert', 'aiprovider_datacurso')],
+            ['id' => 'report_lifestory', 'name' => get_string('pluginname_lifestory', 'aiprovider_datacurso')],
+            ['id' => 'local_coursedynamicrules', 'name' => get_string('pluginname_smartrules', 'aiprovider_datacurso')],
         ];
     }
 
@@ -160,6 +151,7 @@ class provider extends \core_ai\provider {
             ['id' => '/resources/create-mod/stream', 'name' => get_string('generate_activitie', 'aiprovider_datacurso')],
             ['id' => '/certificate/answer', 'name' => get_string('generate_certificate_answer', 'aiprovider_datacurso')],
             ['id' => '/story/analysis', 'name' => get_string('generate_analysis_story_student', 'aiprovider_datacurso')],
+            ['id' => '/smartrules/create-mod', 'name' => get_string('generate_ai_reinforcement_activity', 'aiprovider_datacurso')],
         ];
     }
 }

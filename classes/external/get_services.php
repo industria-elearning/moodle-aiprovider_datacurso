@@ -49,6 +49,10 @@ class get_services extends \external_api {
      * @return array List of services
      */
     public static function execute() {
+        $params = self::validate_parameters(self::execute_parameters(), []);
+        $context = \context_system::instance();
+        self::validate_context($context);
+        require_capability('aiprovider_datacurso/datacurso:viewreports', $context);
         $services = \aiprovider_datacurso\provider::get_services();
         return ['services' => $services];
     }

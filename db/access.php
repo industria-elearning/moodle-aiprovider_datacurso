@@ -25,40 +25,20 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-    // Capability to use AI services provided by Datacurso.
-    'aiprovider/datacurso:use' => [
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
-            'manager' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'teacher' => CAP_ALLOW,
-            'student' => CAP_PREVENT,
-        ],
-    ],
-
     // Capability to view AI usage reports and statistics.
-    'aiprovider/datacurso:viewreports' => [
+    'aiprovider_datacurso/datacurso:viewreports' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
             'manager' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'teacher' => CAP_PREVENT,
-            'student' => CAP_PREVENT,
         ],
     ],
-
     // Capability to manage AI provider settings and configuration.
-    'aiprovider/datacurso:manage' => [
+    'aiprovider_datacurso/datacurso:manage' => [
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => [
             'manager' => CAP_ALLOW,
-            'editingteacher' => CAP_PREVENT,
-            'teacher' => CAP_PREVENT,
-            'student' => CAP_PREVENT,
         ],
-        'clonepermissionsfrom' => 'moodle/site:config',
     ],
 ];

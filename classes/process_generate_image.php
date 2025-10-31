@@ -24,16 +24,26 @@ use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\UriInterface;
 
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->libdir . '/filelib.php');
+
 /**
  * Processor for generating images via Datacurso AI provider.
- * @copyright  Developer <developer@datacurso.com>
+ *
  * @package    aiprovider_datacurso
+ * @copyright  Developer <developer@datacurso.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class process_generate_image extends abstract_processor {
     /** @var int Number of images to generate. */
     private int $numberimages = 1;
 
+    /**
+     * Returns the endpoint URI for this processor.
+     *
+     * @return UriInterface
+     */
     #[\Override]
     protected function get_endpoint(): UriInterface {
         return new Uri('https://plugins-ai.datacurso.com/provider/images/generations');
@@ -41,6 +51,10 @@ class process_generate_image extends abstract_processor {
 
     /**
      * Build the request body for the API call.
+     *
+     * @param string $userid User ID for the request
+     * @return array Request body parameters
+     * @throws \moodle_exception If prompt is empty
      */
     #[\Override]
     protected function build_request_body(string $userid): array {
@@ -48,6 +62,18 @@ class process_generate_image extends abstract_processor {
 
         $finaluserid = $userid ?: $USER->id;
         $prompt = $this->action->get_configuration('prompttext');
+
+        // Validate that prompt is not empty.
+        if (empty($prompt)) {
+            throw new \moodle_exception(
+                'emptyprompt',
+                'aiprovider_datacurso',
+                '',
+                null,
+                'Image generation requires a prompt text'
+            );
+        }
+
         $aspectratio = $this->action->get_configuration('aspectratio') ?? 'square';
         $size = $this->calculate_size($aspectratio);
 
@@ -62,8 +88,8 @@ class process_generate_image extends abstract_processor {
     /**
      * Convert aspect ratio selector to the Datacurso image size expected by the API.
      *
-     * @param string $ratio Aspect ratio configuration value.
-     * @return string Datacurso size token (e.g. 1024x1024).
+     * @param string $ratio Aspect ratio configuration value
+     * @return string Datacurso size token (e.g. 1024x1024)
      */
     private function calculate_size(string $ratio): string {
         return match ($ratio) {
@@ -74,9 +100,19 @@ class process_generate_image extends abstract_processor {
         };
     }
 
+    /**
+     * Create the HTTP request object ready to send.
+     *
+     * @param string $userid User ID for the request
+     * @return RequestInterface PSR-7 request object
+     */
     #[\Override]
     protected function create_request_object(string $userid): RequestInterface {
         $body = json_encode($this->build_request_body($userid));
+
+        // Debug: Log the request body for development purposes.
+        debugging('Image generation request body: ' . $body, DEBUG_DEVELOPER);
+
         $licensekey = get_config('aiprovider_datacurso', 'licensekey');
 
         return new Request(
@@ -91,40 +127,96 @@ class process_generate_image extends abstract_processor {
         );
     }
 
+    /**
+     * Handle successful API response.
+     *
+     * @param ResponseInterface $response PSR-7 response object
+     * @return array Response data with success status and file information
+     */
     #[\Override]
     protected function handle_api_success(ResponseInterface $response): array {
         $body = json_decode($response->getBody()->getContents());
 
-        // Validación básica de respuesta.
-        if (empty($body) || empty($body->data[0]->b64_json)) {
+        // Validate response structure.
+        if (empty($body) || empty($body->data[0])) {
+            debugging('Invalid API response: missing data array', DEBUG_DEVELOPER);
             return [
                 'success' => false,
-                'error' => 'Respuesta inválida del servicio de IA (sin imagen).',
+                'errorcode' => 400,
+                'errormessage' => get_string('responseinvalidaimage', 'aiprovider_datacurso'),
             ];
         }
 
-        // Decodificar la imagen base64.
-        $imagebase64 = $body->data[0]->b64_json;
-        $imagebinary = base64_decode($imagebase64);
+        $imageurl = $body->data[0]->url ?? null;
 
-        // Guardar la imagen en el área de borradores del usuario.
+        // Ensure at least one image format is provided.
+        if (empty($imageurl)) {
+            debugging('Invalid API response: no valid image format provided', DEBUG_DEVELOPER);
+            return [
+                'success' => false,
+                'errorcode' => 400,
+                'errormessage' => get_string('responseinvalidaimage', 'aiprovider_datacurso'),
+            ];
+        }
+
         $userid = (int)($this->action->get_configuration('userid') ?? 0);
-        $file = $this->save_to_draft_area($userid, $imagebinary);
+        $file = $this->download_file($imageurl, $userid);
+
+        // Verify that file was successfully created.
+        if (!$file instanceof \stored_file) {
+            return [
+                'success' => false,
+                'errorcode' => 500,
+                'errormessage' => get_string('responseinvalidaimagecreate', 'aiprovider_datacurso'),
+            ];
+        }
 
         return [
             'success' => true,
-            'sourceurl' => $body->data[0]->url ?? '',
+            'errorcode' => 200,
+            'sourceurl' => $imageurl ?? '',
             'revisedprompt' => $body->data[0]->revised_prompt ?? '',
             'draftfile' => $file,
         ];
     }
 
     /**
+     * Downloads an image file from the Datacurso API and stores it in the user's draft area.
+     *
+     * @param string $imageurl The full URL of the image to download.
+     * @param int $userid The ID of the user who owns the draft area.
+     * @return \stored_file|null The downloaded file, or null if it could not be created.
+     * @throws \Exception If the file cannot be created.
+     */
+    public function download_file($imageurl, $userid): ?\stored_file {
+        $path = parse_url($imageurl, PHP_URL_PATH);
+
+        $filename = basename($path);
+
+        $draftid = file_get_unused_draft_itemid();
+
+        $fs = get_file_storage();
+        $context = \context_user::instance($userid);
+        $fileinfo = [
+            'contextid' => $context->id,
+            'component' => 'user',
+            'filearea' => 'draft',
+            'itemid' => $draftid,
+            'filepath' => '/',
+            'filename' => $filename,
+        ];
+
+        $file = $fs->create_file_from_url($fileinfo, $imageurl, [], true);
+        return $file;
+    }
+
+    /**
      * Store the generated image into the user's draft file area.
      *
-     * @param int $userid User ID that will own the draft file.
-     * @param string $imagebinary Raw PNG binary string.
-     * @return \stored_file Draft file reference.
+     * @param int $userid User ID that will own the draft file
+     * @param string $imagebinary Raw PNG binary string
+     * @return \stored_file Draft file reference
+     * @throws \file_exception If file creation fails
      */
     private function save_to_draft_area(int $userid, string $imagebinary): \stored_file {
         global $CFG;
@@ -135,7 +227,7 @@ class process_generate_image extends abstract_processor {
         $tempdst = make_request_directory() . DIRECTORY_SEPARATOR . $filename;
         file_put_contents($tempdst, $imagebinary);
 
-        // Agregar marca de agua antes de guardar.
+        // Add watermark before saving to draft area.
         $image = new ai_image($tempdst);
         $image->add_watermark()->save();
 
@@ -152,16 +244,21 @@ class process_generate_image extends abstract_processor {
         return $fs->create_file_from_pathname($fileinfo, $tempdst);
     }
 
+    /**
+     * Query the AI API and validate response.
+     *
+     * @return array Response data with success status and file information
+     */
     #[\Override]
     protected function query_ai_api(): array {
         $response = parent::query_ai_api();
 
-        // Moodle espera que draftfile esté definido.
+        // Moodle expects draftfile to be defined for image generation.
         if (!empty($response['success']) && !empty($response['draftfile'])) {
             return $response;
         }
 
-        // Si no hubo éxito, devolvemos el error procesado.
+        // If not successful, return error process.
         return $response;
     }
 }
