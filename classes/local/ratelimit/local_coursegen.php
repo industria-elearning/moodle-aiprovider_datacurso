@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/user/lib.php');
  * @copyright  2025 Wilber Narvaez <https://datacurso.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class local_coursegen implements ratelimit_settings {
+class local_coursegen extends ratelimit_settings {
     /** @var string Plugin component name. */
     private const PLUGIN = 'aiprovider_datacurso';
 
@@ -42,13 +42,22 @@ class local_coursegen implements ratelimit_settings {
     public function add_settings(admin_settingpage $settings, string $component): void {
         $configprefix = self::PLUGIN . "/ratelimit_{$component}";
 
+        // Checkbox to enable limiting by allowed users list.
+        $allowedusersenable = new \admin_setting_configcheckbox(
+            "{$configprefix}_allowedusers_enable",
+            new \lang_string('ratelimit_local_coursegen_allowedusers_enable', self::PLUGIN),
+            new \lang_string('ratelimit_local_coursegen_allowedusers_enable_desc', self::PLUGIN),
+            0
+        );
+        $settings->add($allowedusersenable);
+
         $coursecreators = $this->create_user_setting(
             "{$configprefix}_coursecreators",
             'ratelimit_local_coursegen_coursecreators',
             'ratelimit_local_coursegen_coursecreators_desc'
         );
         $settings->add($coursecreators);
-        $settings->hide_if("{$configprefix}_coursecreators", "{$configprefix}_enable", 'eq', 0);
+        $settings->hide_if("{$configprefix}_coursecreators", "{$configprefix}_allowedusers_enable", 'eq', 0);
 
         $activitycreators = $this->create_user_setting(
             "{$configprefix}_activitycreators",
@@ -56,7 +65,7 @@ class local_coursegen implements ratelimit_settings {
             'ratelimit_local_coursegen_activitycreators_desc'
         );
         $settings->add($activitycreators);
-        $settings->hide_if("{$configprefix}_activitycreators", "{$configprefix}_enable", 'eq', 0);
+        $settings->hide_if("{$configprefix}_activitycreators", "{$configprefix}_allowedusers_enable", 'eq', 0);
     }
 
     /**
@@ -76,7 +85,10 @@ class local_coursegen implements ratelimit_settings {
             'noselectionstring' => get_string('noselection', 'form'),
         ];
 
-        $choices = self::get_all_user_choices();
+        $choices = $this->get_user_choices([
+            'moodle/course:create',
+            'local/coursegen:createcoursewithai',
+        ]);
 
         return new autocomplete(
             $settingname,
@@ -86,40 +98,5 @@ class local_coursegen implements ratelimit_settings {
             $choices,
             $attributes
         );
-    }
-
-    /**
-     * Retrieve the list of selectable users for the autocomplete control.
-     *
-     * @return array<string,string>
-     */
-    private static function get_all_user_choices(): array {
-        global $DB;
-
-        [$sort, $sortparams] = users_order_by_sql('u');
-        if (!empty($sortparams)) {
-            throw new \coding_exception('Unexpected query parameters returned by users_order_by_sql().');
-        }
-
-        $fieldsapi = \core_user\fields::for_name();
-        $fields = $fieldsapi->get_sql('u', false, '', '', false);
-
-        $records = $DB->get_records_sql(
-            "SELECT u.id, {$fields->selects}
-               FROM {user} u
-              WHERE u.deleted = 0
-           ORDER BY {$sort}"
-        );
-
-        $choices = [];
-        foreach ($records as $user) {
-            $choices[(string)$user->id] = fullname($user);
-        }
-
-        if (empty($choices)) {
-            return ['' => get_string('noselection', 'form')];
-        }
-
-        return $choices;
     }
 }
