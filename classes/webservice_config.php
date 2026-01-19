@@ -726,7 +726,7 @@ class webservice_config {
             $datestr = userdate(time(), get_string('strftimedatetime', 'langconfig'));
             set_config('registration_lastsent', $datestr, 'aiprovider_datacurso');
             set_config('registration_laststatus', 'error', 'aiprovider_datacurso');
-            return [get_string('ws_error_registration', 'aiprovider_datacurso')];
+            return [get_string('ws_error_registration', 'aiprovider_datacurso', $e->getMessage())];
         }
     }
 
