@@ -168,6 +168,59 @@ class ratelimiter {
     }
 
     /**
+     * Immediately increment the local token usage counter by 1 for the given service/user.
+     *
+     * This provides a reliable, remote-independent guard: even if the subsequent remote
+     * sync fails, the DB already reflects that one more token was consumed. The sync can
+     * later overwrite this value with the precise remote count once it succeeds.
+     *
+     * Window logic mirrors sync_after_success: if the current window has elapsed the
+     * window is advanced before incrementing so that the new usage starts a fresh window.
+     *
+     * @param string $serviceid Service identifier such as 'local_coursegen'.
+     * @param int    $userid    Moodle user id.
+     * @return void
+     */
+    public function increment_local_usage(string $serviceid, int $userid): void {
+        if (!$this->is_rate_limit_enabled($serviceid)) {
+            return;
+        }
+
+        $limit = $this->get_service_limit($serviceid);
+        if ($limit <= 0) {
+            return;
+        }
+
+        $windowseconds = $this->get_window_length_in_seconds($serviceid);
+        $now = time();
+
+        // Load or create the usage record (windowstart = $now on first creation).
+        $record = $this->load_usage_record($userid, $serviceid, $now);
+
+        $activewindowstart = (int)($record->windowstart ?? 0);
+        if ($activewindowstart <= 0) {
+            $activewindowstart = $now;
+        }
+
+        $windowend = $activewindowstart + $windowseconds;
+
+        // If the stored window has expired, advance it before counting.
+        if ($now >= $windowend) {
+            $elapsed       = $now - $activewindowstart;
+            $windowsadvance = intdiv($elapsed, $windowseconds);
+            if ($windowsadvance > 0) {
+                $activewindowstart += $windowsadvance * $windowseconds;
+            }
+            // Reset the counter because we are now in a new window.
+            $record->tokensused = 0;
+        }
+
+        // Increment by 1 and persist immediately.
+        $newcount = (int)($record->tokensused ?? 0) + 1;
+        $this->update_usage_record($record, $newcount, $activewindowstart, $now);
+    }
+
+    /**
      * Resolve the configured service id from a request path.
      *
      * @param string $path Request path starting with '/'.
@@ -937,5 +990,36 @@ class ratelimiter {
         }
 
         return $tokens;
+    }
+
+    /**
+     * Immediately increment the user quota usage counter by 1.
+     *
+     * This provides a reliable, remote-independent way to track consumption in the
+     * aiprovider_datacurso_userlimit table. The remote sync (sync_user_quota_after_success)
+     * can still be called periodically via a scheduled task, but this local increment
+     * ensures precheck_user_quota() always sees an up-to-date count without depending
+     * on the remote API returning consumption data in the expected format.
+     *
+     * @param int $userid Moodle user id.
+     * @return void
+     */
+    public function increment_user_quota_usage(int $userid): void {
+        global $DB;
+
+        $record = $DB->get_record('aiprovider_datacurso_userlimit', ['userid' => $userid]);
+        if (!$record) {
+            return; // No quota assigned to this user; nothing to increment.
+        }
+
+        $limit = (int)($record->tokenlimit ?? 0);
+        if ($limit <= 0) {
+            return; // Limit 0 or negative means already blocked; skip increment.
+        }
+
+        $now = time();
+        $record->tokensused   = (int)($record->tokensused ?? 0) + 1;
+        $record->timemodified = $now;
+        $DB->update_record('aiprovider_datacurso_userlimit', $record);
     }
 }
