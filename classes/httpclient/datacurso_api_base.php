@@ -235,9 +235,12 @@ class datacurso_api_base {
 
         // Post-success syncs: only after a valid, non-error response.
         if (!empty($serviceid)) {
-            $ratelimiter->sync_after_success($serviceid, $userid, $path);
+            // Immediately increment the local counter by 1.
+            // This is the authoritative rate-limit counter; it does not depend on the
+            // remote API and cannot be overwritten to 0 by a failed/mismatched sync.
+            $ratelimiter->increment_local_usage($serviceid, $userid);
         }
-        $ratelimiter->sync_user_quota_after_success($userid, $path);
+        $ratelimiter->increment_user_quota_usage($userid);
 
         return $decodedresponse;
     }
