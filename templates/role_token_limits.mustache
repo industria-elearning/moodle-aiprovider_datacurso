@@ -14,6 +14,45 @@
     You should have received a copy of the GNU General Public License
     along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 }}
+{{!
+    @template aiprovider_datacurso/role_token_limits
+
+    Datacurso role token limits table and actions.
+
+    Example context (json):
+    {
+        "addurl": "https://example.com/ai/provider/datacurso/admin/role_token_limit_edit.php",
+        "searchaction": "https://example.com/ai/provider/datacurso/admin/role_token_limits.php",
+        "searchvalue": "",
+        "sort": "roleshortname",
+        "dir": "ASC",
+        "perpage": 20,
+        "columns": [
+            {"key": "rolename", "label": "Role", "sorturl": "https://example.com?..."},
+            {"key": "roleshortname", "label": "Short name", "sorturl": "https://example.com?..."},
+            {"key": "priority", "label": "Priority", "sorturl": "https://example.com?..."},
+            {"key": "tokenlimit", "label": "Limit", "sorturl": "https://example.com?..."},
+            {"key": "tokensused", "label": "Used", "sorturl": "https://example.com?..."},
+            {"key": "tokensavailable", "label": "Available", "sorturl": "https://example.com?..."},
+            {"key": "actions", "label": "Actions"}
+        ],
+        "rows": [
+            {
+                "id": 1,
+                "rolename": "Teacher",
+                "roleshortname": "editingteacher",
+                "priority": "High",
+                "tokenlimit": 1000,
+                "tokensused": 220,
+                "tokensavailable": 780,
+                "canreset": true
+            }
+        ],
+        "empty": false,
+        "nothingtodisplay": "Nothing to display",
+        "pagingbar": "<div class=\"paging\">...</div>"
+    }
+}}
 <div class="aiprovider-datacurso-rolelimits" data-region="aiprovider-datacurso-rolelimits">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <a href="#" class="btn btn-primary" data-action="openadd">{{#str}} roletokenlimit_add, aiprovider_datacurso {{/str}}</a>
