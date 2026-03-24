@@ -128,4 +128,22 @@ $functions = [
         'ajax'        => true,
         'capabilities' => 'aiprovider/datacurso:managetokenlimits',
     ],
+    'aiprovider_datacurso_delete_role_token_limit' => [
+        'classname'   => 'aiprovider_datacurso\\external\\delete_role_token_limit',
+        'methodname'  => 'execute',
+        'classpath'   => '',
+        'description' => 'Delete a role token limit record by id.',
+        'type'        => 'write',
+        'ajax'        => true,
+        'capabilities' => 'aiprovider/datacurso:managetokenlimits',
+    ],
+    'aiprovider_datacurso_reset_role_token_usage' => [
+        'classname'   => 'aiprovider_datacurso\\external\\reset_role_token_usage',
+        'methodname'  => 'execute',
+        'classpath'   => '',
+        'description' => 'Reset usage counters for a role token limit record by id.',
+        'type'        => 'write',
+        'ajax'        => true,
+        'capabilities' => 'aiprovider/datacurso:managetokenlimits',
+    ],
 ];

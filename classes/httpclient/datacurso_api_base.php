@@ -135,9 +135,9 @@ class datacurso_api_base {
             throw new \moodle_exception('notallowed', 'aiprovider_datacurso');
         }
 
-        // Enforce user global quota (across services) first.
-        if (!$ratelimiter->precheck_user_quota($userid)) {
-            $snapshot = $ratelimiter->get_user_quota_snapshot($userid);
+        // Enforce effective global quota (role first, then user).
+        if (!$ratelimiter->precheck_effective_quota($userid)) {
+            $snapshot = $ratelimiter->get_effective_quota_snapshot($userid);
             $details = '';
             if (is_array($snapshot) && ($snapshot['limit'] ?? 0) > 0) {
                 $details = $snapshot['used'] . '/' . $snapshot['limit'];
@@ -237,7 +237,7 @@ class datacurso_api_base {
         if (!empty($serviceid)) {
             $ratelimiter->sync_after_success($serviceid, $userid, $path);
         }
-        $ratelimiter->sync_user_quota_after_success($userid, $path);
+        $ratelimiter->sync_effective_quota_after_success($userid, $path);
 
         return $decodedresponse;
     }

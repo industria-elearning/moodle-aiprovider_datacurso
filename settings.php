@@ -130,4 +130,11 @@ if ($hassiteconfig || has_capability('aiprovider/datacurso:managetokenlimits', $
         new moodle_url('/ai/provider/datacurso/admin/user_token_limits.php'),
         'aiprovider/datacurso:managetokenlimits'
     ));
+
+    $ADMIN->add('users', new admin_externalpage(
+        'aiprovider_datacurso_rolelimits',
+        get_string('link_roletokenlimits', 'aiprovider_datacurso'),
+        new moodle_url('/ai/provider/datacurso/admin/role_token_limits.php'),
+        'aiprovider/datacurso:managetokenlimits'
+    ));
 }

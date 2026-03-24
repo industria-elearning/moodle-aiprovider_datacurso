@@ -16,6 +16,7 @@
 
 namespace aiprovider_datacurso\local\service;
 
+use aiprovider_datacurso\local\role_token_limit_manager;
 use aiprovider_datacurso\local\user_token_limit_manager;
 
 /**
@@ -86,6 +87,52 @@ class credit_token_service {
                 'success' => true,
                 'message' => get_string('usertokenlimit_deleted', 'aiprovider_datacurso'),
             ];
+        }
+
+        return [
+            'success' => false,
+            'message' => get_string('usertokenlimit_delete_failed', 'aiprovider_datacurso'),
+        ];
+    }
+
+    /**
+     * Reset usage counters for a role token limit record.
+     *
+     * @param int $id Record ID to reset.
+     * @return array
+     */
+    public static function reset_role_token_usage(int $id): array {
+        if ($id > 0) {
+            $ok = role_token_limit_manager::reset_usage($id);
+            if ($ok) {
+                return [
+                    'success' => true,
+                    'message' => get_string('usertokenlimit_reset_done', 'aiprovider_datacurso'),
+                ];
+            }
+        }
+
+        return [
+            'success' => false,
+            'message' => get_string('usertokenlimit_reset_failed', 'aiprovider_datacurso'),
+        ];
+    }
+
+    /**
+     * Delete a role token limit record.
+     *
+     * @param int $id Record ID to delete.
+     * @return array
+     */
+    public static function delete_role_token_limit(int $id): array {
+        if ($id > 0) {
+            $ok = role_token_limit_manager::delete($id);
+            if ($ok) {
+                return [
+                    'success' => true,
+                    'message' => get_string('usertokenlimit_deleted', 'aiprovider_datacurso'),
+                ];
+            }
         }
 
         return [

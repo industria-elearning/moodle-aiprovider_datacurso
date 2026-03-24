@@ -797,49 +797,144 @@ class ratelimiter {
     }
 
     /**
-     * Check if the user has remaining quota in the aiprovider_datacurso_userlimit table.
-     * Missing record means unlimited (allowed). A configured limit <= 0 blocks access.
+     * Check if the user has remaining effective quota.
+     *
+     * @param int $userid
+     * @return bool
+     */
+    public function precheck_effective_quota(int $userid): bool {
+        $snapshot = $this->get_effective_quota_snapshot($userid);
+        if ($snapshot === null) {
+            return true;
+        }
+
+        $limit = (int)($snapshot['limit'] ?? 0);
+        if ($limit <= 0) {
+            return false;
+        }
+
+        $used = (int)($snapshot['used'] ?? 0);
+        return $used < $limit;
+    }
+
+    /**
+     * Backward-compatible user quota precheck wrapper.
      *
      * @param int $userid
      * @return bool
      */
     public function precheck_user_quota(int $userid): bool {
-        global $DB;
-
-        $record = $DB->get_record('aiprovider_datacurso_userlimit', ['userid' => $userid]);
-        if (!$record) {
-            return true;
-        }
-
-        $limit = (int)($record->tokenlimit ?? 0);
-        if ($limit <= 0) {
-            return false;
-        }
-
-        $used = (int)($record->tokensused ?? 0);
-        return $used < $limit;
+        return $this->precheck_effective_quota($userid);
     }
 
     /**
-     * Get a snapshot of the user quota values.
+     * Get a snapshot of the effective quota values.
      *
      * @param int $userid
-     * @return array{limit:int,used:int,remaining:int}|null Null when no record exists.
+     * @return array{type:string,id:int,limit:int,used:int,remaining:int}|null
      */
-    public function get_user_quota_snapshot(int $userid): ?array {
-        global $DB;
-        $record = $DB->get_record('aiprovider_datacurso_userlimit', ['userid' => $userid]);
-        if (!$record) {
+    public function get_effective_quota_snapshot(int $userid): ?array {
+        $resolved = $this->resolve_effective_quota($userid);
+        if ($resolved === null) {
             return null;
         }
-        $limit = (int)($record->tokenlimit ?? 0);
-        $used = (int)($record->tokensused ?? 0);
+
+        $limit = (int)($resolved->tokenlimit ?? 0);
+        $used = (int)($resolved->tokensused ?? 0);
         $remaining = $limit > 0 ? max(0, $limit - $used) : PHP_INT_MAX;
+
         return [
+            'type' => (string)$resolved->type,
+            'id' => (int)$resolved->id,
             'limit' => $limit,
             'used' => $used,
             'remaining' => $remaining,
         ];
+    }
+
+    /**
+     * Backward-compatible user quota snapshot wrapper.
+     *
+     * @param int $userid
+     * @return array{limit:int,used:int,remaining:int}|null
+     */
+    public function get_user_quota_snapshot(int $userid): ?array {
+        $snapshot = $this->get_effective_quota_snapshot($userid);
+        if ($snapshot === null) {
+            return null;
+        }
+        return [
+            'limit' => (int)$snapshot['limit'],
+            'used' => (int)$snapshot['used'],
+            'remaining' => (int)$snapshot['remaining'],
+        ];
+    }
+
+    /**
+     * Resolve the effective quota for a user.
+     *
+     * Priority: role quota first, then user quota.
+     *
+     * @param int $userid
+     * @return \stdClass|null
+     */
+    private function resolve_effective_quota(int $userid): ?\stdClass {
+        global $DB;
+
+        if ($DB->get_manager()->table_exists('aiprovider_datacurso_rolelimit')) {
+            $context = \context_system::instance();
+            $sql = "SELECT rl.id, rl.roleid, rl.priority, rl.tokenlimit, rl.tokensused, rl.countfrom
+                      FROM {aiprovider_datacurso_rolelimit} rl
+                      JOIN {role_assignments} ra ON ra.roleid = rl.roleid
+                      JOIN {context} ctx ON ctx.id = ra.contextid
+                     WHERE ra.userid = :userid
+                       AND ctx.id = :contextid
+                     ORDER BY CASE
+                         WHEN rl.priority = 'high' THEN 1
+                         WHEN rl.priority = 'medium' THEN 2
+                         WHEN rl.priority = 'low' THEN 3
+                         ELSE 2
+                   END ASC,
+                   rl.tokenlimit ASC,
+                   rl.roleid ASC";
+            $rolelimit = $DB->get_record_sql($sql, [
+                'userid' => $userid,
+                'contextid' => $context->id,
+            ]);
+            if ($rolelimit) {
+                $rolelimit->type = 'role';
+                return $rolelimit;
+            }
+        }
+
+        $userlimit = $DB->get_record('aiprovider_datacurso_userlimit', ['userid' => $userid]);
+        if ($userlimit) {
+            $userlimit->type = 'user';
+            return $userlimit;
+        }
+
+        return null;
+    }
+
+    /**
+     * Sync effective quota counters after a successful request.
+     *
+     * @param int $userid
+     * @param string|null $actionpath
+     * @return void
+     */
+    public function sync_effective_quota_after_success(int $userid, ?string $actionpath = null): void {
+        $resolved = $this->resolve_effective_quota($userid);
+        if (!$resolved) {
+            return;
+        }
+
+        if (($resolved->type ?? '') === 'role') {
+            $this->sync_role_quota_after_success($userid, (int)$resolved->id, $actionpath);
+            return;
+        }
+
+        $this->sync_user_quota_after_success($userid, $actionpath);
     }
 
     /**
@@ -855,23 +950,69 @@ class ratelimiter {
 
         $record = $DB->get_record('aiprovider_datacurso_userlimit', ['userid' => $userid]);
         if (!$record) {
-            return; // No quota set; nothing to sync.
-        }
-
-        $limit = (int)($record->tokenlimit ?? 0);
-        if ($limit <= 0) {
-            return; // Unlimited.
+            return;
         }
 
         $from = (int)($record->countfrom ?? 0);
         $now = time();
-
         $tokensused = $this->get_user_tokens_since($userid, $from > 0 ? $from : 0, $now, $actionpath);
 
         $record->tokensused = $tokensused;
         $record->lastsync = $now;
         $record->timemodified = $now;
         $DB->update_record('aiprovider_datacurso_userlimit', $record);
+    }
+
+    /**
+     * After a successful request, refresh role quota usage and user contribution.
+     *
+     * @param int $userid
+     * @param int $rolelimitid
+     * @param string|null $actionpath
+     * @return void
+     */
+    private function sync_role_quota_after_success(int $userid, int $rolelimitid, ?string $actionpath = null): void {
+        global $DB;
+
+        $rolelimit = $DB->get_record('aiprovider_datacurso_rolelimit', ['id' => $rolelimitid]);
+        if (!$rolelimit) {
+            return;
+        }
+
+        $now = time();
+        $from = (int)($rolelimit->countfrom ?? 0);
+        $tokensused = $this->get_user_tokens_since($userid, $from > 0 ? $from : 0, $now, $actionpath);
+
+        $userusage = $DB->get_record('aiprovider_datacurso_rolelimit_userusage', [
+            'rolelimitid' => $rolelimitid,
+            'userid' => $userid,
+        ]);
+
+        $previous = (int)($userusage->tokensused ?? 0);
+        $delta = $tokensused - $previous;
+
+        $transaction = $DB->start_delegated_transaction();
+        if ($userusage) {
+            $userusage->tokensused = $tokensused;
+            $userusage->lastsync = $now;
+            $userusage->timemodified = $now;
+            $DB->update_record('aiprovider_datacurso_rolelimit_userusage', $userusage);
+        } else {
+            $DB->insert_record('aiprovider_datacurso_rolelimit_userusage', (object)[
+                'rolelimitid' => $rolelimitid,
+                'userid' => $userid,
+                'tokensused' => $tokensused,
+                'lastsync' => $now,
+                'timecreated' => $now,
+                'timemodified' => $now,
+            ]);
+        }
+
+        $rolelimit->tokensused = max(0, (int)$rolelimit->tokensused + $delta);
+        $rolelimit->lastsync = $now;
+        $rolelimit->timemodified = $now;
+        $DB->update_record('aiprovider_datacurso_rolelimit', $rolelimit);
+        $transaction->allow_commit();
     }
 
     /**

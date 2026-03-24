@@ -14,36 +14,33 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+namespace aiprovider_datacurso\task;
+
+use aiprovider_datacurso\local\role_token_limit_manager;
+
 /**
- * Scheduled task definitions for Datacurso AI Provider
- *
- * Documentation: {@link https://moodledev.io/docs/apis/subsystems/task/scheduled}
+ * Scheduled task to process recurring role token limit resets.
  *
  * @package    aiprovider_datacurso
- * @category   task
  * @copyright  2026 Datacurso
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @license    https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+class reset_role_token_limits extends \core\task\scheduled_task {
+    /**
+     * Get task display name.
+     *
+     * @return string
+     */
+    public function get_name(): string {
+        return get_string('task_reset_role_token_limits', 'aiprovider_datacurso');
+    }
 
-defined('MOODLE_INTERNAL') || die();
-
-$tasks = [
-    [
-        'classname' => 'aiprovider_datacurso\\task\\reset_user_token_limits',
-        'blocking' => 0,
-        'minute' => 'R',
-        'hour' => '*',
-        'day' => '*',
-        'dayofweek' => '*',
-        'month' => '*',
-    ],
-    [
-        'classname' => 'aiprovider_datacurso\\task\\reset_role_token_limits',
-        'blocking' => 0,
-        'minute' => 'R',
-        'hour' => '*',
-        'day' => '*',
-        'dayofweek' => '*',
-        'month' => '*',
-    ],
-];
+    /**
+     * Execute task.
+     *
+     * @return void
+     */
+    public function execute(): void {
+        role_token_limit_manager::process_recurring_resets();
+    }
+}

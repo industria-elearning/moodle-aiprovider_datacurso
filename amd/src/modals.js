@@ -63,3 +63,22 @@ export const createUserTokenLimitModal = (triggerElement, modalTitle, id = 0, re
         { id, returnurl, userlabel }
     );
 };
+
+/**
+ * Return Datacurso role token limit modal instance.
+ *
+ * @param {EventTarget} triggerElement
+ * @param {Promise|string} modalTitle
+ * @param {Number} id
+ * @param {String} returnurl
+ * @param {String} rolelabel
+ * @return {ModalForm}
+ */
+export const createRoleTokenLimitModal = (triggerElement, modalTitle, id = 0, returnurl = '', rolelabel = '') => {
+    return createModalForm(
+        triggerElement,
+        modalTitle,
+        'aiprovider_datacurso\\form\\role_token_limit_form',
+        { id, returnurl, rolelabel }
+    );
+};

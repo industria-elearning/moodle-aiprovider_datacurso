@@ -83,6 +83,67 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
             $userlimitfields,
             get_string('privacy:metadata:aiprovider_datacurso_userlimit', 'aiprovider_datacurso')
         );
+
+        $rolelimitfields = [
+            'roleid' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:roleid', 'aiprovider_datacurso'),
+            'priority' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:priority', 'aiprovider_datacurso'),
+            'tokenlimit' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:tokenlimit', 'aiprovider_datacurso'),
+            'tokensused' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:tokensused', 'aiprovider_datacurso'),
+            'countfrom' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:countfrom', 'aiprovider_datacurso'),
+            'lastsync' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:lastsync', 'aiprovider_datacurso'),
+            'recurringintervalenabled' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit:recurringintervalenabled',
+                'aiprovider_datacurso'
+            ),
+            'recurringintervalunit' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit:recurringintervalunit',
+                'aiprovider_datacurso'
+            ),
+            'recurringintervalvalue' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit:recurringintervalvalue',
+                'aiprovider_datacurso'
+            ),
+            'nextresetat' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:nextresetat', 'aiprovider_datacurso'),
+            'timecreated' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:timecreated', 'aiprovider_datacurso'),
+            'timemodified' => get_string('privacy:metadata:aiprovider_datacurso_rolelimit:timemodified', 'aiprovider_datacurso'),
+        ];
+        $collection->add_database_table(
+            'aiprovider_datacurso_rolelimit',
+            $rolelimitfields,
+            get_string('privacy:metadata:aiprovider_datacurso_rolelimit', 'aiprovider_datacurso')
+        );
+
+        $roleusagefields = [
+            'rolelimitid' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:rolelimitid',
+                'aiprovider_datacurso'
+            ),
+            'userid' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:userid',
+                'aiprovider_datacurso'
+            ),
+            'tokensused' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:tokensused',
+                'aiprovider_datacurso'
+            ),
+            'lastsync' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:lastsync',
+                'aiprovider_datacurso'
+            ),
+            'timecreated' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:timecreated',
+                'aiprovider_datacurso'
+            ),
+            'timemodified' => get_string(
+                'privacy:metadata:aiprovider_datacurso_rolelimit_userusage:timemodified',
+                'aiprovider_datacurso'
+            ),
+        ];
+        $collection->add_database_table(
+            'aiprovider_datacurso_rolelimit_userusage',
+            $roleusagefields,
+            get_string('privacy:metadata:aiprovider_datacurso_rolelimit_userusage', 'aiprovider_datacurso')
+        );
         return $collection;
     }
 
@@ -207,6 +268,7 @@ class provider implements core_userlist_provider, metadata_provider, plugin_prov
         return [
             'aiprovider_datacurso_rlimit' => ['userid' => $user->id],
             'aiprovider_datacurso_userlimit' => ['userid' => $user->id],
+            'aiprovider_datacurso_rolelimit_userusage' => ['userid' => $user->id],
         ];
     }
 }

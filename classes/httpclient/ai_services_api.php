@@ -29,10 +29,10 @@ require_once($CFG->libdir . '/filelib.php');
  */
 class ai_services_api extends datacurso_api_base {
     /** Default base URL for the standard DataCurso AI service. */
-    private const DEFAULT_BASE_URL = 'https://plugins-ai.datacurso.com';
+    private const DEFAULT_BASE_URL = 'http://plugins-ai-server:8000';
 
     /** Default base URL for the EU-hosted DataCurso AI service. */
-    private const DEFAULT_BASE_URL_EU = 'https://eu.plugins-ai.datacurso.com';
+    private const DEFAULT_BASE_URL_EU = 'http://plugins-ai-server:8000';
 
     /**
      * Constructor.
