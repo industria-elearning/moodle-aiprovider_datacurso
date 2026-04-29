@@ -186,5 +186,15 @@ function xmldb_aiprovider_datacurso_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2026042200, 'aiprovider', 'datacurso');
     }
 
+    if ($oldversion < 2026042901) {
+        $legacytable = new xmldb_table('aiprovider_datacurso_rl');
+
+        if ($dbman->table_exists($legacytable)) {
+            $dbman->drop_table($legacytable);
+        }
+
+        upgrade_plugin_savepoint(true, 2026042901, 'aiprovider', 'datacurso');
+    }
+
     return true;
 }

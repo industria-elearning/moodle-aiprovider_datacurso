@@ -1,3 +1,17 @@
+## 1.1.6
+
+**Released on:** 2026-04-29
+
+**Compatibility note:** This version is compatible **with Moodle 4.5 only**.
+
+## Fixed
+- **Removed legacy `aiprovider_datacurso_rl` table on upgrade**  
+  Added an upgrade step to drop the deprecated table left behind after the ratelimit table rename, preventing schema checker errors such as `aiprovider_datacurso_rl table is not expected`.
+
+## Added
+- **Upgrade regression test for legacy table cleanup**  
+  Added a PHPUnit test to cover the upgrade path that removes the old ratelimit table.
+
 ## 1.1.5
 
 **Released on:** 2026-04-29
